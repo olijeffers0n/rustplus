@@ -1,0 +1,244 @@
+import io
+import PIL
+from PIL import Image
+from websocket import create_connection
+
+from . import rustplus_pb2
+from ..exceptions import ClientError
+
+from importlib import resources
+
+nametoFile = {
+    "train_tunnel_display_name" : "train.png",
+    "supermarket" : "supermarket.png",
+    "mining_outpost_display_name" : "mining_outpost.png",
+    "gas_station" : "oxums.png",
+    "fishing_village_display_name" : "fishing.png",
+    "large_fishing_village_display_name" : "fishing.png",
+    "lighthouse_display_name" : "lighthouse.png",
+    "excavator" : "excavator.png",
+    "water_treatment_plant_display_name" : "water_treatment.png",
+    "train_yard_display_name" : "train_yard.png",
+    "outpost" : "outpost.png",
+    "bandit_camp" : "bandit.png",
+    "junkyard_display_name" : "junkyard.png",
+    "dome_monument_name" : "dome.png",
+    "satellite_dish_display_name" : "satellite.png",
+    "power_plant_display_name" : "power_plant.png",
+    "military_tunnels_display_name" : "military_tunnels.png",
+    "airfield_display_name" : "airfield.png",
+    "launchsite" : "launchsite.png",
+    "sewer_display_name" : "sewer.png",
+    "oil_rig_small" : "small_oil_rig.png",
+    "large_oil_rig" : "large_oil_rig.png"
+}
+
+class RustSocket:
+
+    def __init__(self, ip, port, playerId, playerToken):
+
+        self.seq = 1
+        self.playerId = playerId
+        self.playerToken = playerToken
+        self.ip = ip
+        self.port = port
+
+    def connect(self):
+        self.ws = create_connection("ws://{}:{}".format(self.ip,self.port))
+
+    def closeConnection(self):
+        self.ws.abort()
+
+    def __errorCheck(self, response):
+        if response.response.error.error != "":
+            raise ClientError("An Error has been returned: {}".format(str(response.response.error.error)))
+
+    def __getTime(self):
+
+        request = rustplus_pb2.AppRequest()
+        request.seq = self.seq
+        self.seq += 1
+        request.playerId = self.playerId
+        request.playerToken = self.playerToken
+        request.getTime.CopyFrom(rustplus_pb2.AppEmpty())
+        data = request.SerializeToString()
+
+        self.ws.send_binary(data)
+
+        returndata = self.ws.recv()
+
+        appMessage = rustplus_pb2.AppMessage()
+        appMessage.ParseFromString(returndata)
+
+        self.__errorCheck(appMessage)
+        
+        input = float(appMessage.response.time.time) 
+        secondsGone = input * 60
+        mins = int(secondsGone // 60)
+        seconds = int(secondsGone % 60)
+        if len(str(seconds)) == 1:
+            timeString = str(mins) + ":0" + str(seconds)
+        else:
+            timeString = str(mins) + ":" + str(seconds)
+
+        return timeString
+
+    def __getMap(self):
+
+        request = rustplus_pb2.AppRequest()
+        request.seq = self.seq
+        self.seq += 1
+        request.playerId = self.playerId
+        request.playerToken = self.playerToken
+        request.getMap.CopyFrom(rustplus_pb2.AppEmpty())
+        data = request.SerializeToString()
+
+        self.ws.send_binary(data)
+
+        returndata = self.ws.recv()
+
+        appMessage = rustplus_pb2.AppMessage()
+        appMessage.ParseFromString(returndata)
+
+        self.__errorCheck(appMessage)
+   
+        return appMessage.response.map
+
+    def __getMarkers(self):
+
+        request = rustplus_pb2.AppRequest()
+        request.seq = self.seq
+        self.seq += 1
+        request.playerId = self.playerId
+        request.playerToken = self.playerToken
+        request.getMapMarkers.CopyFrom(rustplus_pb2.AppEmpty())
+        data = request.SerializeToString()
+
+        self.ws.send_binary(data)
+
+        returndata = self.ws.recv()
+
+        appMessage = rustplus_pb2.AppMessage()
+        appMessage.ParseFromString(returndata)
+
+        self.__errorCheck(appMessage)
+
+        return appMessage
+
+    def __getInfo(self):
+
+        request = rustplus_pb2.AppRequest()
+        request.seq = self.seq
+        self.seq += 1
+        request.playerId = self.playerId
+        request.playerToken = self.playerToken
+        request.getInfo.CopyFrom(rustplus_pb2.AppEmpty())
+        data = request.SerializeToString()
+
+        self.ws.send_binary(data)
+
+        returndata = self.ws.recv()
+
+        appMessage = rustplus_pb2.AppMessage()
+        appMessage.ParseFromString(returndata)
+
+        self.__errorCheck(appMessage)
+
+        return appMessage
+
+    def __formatCoords(self, x : int, y : int, mapSize : int):
+
+        y = mapSize - y - 100
+        x -= 100
+
+        if x < 0:
+            x = 0
+        if x > mapSize:
+            x = mapSize - 200
+        if y < 0:
+            y = 0
+        if y > mapSize:
+            y = mapSize-200
+
+        return (int(x),int(y))
+
+    def getMap(self):
+        
+        map = self.__getMap()
+        info = self.__getInfo()
+
+        # Gets the Mapsize as well as all the monuments
+
+        mapSize  = int(info.response.info.mapSize)
+        monuments = list(map.monuments)
+
+        #Converts the bytes to an Image
+        im = PIL.Image.open(io.BytesIO(map.jpgImage))
+
+        #Crops out the ocean border
+        im1 = im.crop((500,500,map.height-500,map.width-500))
+
+        #Resizes the image so that it is the same dimensions as the in-game map
+        im2 = im1.resize((mapSize,mapSize), Image.ANTIALIAS)
+
+        #Instanciates the image to paste to
+        copied = im2.copy()
+
+        #Loop through each monument
+        for monument in monuments:
+
+            if monument.token in nametoFile:
+                file_name = nametoFile[monument.token]
+                with resources.path("rustplus.api.icons", file_name) as path:
+                    icon = Image.open(path).convert("RGBA")
+            elif "mining_quarry" in monument.token or "harbor" in monument.token or "stables" in monument.token or "swamp" in monument.token:
+                if "mining_quarry" in monument.token:
+                    file_name = "quarry.png"
+                elif "harbor" in monument.token:
+                    file_name = "harbour.png"
+                elif "stables" in monument.token:
+                    file_name = "stable.png"
+                elif "swamp" in monument.token:
+                    file_name = "swamp.png"
+                with resources.path("rustplus.api.icons", file_name) as path:
+                    icon = Image.open(path).convert("RGBA")
+            else:
+                print(monument.token + " - Has no icon, defaulting...")
+                with resources.path("rustplus.api.icons", "icon.png") as path:
+                    icon = Image.open(path).convert("RGBA")
+
+            copied.paste(icon,(self.__formatCoords(monument.x, monument.y, mapSize)), icon)
+
+        copied = copied.resize((2000,2000), Image.ANTIALIAS)
+
+        return copied
+
+    def getInfo(self):
+
+        data = self.__getInfo()
+
+        outData = {}   
+
+        outData["url"] = data.response.info.url
+        outData["name"] = data.response.info.name
+        outData["map"] = data.response.info.map
+        outData["size"] = data.response.info.mapSize
+        outData["currentPlayers"] = data.response.info.players
+        outData["maxPlayers"] = data.response.info.maxPlayers
+        outData["queuedPlayers"] = data.response.info.queuedPlayers
+        outData["seed"] = data.response.info.seed
+
+        return outData
+
+    def getTime(self):
+
+        time = self.__getTime()
+
+        return time
+
+    def getMarkers(self):
+        
+        markers = self.__getMarkers()
+
+        return markers.response.mapMarkers
+
