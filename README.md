@@ -60,7 +60,7 @@ This returns an image which the module has formatted with the images of each mon
 info = rust_socket.getInfo()
 ```
 This method returns a dictionary with the following data:
-```json
+```
 {
 	'url': Server URL - String, 
 	'name': Server Name - String, 
@@ -96,7 +96,7 @@ You can use the tool that [Liam Cottle](https://github.com/liamcottle/rustplus.j
  2. You will be prompted to log into your steam account via the facepunch website
  3. Run `npx @liamcottle/rustplus.js fcm-listen`
  4. Leave this window open, then go onto the server you would like information for and send a pairing notification from in-game. You should get a response like this:
-	```json
+	```
 	{
 	  img: '',
 	  port: 'port',                       <-----Server Port
