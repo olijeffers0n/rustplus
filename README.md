@@ -1,6 +1,5 @@
 ![Rust+.py](https://github.com/olijeffers0n/rustplus/blob/main/icon.png?raw=true)
 
-# Rust+ API Wrapper Written in Python
 A lot of code and ideas have come from the JavaScript version of a wrapper, so I will credit him now:
 [Liam Cottle's RustPlus.js](https://github.com/liamcottle/rustplus.js)
 I have used his Protocol Buffer file for this, as well as instructions on how to use his command line tool to get the information you need.
