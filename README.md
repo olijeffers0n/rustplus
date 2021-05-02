@@ -1,3 +1,5 @@
+![Rust+.py](https://github.com/olijeffers0n/rustplus/blob/main/icon.png?raw=true)
+
 # Rust+ API Wrapper Written in Python
 A lot of code and ideas have come from the JavaScript version of a wrapper, so I will credit him now:
 [Liam Cottle's RustPlus.js](https://github.com/liamcottle/rustplus.js)
@@ -59,7 +61,7 @@ This returns an image which the module has formatted with the images of each mon
 info = rust_socket.getInfo()
 ```
 This method returns a dictionary with the following data:
-```
+```json
 {
 	'url': Server URL - String, 
 	'name': Server Name - String, 
@@ -95,7 +97,7 @@ You can use the tool that [Liam Cottle](https://github.com/liamcottle/rustplus.j
  2. You will be prompted to log into your steam account via the facepunch website
  3. Run `npx @liamcottle/rustplus.js fcm-listen`
  4. Leave this window open, then go onto the server you would like information for and send a pairing notification from in-game. You should get a response like this:
-	```
+	```json
 	{
 	  img: '',
 	  port: 'port',                       <-----Server Port
@@ -114,6 +116,20 @@ You can use the tool that [Liam Cottle](https://github.com/liamcottle/rustplus.j
 	 ```py
 	 rust_socket = RustSocket("IPADDRESS",  "PORT", 64BITSTEAMID, PLAYERTOKEN)
 	 ```
+### Rate Limiting 
+The server uses a '[Token Bucket](https://en.wikipedia.org/wiki/Token_bucket)' approach meaning that you should be careful how many requests you send, however if you are sensible, this should be a non-issue...
+
+You get:
+`50 tokens max per IP address with 15 replenished per second`
+`25 tokens max per PlayerID with 3 replenished per second`
+
+And these are the costs:
+```
+Info : 1
+Map : 5
+Map Markers : 1
+Time : 1
+```
 
 ### Support:
 If you need help, or you think that there is an issue feel free to open an issue. If you think you have made some improvements, open a PR! 
