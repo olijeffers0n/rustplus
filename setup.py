@@ -1,30 +1,27 @@
-from distutils.core import setup
+from setuptools import setup
+
+readme = ''
+with open('README.md') as f:
+    readme = f.read()
+
 setup(
-  name = 'rustplus',         
-  packages = ['rustplus'],   
-  version = '1.0',      
-  license='MIT',        
-  description = 'An API Wrapper for the Rust+ API',   
-  author = 'olijeffers0n',                   
-  author_email = 'pleaseUseMyDiscord@Please.com',      
-  url = 'https://github.com/olijeffers0n/rustplus',   
-  download_url = 'https://github.com/olijeffers0n/rustplus/archive/refs/tags/1.0.tar.gz',
-  keywords = ['Rust+', 'APIWrapper', 'Time', 'Map'],   
-  install_requires=[            
-          'Pillow',
-          'websocket-client',
+      name='rustplus',
+      author='olijeffers0n',
+      author_email='pleaseUseMyDiscord@Please.com',
+      url='https://github.com/olijeffers0n/rustplus',
+      project_urls={
+        "Issue tracker": "https://github.com/olijeffers0n/rustplus/issues",
+      },
+      version="1.1.1",
+      include_package_data=True,
+      packages = ['rustplus', 'rustplus.api', 'rustplus.api.icons', 'rustplus.exceptions'],
+      license='MIT',
+      description='A python wrapper for the Rust Plus API',
+      long_description=readme,
+      long_description_content_type='text/markdown',
+      install_requires=[
+        "Pillow",
+        "websocket-client"
       ],
-  classifiers=[
-    'Development Status :: 3 - Alpha',      
-    'Intended Audience :: Developers',      
-    'Topic :: Software Development :: Build Tools',
-    'License :: OSI Approved :: MIT License',   
-    'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.4',
-    'Programming Language :: Python :: 3.5',
-    'Programming Language :: Python :: 3.6',
-    'Programming Language :: Python :: 3.7',
-    'Programming Language :: Python :: 3.8',
-    'Programming Language :: Python :: 3.9'
-  ],
+      python_requires='>=3.7.0',
 )
