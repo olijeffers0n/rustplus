@@ -185,7 +185,7 @@ GetTeamInfo : 1
 ### Support:
 If you need help, or you think that there is an issue feel free to open an issue. If you think you have made some improvements, open a PR! 
 
-I have tried to explain this a well as possible, but if you should need further clarification, as i said open an issue.
+I have tried to explain this a well as possible, but if you should need further clarification, as i said open an issue. If not: `Ollie#0175` on discord
 
 There is more data that can be accessed with this API, such as the following:
 - Smart Switch interaction
