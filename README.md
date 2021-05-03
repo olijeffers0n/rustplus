@@ -87,7 +87,7 @@ This can be called in order to close the websocket, however it does not destroy 
 This is where it gets a bit finnicky. The Steam ID is unique to your steam account, so can be used for any server you connect to. However, the `PlayerToken` is unique to each server. There are two ways to get this data:
 
 #### As a server Admin / Owner:
-You can go the the server files where you will find a database called `player.tokens.db` containing all of these codes. You can use a tool such as [this](https://sqlitebrowser.org/) to get the codes, or access them programmatically.
+You can go to the server files where you will find a database called `player.tokens.db` containing all of these codes. You can use a tool such as [this](https://sqlitebrowser.org/) to get the codes, or access them programmatically.
 #### As a player.
 You can use the tool that [Liam Cottle](https://github.com/liamcottle/rustplus.js#using-the-command-line-tool) made to get the Player Token When you pair a server. This also gives you the IP address and the port. You must have `npm` installed and run this:
 
