@@ -89,7 +89,7 @@ This is where it gets a bit finnicky. The Steam ID is unique to your steam accou
 #### As a server Admin / Owner:
 You can go to the server files where you will find a database called `player.tokens.db` containing all of these codes. You can use a tool such as [this](https://sqlitebrowser.org/) to get the codes, or access them programmatically.
 #### As a player.
-You can use the tool that [Liam Cottle](https://github.com/liamcottle/rustplus.js#using-the-command-line-tool) made to get the Player Token When you pair a server. This also gives you the IP address and the port. You must have `npm` installed and run this:
+You can use the tool that [Liam Cottle](https://github.com/liamcottle/rustplus.js#using-the-command-line-tool) made to get the Player Token When you pair a server. This also gives you the IP address and the port. You must have `npm` installed and run this, which is annoying however his tool is very effective:
 
  1. Run `npx @liamcottle/rustplus.js fcm-register`
 	Note: You must have Google Chrome installed to use `fcm-register`
