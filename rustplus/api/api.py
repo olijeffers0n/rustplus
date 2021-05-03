@@ -4,7 +4,8 @@ from PIL import Image
 from websocket import create_connection
 
 from . import rustplus_pb2
-from ..exceptions import ClientError
+from ..exceptions import ClientError, ImageError
+from ..objects import ChatMessage
 
 from importlib import resources
 
@@ -43,15 +44,19 @@ class RustSocket:
         self.ip = ip
         self.port = port
 
+
     def connect(self):
         self.ws = create_connection("ws://{}:{}".format(self.ip,self.port))
+
 
     def closeConnection(self):
         self.ws.abort()
 
+
     def __errorCheck(self, response):
         if response.response.error.error != "":
             raise ClientError("An Error has been returned: {}".format(str(response.response.error.error)))
+
 
     def __getTime(self):
 
@@ -83,6 +88,7 @@ class RustSocket:
 
         return timeString
 
+
     def __getMap(self):
 
         request = rustplus_pb2.AppRequest()
@@ -103,6 +109,24 @@ class RustSocket:
         self.__errorCheck(appMessage)
    
         return appMessage.response.map
+
+
+    def __formatCoords(self, x : int, y : int, mapSize : int):
+
+        y = mapSize - y - 100
+        x -= 100
+
+        if x < 0:
+            x = 0
+        if x > mapSize:
+            x = mapSize - 200
+        if y < 0:
+            y = 0
+        if y > mapSize:
+            y = mapSize-200
+
+        return (int(x),int(y))
+
 
     def __getMarkers(self):
 
@@ -125,6 +149,7 @@ class RustSocket:
 
         return appMessage
 
+
     def __getInfo(self):
 
         request = rustplus_pb2.AppRequest()
@@ -146,23 +171,167 @@ class RustSocket:
 
         return appMessage
 
-    def __formatCoords(self, x : int, y : int, mapSize : int):
 
-        y = mapSize - y - 100
-        x -= 100
+    def __getTeamChat(self):
 
-        if x < 0:
-            x = 0
-        if x > mapSize:
-            x = mapSize - 200
-        if y < 0:
-            y = 0
-        if y > mapSize:
-            y = mapSize-200
+        request = rustplus_pb2.AppRequest()
+        request.seq = self.seq
+        self.seq += 1
+        request.playerId = self.playerId
+        request.playerToken = self.playerToken
+        request.getTeamChat.CopyFrom(rustplus_pb2.AppEmpty())
+        data = request.SerializeToString()
 
-        return (int(x),int(y))
+        self.ws.send_binary(data)
 
-    def getMap(self):
+       
+        returndata = self.ws.recv()
+
+        appMessage = rustplus_pb2.AppMessage()
+        appMessage.ParseFromString(returndata)
+
+        self.__errorCheck(appMessage)
+
+        return appMessage
+
+
+    def __sendTeamChatMessage(self, message):
+
+        msg = rustplus_pb2.AppSendMessage()
+        msg.message = message
+
+        request = rustplus_pb2.AppRequest()
+        request.seq = self.seq
+        self.seq += 1
+        request.playerId = self.playerId
+        request.playerToken = self.playerToken
+        request.sendTeamMessage.CopyFrom(msg)
+        data = request.SerializeToString()
+
+        self.ws.send_binary(data)
+
+        messageReturn = self.ws.recv()
+        success = self.ws.recv()
+
+        appMessage = rustplus_pb2.AppMessage()
+        appMessage.ParseFromString(success)
+            
+        self.__errorCheck(appMessage)
+
+        return appMessage
+
+
+    def __getCameraFrame(self, id, frame):
+
+        cameraPacket = rustplus_pb2.AppCameraFrameRequest()
+        cameraPacket.identifier = id
+        cameraPacket.frame = frame
+
+        request = rustplus_pb2.AppRequest()
+        request.seq = self.seq
+        self.seq += 1
+        request.playerId = self.playerId
+        request.playerToken = self.playerToken
+        request.getCameraFrame.CopyFrom(cameraPacket)
+        data = request.SerializeToString()
+
+        self.ws.send_binary(data)
+
+
+        returndata = self.ws.recv()
+
+        appMessage = rustplus_pb2.AppMessage()
+        appMessage.ParseFromString(returndata)
+
+
+        self.__errorCheck(appMessage)
+
+        return appMessage
+
+
+    def __getTeamInfo(self):
+
+        request = rustplus_pb2.AppRequest()
+        request.seq = self.seq
+        self.seq += 1
+        request.playerId = self.playerId
+        request.playerToken = self.playerToken
+        request.getTeamInfo.CopyFrom(rustplus_pb2.AppEmpty())
+        data = request.SerializeToString()
+
+        self.ws.send_binary(data)
+
+        returndata = self.ws.recv()
+
+        appMessage = rustplus_pb2.AppMessage()
+        appMessage.ParseFromString(returndata)
+
+        self.__errorCheck(appMessage)
+
+        return appMessage
+
+#######################FRONT FACING##############################
+
+    def getTeamInfo(self) -> list:
+        """
+        Returns a list of the players in your team, as well as a lot of data about them
+        """
+
+        teamInfo = self.__getTeamInfo()
+
+        return teamInfo.response.teamInfo
+
+
+    def getCameraFrame(self, id : str, frame : int):
+        """
+        Returns a low quality image from a camera in-game
+        """
+
+        returnData = self.__getCameraFrame(id,frame)
+
+        try:
+            image = PIL.Image.open(io.BytesIO(returnData.response.cameraFrame.jpgImage))
+        except:
+            raise ImageError("Invalid Bytes Recieved")
+
+        return image
+
+
+    def sendTeamMessage(self, message : str):
+        """
+        Sends a team chat message as yourself. Returns the success data back from the server. Can be ignored
+        """
+
+        data = self.__sendTeamChatMessage(message)
+        return data.response
+
+
+    def getTeamChat(self) -> list:
+        """
+        Returns a list of chat messages, formatted as 'ChatMessage' objects with entries:
+        - steamID, 
+        - senderName,
+        - message, 
+        - colour
+        """
+
+        chat = self.__getTeamChat()
+
+        messages = chat.response.teamChat.messages
+
+        messagesToReturn = []
+
+        for i in range(0,len(messages)-1):
+            currentMessage = messages[i]
+            messagesToReturn.append(ChatMessage(currentMessage.steamId,currentMessage.name,currentMessage.message,currentMessage.color))
+
+        return messagesToReturn
+
+
+    def getMap(self, addIcons : bool = True):
+        """
+        Gets the image of the map. Argument 'addIcons' decides whether to add monument icons. Defaults to True
+        """
         
         map = self.__getMap()
         info = self.__getInfo()
@@ -173,7 +342,10 @@ class RustSocket:
         monuments = list(map.monuments)
 
         #Converts the bytes to an Image
-        im = PIL.Image.open(io.BytesIO(map.jpgImage))
+        try:
+            im = PIL.Image.open(io.BytesIO(map.jpgImage))
+        except:
+            raise ImageError("Invalid bytes for the image")
 
         #Crops out the ocean border
         im1 = im.crop((500,500,map.height-500,map.width-500))
@@ -184,36 +356,42 @@ class RustSocket:
         #Instanciates the image to paste to
         copied = im2.copy()
 
-        #Loop through each monument
-        for monument in monuments:
+        if addIcons:
 
-            if monument.token in nametoFile:
-                file_name = nametoFile[monument.token]
-                with resources.path("rustplus.api.icons", file_name) as path:
-                    icon = Image.open(path).convert("RGBA")
-            elif "mining_quarry" in monument.token or "harbor" in monument.token or "stables" in monument.token or "swamp" in monument.token:
-                if "mining_quarry" in monument.token:
-                    file_name = "quarry.png"
-                elif "harbor" in monument.token:
-                    file_name = "harbour.png"
-                elif "stables" in monument.token:
-                    file_name = "stable.png"
-                elif "swamp" in monument.token:
-                    file_name = "swamp.png"
-                with resources.path("rustplus.api.icons", file_name) as path:
-                    icon = Image.open(path).convert("RGBA")
-            else:
-                print(monument.token + " - Has no icon, defaulting...")
-                with resources.path("rustplus.api.icons", "icon.png") as path:
-                    icon = Image.open(path).convert("RGBA")
+            #Loop through each monument
+            for monument in monuments:
 
-            copied.paste(icon,(self.__formatCoords(monument.x, monument.y, mapSize)), icon)
+                if monument.token in nametoFile:
+                    file_name = nametoFile[monument.token]
+                    with resources.path("rustplus.api.icons", file_name) as path:
+                        icon = Image.open(path).convert("RGBA")
+                elif "mining_quarry" in monument.token or "harbor" in monument.token or "stables" in monument.token or "swamp" in monument.token:
+                    if "mining_quarry" in monument.token:
+                        file_name = "quarry.png"
+                    elif "harbor" in monument.token:
+                        file_name = "harbour.png"
+                    elif "stables" in monument.token:
+                        file_name = "stable.png"
+                    elif "swamp" in monument.token:
+                        file_name = "swamp.png"
+                    with resources.path("rustplus.api.icons", file_name) as path:
+                        icon = Image.open(path).convert("RGBA")
+                else:
+                    print(monument.token + " - Has no icon, defaulting...")
+                    with resources.path("rustplus.api.icons", "icon.png") as path:
+                        icon = Image.open(path).convert("RGBA")
+
+                copied.paste(icon,(self.__formatCoords(monument.x, monument.y, mapSize)), icon)
 
         copied = copied.resize((2000,2000), Image.ANTIALIAS)
 
         return copied
 
-    def getInfo(self):
+
+    def getInfo(self) -> dict:
+        """
+        Returns a dictionary of key information from the server
+        """
 
         data = self.__getInfo()
 
@@ -230,13 +408,21 @@ class RustSocket:
 
         return outData
 
-    def getTime(self):
+
+    def getTime(self) -> str:
+        """
+        Gets the Current time and formats it to "HOURS:MINTUES"
+        """
 
         time = self.__getTime()
 
         return time
 
-    def getMarkers(self):
+    
+    def getMarkers(self) -> list:
+        """
+        Gets the map markers for the server. Returns a list of them
+        """
         
         markers = self.__getMarkers()
 
