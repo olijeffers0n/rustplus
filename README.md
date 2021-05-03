@@ -33,8 +33,20 @@ info = rust_socket.getInfo()
 #Get Current time:
 time = rust_socket.getTime()
 
+#Getting Team info
+team_info = rust_socket.getTeamInfo()
+
+#Getting Team Chat:
+team_chat = rust_socket.getTeamChat()
+
+#Sending a Team Chat message:
+status = rust_socket.sendTeamMessage("Yo! I sent this with Rust+.py")
+
+#Get Camera Image:
+camera_image = rust_socket.getCameraFrame("CAMID",FRAMENO)
+
 #Get Map Image:
-rust_map = rust_socket.getMap()
+rust_map = rust_socket.getMap(addIcons = True)
 
 rust_socket.closeConnection()
 ```
@@ -51,9 +63,9 @@ Which will ping the server and open the connection.
 
 ##### Getting the map:
 ```py
-rustMap = rust_socket.getMap()
+rustMap = rust_socket.getMap(addIcons = bool)
 ```
-This returns an image which the module has formatted with the images of each monument, after it has parsed the bytes. In the near future I plan to make the monument icons optional. If you want to save the image file, just call `rustMap.save("name.png")` which will save it to the current directory. You can also call `rustMap.show()` which will open the map as a picture file.
+This returns an image which the module has formatted with the images of each monument after it has parsed the bytes. If you do not want the icons, and instead just want the empty map, add the parameter `addIcons = False`. If you want to save the image file, just call `rustMap.save("name.png")` which will save it to the current directory. You can also call `rustMap.show()` which will open the map as a picture file.
 
 ##### Getting server Info:
 ```py
@@ -77,6 +89,43 @@ This method returns a dictionary with the following data:
 time = rust_socket.getTime()
 ```
 The method returns a string of the current time, in the format `"HOURS:MINUTES"` in 24Hr format. The method has already parsed the raw data to a human-readable string.
+##### Getting the Team Chat
+```py
+team_chat = rust_socket.getTeamChat()
+```
+This returns an iterable list of `ChatMessage` objects, with the entries:
+
+ - SteamID
+ - SenderName
+ - Message
+ - Colour
+ 
+So, you could print out the messages like this:
+```py
+for message in team_chat:
+	print(message.message)
+```
+##### Sending a message to the Team Chat:
+```py
+status = rust_socket.sendTeamMessage("Yo! I sent this with Rust+.py")
+```
+This method returns a status, however this can be ignored if you would like. The message will be sent as if you are sending it.
+##### Getting team info:
+```py
+team_info = rust_socket.getTeamInfo()
+```
+This returns a list of the players in your team, as well as a lot of data about them such as: `x`,`y`,`dead`,`online`,`name` etc etc
+##### Getting a camera frame:
+```py
+cam_picture = rust_socket.getCameraFrame("CAMID",FRAMENO)
+```
+Returns a very low resolution image from the camera. There are some caveats:
+ - A player must be near the camera for it to work
+ - This is disabled on servers by default. An admin must run the convar: `cctvrender.enabled true` in console to enable it
+ - The image returned often looks terrible
+
+The codes of cameras can be found [here](https://www.corrosionhour.com/rust-cctv-camera-codes-list/)
+
 ##### Closing the connection:
 ```py
 rust_socket.closeConnection()
@@ -89,7 +138,7 @@ This is where it gets a bit finnicky. The Steam ID is unique to your steam accou
 #### As a server Admin / Owner:
 You can go to the server files where you will find a database called `player.tokens.db` containing all of these codes. You can use a tool such as [this](https://sqlitebrowser.org/) to get the codes, or access them programmatically.
 #### As a player.
-You can use the tool that [Liam Cottle](https://github.com/liamcottle/rustplus.js#using-the-command-line-tool) made to get the Player Token When you pair a server. This also gives you the IP address and the port. You must have `npm` installed and run this, which is annoying however his tool is very effective:
+You can use the tool that [Liam Cottle](https://github.com/liamcottle/rustplus.js#using-the-command-line-tool) made to get the Player Token When you pair a server. This also gives you the IP address and the port. You must have `npm` installed and run this, which is annoying, however his tool is very effective:
 
  1. Run `npx @liamcottle/rustplus.js fcm-register`
 	Note: You must have Google Chrome installed to use `fcm-register`
@@ -126,8 +175,11 @@ And these are the costs:
 ```
 Info : 1
 Map : 5
+Camera Frame: 2
 Map Markers : 1
 Time : 1
+SendTeamChat : 2
+GetTeamInfo : 1
 ```
 
 ### Support:
@@ -137,10 +189,7 @@ I have tried to explain this a well as possible, but if you should need further 
 
 There is more data that can be accessed with this API, such as the following:
 - Smart Switch interaction
-- CCTV Camera Frame grabbing
-- Team chat message sending
 - Getting data / Setting data on other smart devices
-- Getting team information, like players and their positions
 
 I may add some of this functionality soon, depends on the interest :-)
 
