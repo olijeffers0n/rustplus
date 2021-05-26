@@ -48,6 +48,13 @@ camera_image = rust_socket.getCameraFrame("CAMID",FRAMENO)
 #Get Map Image:
 rust_map = rust_socket.getMap(addIcons = True)
 
+#Get Entity Information
+entity_info = rust_socket.getEntityInfo(ENTITYID)
+
+#Turning On/Off a Smart Switch
+rust_socket.turnOffSmartSwitch(ENTITYID)
+rust_socket.turnOnSmartSwitch(ENTITYID)
+
 rust_socket.closeConnection()
 ```
 ### Information on Usage:
@@ -126,11 +133,29 @@ Returns a very low resolution image from the camera. There are some caveats:
 
 The codes of cameras can be found [here](https://www.corrosionhour.com/rust-cctv-camera-codes-list/)
 
+##### Getting Entity Information:
+```py
+entity_info = rust_socket.getEntityInfo(ENTITYID)
+```
+Returns some information on the entity you provided. See __below__ on how to get the Entity ID
+Works on many entities like Smart Switches and Storage Monitors
+
+##### Turning On/Off a Smart Switch:
+```py
+rust_socket.turnOffSmartSwitch(ENTITYID)
+rust_socket.turnOnSmartSwitch(ENTITYID)
+```
+Both return some data on the action fullfilled. See __below__ on how to get the Entity ID
+
 ##### Closing the connection:
 ```py
 rust_socket.closeConnection()
 ```
 This can be called in order to close the websocket, however it does not destroy the object you made. This means that you can close and reopen the websocket effectively infinitely.
+
+### Getting the Entity ID
+The Entity ID Can be obtained by looking at the entity in game and typing `entity.debug_lookat` into the `F1` console. This will display the entity ID on the screen. 
+Please Note:  the Entity ID is the numbers at the beginning
 
 ### Getting Your Steam ID and PlayerToken:
 This is where it gets a bit finnicky. The Steam ID is unique to your steam account, so can be used for any server you connect to. However, the `PlayerToken` is unique to each server. There are two ways to get this data:
@@ -180,6 +205,8 @@ Map Markers : 1
 Time : 1
 SendTeamChat : 2
 GetTeamInfo : 1
+EntityInfo: 1
+SetEntityValue: 1
 ```
 
 ### Support:
@@ -188,8 +215,7 @@ If you need help, or you think that there is an issue feel free to open an issue
 I have tried to explain this a well as possible, but if you should need further clarification, as i said open an issue. If not: `Ollie#0175` on discord
 
 There is more data that can be accessed with this API, such as the following:
-- Smart Switch interaction
-- Getting data / Setting data on other smart devices
+- Setting Team Leader
 
 I may add some of this functionality soon, depends on the interest :-)
 
