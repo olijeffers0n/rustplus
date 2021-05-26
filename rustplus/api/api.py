@@ -270,6 +270,57 @@ class RustSocket:
 
         return appMessage
 
+
+    def __updateSmartDevice(self, eid : int, value : bool) -> rustplus_pb2.AppMessage:
+
+        entityValue = rustplus_pb2.AppSetEntityValue()
+        entityValue.value = value
+
+        request = rustplus_pb2.AppRequest()
+        request.seq = self.seq
+        self.seq += 1
+        request.playerId = self.playerId
+        request.playerToken = self.playerToken
+
+        request.entityId = eid
+        request.setEntityValue.CopyFrom(entityValue)
+
+        data = request.SerializeToString()
+
+        self.ws.send_binary(data)
+
+        returndata = self.ws.recv()
+
+        appMessage = rustplus_pb2.AppMessage()
+        appMessage.ParseFromString(returndata)
+            
+        self.__errorCheck(appMessage)
+
+        return appMessage
+
+
+    def __getEntityInfo(self, eid : int): 
+
+        request = rustplus_pb2.AppRequest()
+        request.seq = self.seq
+        self.seq += 1
+        request.playerId = self.playerId
+        request.playerToken = self.playerToken
+        request.entityId = eid
+        request.getEntityInfo.CopyFrom(rustplus_pb2.AppEmpty())
+        data = request.SerializeToString()
+
+        self.ws.send_binary(data)
+
+        returndata = self.ws.recv()
+
+        appMessage = rustplus_pb2.AppMessage()
+        appMessage.ParseFromString(returndata)
+
+        self.__errorCheck(appMessage)
+
+        return appMessage
+
 #######################FRONT FACING##############################
 
     def getTeamInfo(self) -> list:
@@ -428,3 +479,25 @@ class RustSocket:
 
         return markers.response.mapMarkers
 
+
+    def turnOnSmartSwitch(self, EID : int):
+        """
+        Turns on a smart switch on the server
+        """
+
+        return self.__updateSmartDevice(EID, True)
+
+
+    def turnOffSmartSwitch(self, EID : int):
+        """
+        Turns off a smart switch on the server
+        """
+
+        return self.__updateSmartDevice(EID, False)
+
+    
+    def getEntityInfo(self, EID : int) -> rustplus_pb2.AppEntityInfo: 
+
+        data = self.__getEntityInfo(EID)
+
+        return data.response.entityInfo
