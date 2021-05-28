@@ -154,7 +154,7 @@ rust_socket.closeConnection()
 This can be called in order to close the websocket, however it does not destroy the object you made. This means that you can close and reopen the websocket effectively infinitely.
 
 ### Getting the Entity ID
-The Entity ID Can be obtained by looking at the entity in game and typing `entity.debug_lookat` into the `F1` console. This will display the entity ID on the screen. 
+The Entity ID Can be obtained by looking at the entity in game and typing `entity.debug_lookat` into the `F1` console (If you are an Admin). This will display the entity ID on the screen. 
 Please Note:  the Entity ID is the numbers at the beginning
 
 ### Getting Your Steam ID and PlayerToken:
