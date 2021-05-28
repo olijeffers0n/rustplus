@@ -154,8 +154,36 @@ rust_socket.closeConnection()
 This can be called in order to close the websocket, however it does not destroy the object you made. This means that you can close and reopen the websocket effectively infinitely.
 
 ### Getting the Entity ID
-The Entity ID Can be obtained by looking at the entity in game and typing `entity.debug_lookat` into the `F1` console (If you are an Admin). This will display the entity ID on the screen. 
+- If you are an Admin:
+The Entity ID Can be obtained by looking at the entity in game and typing `entity.debug_lookat` into the `F1` console . This will display the entity ID on the screen. 
 Please Note:  the Entity ID is the numbers at the beginning
+
+- If you are not an Admin:
+You can use the tool that [Liam Cottle](https://github.com/liamcottle/rustplus.js#using-the-command-line-tool) has made. 
+ 1. Run `npx @liamcottle/rustplus.js fcm-register` (If it is the first Time)
+	Note: You must have Google Chrome installed to use `fcm-register`
+ 2. You will be prompted to log into your steam account via the facepunch website
+ 3. Run `npx @liamcottle/rustplus.js fcm-listen`
+ 4. Leave this window open, then go onto the server you would like information for and send a pairing notification from in-game. You should get a response like this:
+	```
+	{
+	  img: '',
+	  entityType: '',
+	  ip: 'ServerIP',
+	  entityId: 'EntityID',         <--- Entity ID
+	  type: 'EntityType',
+	  url: 'ServerURL',
+	  playerToken: 'PlayerToken',
+	  port: 'port',
+	  entityName: 'EntityName',
+	  name: 'Name',
+	  logo: '',
+	  id: '',
+	  desc: 'Description',
+	  playerId: 'PlayerID'
+	}
+	```
+You can see the Entity ID Here
 
 ### Getting Your Steam ID and PlayerToken:
 This is where it gets a bit finnicky. The Steam ID is unique to your steam account, so can be used for any server you connect to. However, the `PlayerToken` is unique to each server. There are two ways to get this data:
@@ -165,7 +193,7 @@ You can go to the server files where you will find a database called `player.tok
 #### As a player.
 You can use the tool that [Liam Cottle](https://github.com/liamcottle/rustplus.js#using-the-command-line-tool) made to get the Player Token When you pair a server. This also gives you the IP address and the port. You must have `npm` installed and run this, which is annoying, however his tool is very effective:
 
- 1. Run `npx @liamcottle/rustplus.js fcm-register`
+ 1. Run `npx @liamcottle/rustplus.js fcm-register` (If it is the first Time)
 	Note: You must have Google Chrome installed to use `fcm-register`
  2. You will be prompted to log into your steam account via the facepunch website
  3. Run `npx @liamcottle/rustplus.js fcm-listen`
