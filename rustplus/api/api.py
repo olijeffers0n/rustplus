@@ -4,7 +4,7 @@ from PIL import Image
 from websocket import create_connection
 
 from . import rustplus_pb2
-from ..exceptions import ClientError, ImageError
+from ..exceptions import ClientError, ImageError, ServerNotResponsiveError
 from ..objects import ChatMessage
 
 from importlib import resources
@@ -46,7 +46,10 @@ class RustSocket:
 
 
     def connect(self):
-        self.ws = create_connection("ws://{}:{}".format(self.ip,self.port))
+        try:
+            self.ws = create_connection("ws://{}:{}".format(self.ip,self.port))
+        except ConnectionRefusedError as e:
+            raise ServerNotResponsiveError("The sever is not online to connect to - your ip/port are either correct or the server is offline")
 
 
     def closeConnection(self):
@@ -57,14 +60,17 @@ class RustSocket:
         if response.response.error.error != "":
             raise ClientError("An Error has been returned: {}".format(str(response.response.error.error)))
 
-
-    def __getTime(self):
-
+    def __initProto(self):
         request = rustplus_pb2.AppRequest()
         request.seq = self.seq
         self.seq += 1
         request.playerId = self.playerId
         request.playerToken = self.playerToken
+        return request
+
+    def __getTime(self):
+
+        request = self.__initProto()
         request.getTime.CopyFrom(rustplus_pb2.AppEmpty())
         data = request.SerializeToString()
 
@@ -91,11 +97,7 @@ class RustSocket:
 
     def __getMap(self):
 
-        request = rustplus_pb2.AppRequest()
-        request.seq = self.seq
-        self.seq += 1
-        request.playerId = self.playerId
-        request.playerToken = self.playerToken
+        request = self.__initProto()
         request.getMap.CopyFrom(rustplus_pb2.AppEmpty())
         data = request.SerializeToString()
 
@@ -130,11 +132,7 @@ class RustSocket:
 
     def __getMarkers(self):
 
-        request = rustplus_pb2.AppRequest()
-        request.seq = self.seq
-        self.seq += 1
-        request.playerId = self.playerId
-        request.playerToken = self.playerToken
+        request = self.__initProto()
         request.getMapMarkers.CopyFrom(rustplus_pb2.AppEmpty())
         data = request.SerializeToString()
 
@@ -152,11 +150,7 @@ class RustSocket:
 
     def __getInfo(self):
 
-        request = rustplus_pb2.AppRequest()
-        request.seq = self.seq
-        self.seq += 1
-        request.playerId = self.playerId
-        request.playerToken = self.playerToken
+        request = self.__initProto()
         request.getInfo.CopyFrom(rustplus_pb2.AppEmpty())
         data = request.SerializeToString()
 
@@ -174,11 +168,7 @@ class RustSocket:
 
     def __getTeamChat(self):
 
-        request = rustplus_pb2.AppRequest()
-        request.seq = self.seq
-        self.seq += 1
-        request.playerId = self.playerId
-        request.playerToken = self.playerToken
+        request = self.__initProto()
         request.getTeamChat.CopyFrom(rustplus_pb2.AppEmpty())
         data = request.SerializeToString()
 
@@ -200,11 +190,7 @@ class RustSocket:
         msg = rustplus_pb2.AppSendMessage()
         msg.message = message
 
-        request = rustplus_pb2.AppRequest()
-        request.seq = self.seq
-        self.seq += 1
-        request.playerId = self.playerId
-        request.playerToken = self.playerToken
+        request = self.__initProto()
         request.sendTeamMessage.CopyFrom(msg)
         data = request.SerializeToString()
 
@@ -227,11 +213,7 @@ class RustSocket:
         cameraPacket.identifier = id
         cameraPacket.frame = frame
 
-        request = rustplus_pb2.AppRequest()
-        request.seq = self.seq
-        self.seq += 1
-        request.playerId = self.playerId
-        request.playerToken = self.playerToken
+        request = self.__initProto()
         request.getCameraFrame.CopyFrom(cameraPacket)
         data = request.SerializeToString()
 
@@ -251,11 +233,7 @@ class RustSocket:
 
     def __getTeamInfo(self):
 
-        request = rustplus_pb2.AppRequest()
-        request.seq = self.seq
-        self.seq += 1
-        request.playerId = self.playerId
-        request.playerToken = self.playerToken
+        request = self.__initProto()
         request.getTeamInfo.CopyFrom(rustplus_pb2.AppEmpty())
         data = request.SerializeToString()
 
@@ -276,11 +254,7 @@ class RustSocket:
         entityValue = rustplus_pb2.AppSetEntityValue()
         entityValue.value = value
 
-        request = rustplus_pb2.AppRequest()
-        request.seq = self.seq
-        self.seq += 1
-        request.playerId = self.playerId
-        request.playerToken = self.playerToken
+        request = self.__initProto()
 
         request.entityId = eid
         request.setEntityValue.CopyFrom(entityValue)
@@ -301,11 +275,8 @@ class RustSocket:
 
     def __getEntityInfo(self, eid : int): 
 
-        request = rustplus_pb2.AppRequest()
-        request.seq = self.seq
-        self.seq += 1
-        request.playerId = self.playerId
-        request.playerToken = self.playerToken
+        request = self.__initProto()
+
         request.entityId = eid
         request.getEntityInfo.CopyFrom(rustplus_pb2.AppEmpty())
         data = request.SerializeToString()
@@ -334,6 +305,7 @@ class RustSocket:
 
 
     def getCameraFrame(self, id : str, frame : int) -> Image:
+
         """
         Returns a low quality image from a camera in-game
         """
