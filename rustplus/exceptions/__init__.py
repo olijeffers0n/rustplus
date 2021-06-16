@@ -1,1 +1,1 @@
-from .exceptions import ClientError, ImageError
+from .exceptions import ClientError, ImageError, ServerNotResponsiveError
