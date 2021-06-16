@@ -21,7 +21,8 @@ setup(
       long_description_content_type='text/markdown',
       install_requires=[
         "Pillow",
-        "websocket-client"
+        "websocket-client",
+        "protobuf"
       ],
       python_requires='>=3.7.0',
 )
