@@ -333,7 +333,7 @@ class RustSocket:
         return teamInfo.response.teamInfo
 
 
-    def getCameraFrame(self, id : str, frame : int):
+    def getCameraFrame(self, id : str, frame : int) -> Image:
         """
         Returns a low quality image from a camera in-game
         """
@@ -379,7 +379,7 @@ class RustSocket:
         return messagesToReturn
 
 
-    def getMap(self, addIcons : bool = True):
+    def getMap(self, addIcons : bool = True) -> Image:
         """
         Gets the image of the map. Argument 'addIcons' decides whether to add monument icons. Defaults to True
         """
