@@ -1,4 +1,4 @@
-![Rust+.py](https://github.com/olijeffers0n/rustplus/blob/main/icon.png?raw=true)
+![Rust+.py](https://github.com/olijeffers0n/rustplus/blob/master/icon.png)
 
 A lot of code and ideas have come from the JavaScript version of a wrapper, so I will credit him now:
 [Liam Cottle's RustPlus.js](https://github.com/liamcottle/rustplus.js)
