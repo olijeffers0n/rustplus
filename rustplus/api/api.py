@@ -377,7 +377,9 @@ class RustSocket:
         return self.__updateSmartDevice(EID, False)
 
     def getEntityInfo(self, EID : int) -> AppEntityInfo: 
-
+        """
+        Get the entity info from a given entity ID
+        """
         data = self.__getEntityInfo(EID)
 
         return data.response.entityInfo
