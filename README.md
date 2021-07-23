@@ -61,6 +61,9 @@ entity_info = rust_socket.getEntityInfo(ENTITYID)
 rust_socket.turnOffSmartSwitch(ENTITYID)
 rust_socket.turnOnSmartSwitch(ENTITYID)
 
+#Promoting a TeamMate to team leader
+rust_socket.promoteToTeamLeader(SteamID)
+
 rust_socket.closeConnection()
 ```
 ### Information on Usage:
@@ -152,6 +155,12 @@ rust_socket.turnOffSmartSwitch(ENTITYID)
 rust_socket.turnOnSmartSwitch(ENTITYID)
 ```
 Both return some data on the action fullfilled. See __below__ on how to get the Entity ID
+
+##### Promoting a Player to team leader
+```py
+rust_socket.promoteToTeamLeader(SteamID)
+```
+Returns the success of the action. 
 
 ##### Closing the connection:
 ```py

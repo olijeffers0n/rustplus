@@ -2,7 +2,6 @@ from websocket import create_connection
 from PIL import Image
 from io import BytesIO
 
-
 from .rustplus_pb2 import *
 from ..utils import *
 from ..exceptions import *
@@ -234,6 +233,26 @@ class RustSocket:
     
         return appMessage
 
+    def __promoteToTeamLeader(self, SteamID : int):
+
+        leaderPacket = AppPromoteToLeader()
+        leaderPacket.steamId = SteamID
+
+        request = self.__initProto()
+        request.promoteToLeader.CopyFrom(leaderPacket)
+        data = request.SerializeToString()
+
+        self.ws.send_binary(data)
+
+        returndata = self.ws.recv()
+
+        appMessage = AppMessage()
+        appMessage.ParseFromString(returndata)
+
+        self.error_checker.check(appMessage)
+
+        return appMessage
+
     ################################################
 
     def connect(self) -> None:
@@ -362,14 +381,14 @@ class RustSocket:
 
         return teamInfo.response.teamInfo
 
-    def turnOnSmartSwitch(self, EID : int):
+    def turnOnSmartSwitch(self, EID : int) -> AppMessage:
         """
         Turns on a smart switch on the server
         """
 
         return self.__updateSmartDevice(EID, True)
 
-    def turnOffSmartSwitch(self, EID : int):
+    def turnOffSmartSwitch(self, EID : int) -> AppMessage:
         """
         Turns off a smart switch on the server
         """
@@ -383,3 +402,10 @@ class RustSocket:
         data = self.__getEntityInfo(EID)
 
         return data.response.entityInfo
+
+    def promoteToTeamLeader(self, SteamID : int) -> AppMessage:
+        """
+        Promotes a given user to the team leader by their 64-bit Steam ID
+        """
+
+        return self.__promoteToTeamLeader(SteamID)
