@@ -1,8 +1,10 @@
 ![Rust+.py](https://github.com/olijeffers0n/rustplus/blob/master/icon.png)
-<img src = "https://img.shields.io/pypi/dm/rustplus?label=Downloads&style=for-the-badge">
-<img src = "https://img.shields.io/pypi/v/rustplus?label=PYPI%20Version&style=for-the-badge">
-<img src = "https://img.shields.io/pypi/l/rustplus?style=for-the-badge">
-<img src = "https://img.shields.io/github/stars/olijeffers0n/rustplus?label=GitHub%20Stars&style=for-the-badge">
+<div align = "center">
+	<img src = "https://img.shields.io/pypi/dm/rustplus?label=Downloads&style=for-the-badge">
+	<img src = "https://img.shields.io/pypi/v/rustplus?label=PYPI%20Version&style=for-the-badge">
+	<img src = "https://img.shields.io/pypi/l/rustplus?style=for-the-badge">
+	<img src = "https://img.shields.io/github/stars/olijeffers0n/rustplus?label=GitHub%20Stars&style=for-the-badge">
+</div>
 
 A lot of code and ideas have come from the JavaScript version of a wrapper, so I will credit him now:
 [Liam Cottle's RustPlus.js](https://github.com/liamcottle/rustplus.js)
