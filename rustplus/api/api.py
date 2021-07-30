@@ -372,9 +372,9 @@ class RustSocket:
 
         return image
 
-    def getTeamInfo(self) -> list:
+    def getTeamInfo(self) -> AppTeamInfo:
         """
-        Returns a list of the players in your team, as well as a lot of data about them
+        Returns an AppTeamInfo object of the players in your team, as well as a lot of data about them
         """
 
         teamInfo = self.__getTeamInfo()
