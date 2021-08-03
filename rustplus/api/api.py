@@ -453,7 +453,7 @@ class RustSocket:
 
         return self.__promoteToTeamLeader(SteamID)
 
-    def getTCStorageContents(self, EID : int, combineStacks : bool) -> dict:
+    def getTCStorageContents(self, EID : int, combineStacks : bool = False) -> dict:
         """
         Gets the Information about TC Upkeep and Contents.
         Do not use this for any other storage monitor than a TC

@@ -64,6 +64,9 @@ rust_socket.turnOnSmartSwitch(ENTITYID)
 #Promoting a TeamMate to team leader
 rust_socket.promoteToTeamLeader(SteamID)
 
+#Getting the contents of a TC:
+rust_socket.getTCStorageContents(ENTITYID, MERGESTACKS : bool)
+
 rust_socket.closeConnection()
 ```
 ### Information on Usage:
@@ -162,6 +165,21 @@ rust_socket.promoteToTeamLeader(SteamID)
 ```
 Returns the success of the action. 
 
+##### Getting information on the contents of a Tool Cupboard
+```py
+rust_socket.getTCStorageContents(ENTITYID, MERGESTACKS : bool)
+```
+Provide the entity ID of a Storage monitor attached to a Tool Cupboard as well as an optional boolean which defines whether it should combine stacks into larger ones. (May break blueprints)
+
+Returns a dictionary of data:
+- protectionTime : TimeDelta object
+- hasProtection : boolean - whether it has TC protection
+- contents : List of StorageItem objects with the fields:
+    - name : Human readable string name
+	- itemId : In-game item ID
+	- quantity : The amount of this Item
+	- isBlueprint : whether the item is a blueprint
+
 ##### Closing the connection:
 ```py
 rust_socket.closeConnection()
@@ -169,8 +187,11 @@ rust_socket.closeConnection()
 This can be called in order to close the websocket, however it does not destroy the object you made. This means that you can close and reopen the websocket effectively infinitely.
 
 ### Getting the Entity ID
+#### As an Admin:
 The Entity ID Can be obtained by looking at the entity in game and typing `entity.debug_lookat` into the `F1` console. This will display the entity ID on the screen. 
 Please Note:  the Entity ID is the numbers at the beginning
+#### As a player:
+You can hit the entity and then use the `combatlog` in order to to see the entity ID. Note: it is the 2nd id from the left - the first is yours
 
 ### Getting Your Steam ID and PlayerToken:
 This is where it gets a bit finnicky. The Steam ID is unique to your steam account, so can be used for any server you connect to. However, the `PlayerToken` is unique to each server. There are two ways to get this data:
