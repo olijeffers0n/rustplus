@@ -1,4 +1,4 @@
-![Rust+.py](https://github.com/olijeffers0n/rustplus/blob/master/icon.png)
+![Rust+.py](https://raw.githubusercontent.com/olijeffers0n/rustplus/master/icon.png)
 <div align = "center">
 	<img src = "https://img.shields.io/pypi/dm/rustplus?label=Downloads&style=for-the-badge">
 	<img src = "https://img.shields.io/pypi/v/rustplus?label=PYPI%20Version&style=for-the-badge">
