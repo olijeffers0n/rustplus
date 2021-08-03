@@ -1,11 +1,13 @@
 from websocket import create_connection
 from PIL import Image
 from io import BytesIO
+from collections import defaultdict
+from datetime import datetime
 
 from .rustplus_pb2 import *
 from ..utils import *
 from ..exceptions import *
-from ..objects import ChatMessage
+from ..objects import *
 
 class RustSocket:
     def __init__(self, ip : str, port : str, steamid : int, playertoken : int) -> None:
@@ -253,6 +255,47 @@ class RustSocket:
 
         return appMessage
 
+    def __getTCStorage(self, EID, combineStacks):
+        returnedData = self.__getEntityInfo(EID)
+
+        returnDict = {}
+
+        targetTime = datetime.utcfromtimestamp(int(returnedData.response.entityInfo.payload.protectionExpiry))
+        difference = targetTime - datetime.now()
+
+        returnDict["protectionTime"] = difference
+        returnDict["hasProtection"] = bool(returnedData.response.entityInfo.payload.hasProtection)
+
+        returnItems = list(returnedData.response.entityInfo.payload.items)
+
+        idConverter = IdToName()
+
+        items = []
+
+        for item in returnItems:
+            items.append(Storage_Item(idConverter.translate(item.itemId), item.itemId, item.quantity, item.itemIsBlueprint))
+
+        if not combineStacks:
+            returnDict["contents"] = items
+            return returnDict
+
+        mergedMap = defaultdict(tuple)
+
+        for item in items:
+            data = mergedMap[str(item.itemId)]
+            if data:
+                count = int(data[0]) + int(item.quantity)
+                mergedMap[str(item.itemId)] = (count, bool(item.isBlueprint))
+            else:
+                mergedMap[str(item.itemId)] = (int(item.quantity), bool(item.isBlueprint))
+
+        items = []
+        for key in mergedMap.keys():
+            items.append(Storage_Item(idConverter.translate(key), key, int(mergedMap[key][0]), bool(mergedMap[key][1])))
+
+        returnDict["contents"] = items
+        return returnDict
+
     ################################################
 
     def connect(self) -> None:
@@ -409,3 +452,11 @@ class RustSocket:
         """
 
         return self.__promoteToTeamLeader(SteamID)
+
+    def getTCStorageContents(self, EID : int, combineStacks : bool) -> dict:
+        """
+        Gets the Information about TC Upkeep and Contents.
+        Do not use this for any other storage monitor than a TC
+        """
+        
+        return self.__getTCStorage(EID, combineStacks)
