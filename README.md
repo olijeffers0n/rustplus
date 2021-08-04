@@ -4,6 +4,7 @@
 	<img src = "https://img.shields.io/pypi/v/rustplus?label=PYPI%20Version&style=for-the-badge">
 	<img src = "https://img.shields.io/pypi/l/rustplus?style=for-the-badge">
 	<img src = "https://img.shields.io/github/stars/olijeffers0n/rustplus?label=GitHub%20Stars&style=for-the-badge">
+	<img src = https://img.shields.io/discord/872406750639321088?label=Discord&style=for-the-badge>
 </div>
 
 A lot of code and ideas have come from the JavaScript version of a wrapper, so I will credit him now:
@@ -65,7 +66,10 @@ rust_socket.turnOnSmartSwitch(ENTITYID)
 rust_socket.promoteToTeamLeader(SteamID)
 
 #Getting the contents of a TC:
-rust_socket.getTCStorageContents(ENTITYID, MERGESTACKS : bool)
+tc_contents = rust_socket.getTCStorageContents(ENTITYID, MERGESTACKS : bool)
+
+#Getting Current Map Events
+events = rust_socket.getCurrentEvents()
 
 rust_socket.closeConnection()
 ```
@@ -180,6 +184,16 @@ Returns a dictionary of data:
 	- quantity : The amount of this Item
 	- isBlueprint : whether the item is a blueprint
 
+##### Getting Current Events:
+```py
+events = rust_socket.getCurrentEvents()
+```
+Returns a list of Map Markers for the following events:
+- Explosion
+- CH47 (Chinook)
+- Cargo Ship
+- Locked Crate
+
 ##### Closing the connection:
 ```py
 rust_socket.closeConnection()
@@ -248,10 +262,7 @@ SetEntityValue: 1
 ### Support:
 If you need help, or you think that there is an issue feel free to open an issue. If you think you have made some improvements, open a PR! 
 
-I have tried to explain this a well as possible, but if you should need further clarification, as i said open an issue. If not: `Ollie#0175` on discord
-
-There is more data that can be accessed with this API, such as the following:
-- Setting Team Leader
+I have tried to explain this a well as possible, but if you should need further clarification, join me on my discord server: [here](https://discord.gg/nQqJe8qvP8)
 
 I may add some of this functionality soon, depends on the interest :-)
 
