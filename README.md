@@ -4,7 +4,9 @@
 	<img src = "https://img.shields.io/pypi/v/rustplus?label=PYPI%20Version&style=for-the-badge">
 	<img src = "https://img.shields.io/pypi/l/rustplus?style=for-the-badge">
 	<img src = "https://img.shields.io/github/stars/olijeffers0n/rustplus?label=GitHub%20Stars&style=for-the-badge">
-	<img src = https://img.shields.io/discord/872406750639321088?label=Discord&style=for-the-badge>
+	<a href = "https://discord.gg/nQqJe8qvP8">
+		<img src = https://img.shields.io/discord/872406750639321088?label=Discord&style=for-the-badge>
+	</a>
 </div>
 
 A lot of code and ideas have come from the JavaScript version of a wrapper, so I will credit him now:
