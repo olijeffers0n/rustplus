@@ -3,6 +3,7 @@ from PIL import Image
 from io import BytesIO
 from collections import defaultdict
 from datetime import datetime
+from importlib import resources
 
 from .rustplus_pb2 import *
 from ..utils import *
@@ -356,7 +357,7 @@ class RustSocket:
 
         return outData
 
-    def getMap(self, addicons : bool = False) -> Image:
+    def getMap(self, addIcons : bool = False, addEvents : bool = False, addVendingMachines : bool = False) -> Image:
         """
         Returns the Map of the server with the option to add icons.
         """
@@ -364,12 +365,43 @@ class RustSocket:
 
         map, monuments = self.__getMap(MAPSIZE)
 
-        if addicons:
-            monument_name_converter = MonumentNameToImage()
+        if addIcons or addEvents or addVendingMachines:
             cood_formatter = CoordUtil()
+
+        if addIcons:
+            monument_name_converter = MonumentNameToImage()
             for monument in monuments:
                 icon = monument_name_converter.convert(monument.token)
+                icon = icon.resize((150, 150))
+                if str(monument.token) == "train_tunnel_display_name":
+                    icon = icon.resize((100, 125))
                 map.paste(icon, (cood_formatter.format(int(monument.x), int(monument.y), MAPSIZE)), icon)
+
+        mapMarkers = list(self.__getMarkers().response.mapMarkers.markers)
+
+        if addVendingMachines:
+            with resources.path("rustplus.api.icons", "vending_machine.png") as path:
+                vendingMachine = Image.open(path).convert("RGBA")
+                vendingMachine = vendingMachine.resize((100, 100))
+
+        for marker in mapMarkers:
+            if addEvents:
+                markerConverter = MapMarkerConverter()
+                if marker.type == 2 or marker.type == 4 or marker.type == 5 or marker.type == 6:
+                    icon = markerConverter.convert(str(marker.type), marker.rotation)
+                    if marker.type == 6:
+                        x = marker.x
+                        y = marker.y
+                        if y > MAPSIZE: y = MAPSIZE
+                        if y < 0: y = 100
+                        if x > MAPSIZE: x = MAPSIZE - 75
+                        if x < 0: x = 50
+                        map.paste(icon, (int(x), MAPSIZE - int(y)), icon)
+                    else:
+                        map.paste(icon, (cood_formatter.format(int(marker.x), int(marker.y), MAPSIZE)), icon)
+            if addVendingMachines:
+                if marker.type == 3:
+                    map.paste(vendingMachine, (int(marker.x) - 50, MAPSIZE - int(marker.y) - 50), vendingMachine)
 
         map = map.resize((2000, 2000), Image.ANTIALIAS)
 
