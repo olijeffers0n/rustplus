@@ -261,7 +261,7 @@ class RustSocket:
         returnDict = {}
 
         targetTime = datetime.utcfromtimestamp(int(returnedData.response.entityInfo.payload.protectionExpiry))
-        difference = targetTime - datetime.now()
+        difference = targetTime - datetime.utcnow()
 
         returnDict["protectionTime"] = difference
         returnDict["hasProtection"] = bool(returnedData.response.entityInfo.payload.hasProtection)
