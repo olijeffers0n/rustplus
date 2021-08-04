@@ -19,6 +19,9 @@ class RustSocket:
         self.steamid = steamid
         self.playertoken = playertoken
 
+    def __str__(self) -> str:
+        return "RustSocket: ip = {} | port = {} | steamid = {} | playertoken = {}".format(self.ip, self.port, self.steamid, self.playertoken)
+
     def __initProto(self) -> AppRequest:
         request = AppRequest()
         request.seq = self.seq
@@ -296,6 +299,15 @@ class RustSocket:
         returnDict["contents"] = items
         return returnDict
 
+    def __getCurrentEvents(self):
+
+        mapMarkers = list(self.__getMarkers().response.mapMarkers.markers)
+        poi = []
+        for marker in mapMarkers:
+            if marker.type == 2 or marker.type == 4 or marker.type == 5 or marker.type == 6:
+                poi.append(marker)
+        return poi
+
     ################################################
 
     def connect(self) -> None:
@@ -460,3 +472,17 @@ class RustSocket:
         """
         
         return self.__getTCStorage(EID, combineStacks)
+
+    def getCurrentEvents(self) -> list:
+        """
+        Gets all current ongoing events on the map
+        Can detect:
+            - Explosion
+            - CH47 (Chinook)
+            - Cargo Ship
+            - Locked Crate
+
+        Returns the MapMarker for the event
+        """
+        
+        return self.__getCurrentEvents()
