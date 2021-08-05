@@ -26,7 +26,8 @@ class MonumentNameToImage:
             "launchsite" : "launchsite.png",
             "sewer_display_name" : "sewer.png",
             "oil_rig_small" : "small_oil_rig.png",
-            "large_oil_rig" : "large_oil_rig.png"
+            "large_oil_rig" : "large_oil_rig.png",
+            "underwater_lab" : "underwater_lab.png"
         }
 
     def convert(self, name : str) -> Image:

@@ -371,6 +371,8 @@ class RustSocket:
         if addIcons:
             monument_name_converter = MonumentNameToImage()
             for monument in monuments:
+                if str(monument.token) == "DungeonBase":
+                    continue
                 icon = monument_name_converter.convert(monument.token)
                 icon = icon.resize((150, 150))
                 if str(monument.token) == "train_tunnel_display_name":
