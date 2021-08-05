@@ -55,7 +55,7 @@ status = rust_socket.sendTeamMessage("Yo! I sent this with Rust+.py")
 camera_image = rust_socket.getCameraFrame("CAMID",FRAMENO)
 
 #Get Map Image:
-rust_map = rust_socket.getMap(addIcons = True)
+rust_map = rust_socket.getMap(addIcons = True, addEvents = True, addVendingMachines= True)
 
 #Get Entity Information
 entity_info = rust_socket.getEntityInfo(ENTITYID)
@@ -88,9 +88,14 @@ Which will ping the server and open the connection.
 
 ##### Getting the map:
 ```py
-rustMap = rust_socket.getMap(addIcons = bool)
+rust_map = rust_socket.getMap(addIcons = True, addEvents = True, addVendingMachines= True)
 ```
-This returns an image which the module has formatted with the images of each monument after it has parsed the bytes. If you do not want the icons, and instead just want the empty map, add the parameter `addIcons = False`. If you want to save the image file, just call `rustMap.save("name.png")` which will save it to the current directory. You can also call `rustMap.show()` which will open the map as a picture file.
+This returns an image which the module has formatted with the images of each monument after it has parsed the bytes. 
+These are the Parameters:
+    - addIcons = Adding the monument icons
+	- AddEvents = Adding Locked Crates / Explosions / Cargo Ship / CH47
+	- AddVendingMachines = Adds the vending machine icons
+If you want to save the image file, just call `rustMap.save("name.png")` which will save it to the current directory. You can also call `rustMap.show()` which will open the map as a picture file.
 
 ##### Getting server Info:
 ```py
@@ -140,16 +145,6 @@ This method returns a status, however this can be ignored if you would like. The
 team_info = rust_socket.getTeamInfo()
 ```
 This returns a list of the players in your team, as well as a lot of data about them such as: `x`,`y`,`dead`,`online`,`name` etc etc
-##### Getting a camera frame:
-```py
-cam_picture = rust_socket.getCameraFrame("CAMID",FRAMENO)
-```
-Returns a very low resolution image from the camera. There are some caveats:
- - A player must be near the camera for it to work
- - This is disabled on servers by default. An admin must run the convar: `cctvrender.enabled true` in console to enable it
- - The image returned often looks terrible
-
-The codes of cameras can be found [here](https://www.corrosionhour.com/rust-cctv-camera-codes-list/)
 
 ##### Getting Entity Information:
 ```py
