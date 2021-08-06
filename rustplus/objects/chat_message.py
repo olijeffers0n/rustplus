@@ -5,11 +5,6 @@ class ChatMessage():
         self.message = message
         self.colour = colour
 
-    def __str__(self):
+    def __repr__(self):
 
-        return str({
-            "steamID" : self.steamID,
-            "senderName" : self.senderName,
-            "message" : self.message,
-            "colour" : self.colour
-        })
+        return "Chat Message (steamID = {} | senderName = {} | message = {} | colour = {})".format(self.steamID, self.senderName, self.message, self.colour)
