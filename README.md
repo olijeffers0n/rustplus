@@ -10,7 +10,7 @@
 </div>
 
 A lot of code and ideas have come from the JavaScript version of a wrapper, so I will credit him now:
-[Liam Cottle's RustPlus.js](https://github.com/liamcottle/rustplus.js)
+[RustPlus.js](https://github.com/liamcottle/rustplus.js)
 I have used his Protocol Buffer file for this, as well as instructions on how to use his command line tool to get the information you need.
 
 ## Installation:
@@ -76,7 +76,7 @@ events = rust_socket.getCurrentEvents()
 rust_socket.closeConnection()
 ```
 ### Information on Usage:
-##### Initialising a `RustSocket`:
+#### Initialising a `RustSocket`:
 ```py
 rust_socket = RustSocket("IPADDRESS",  "PORT", 64BITSTEAMID, PLAYERTOKEN)
 ```
@@ -86,7 +86,7 @@ rust_socket.connect()
 ```
 Which will ping the server and open the connection.
 
-##### Getting the map:
+#### Getting the map:
 ```py
 rust_map = rust_socket.getMap(addIcons = True, addEvents = True, addVendingMachines= True)
 ```
@@ -97,7 +97,7 @@ These are the Parameters:
 	- AddVendingMachines = Adds the vending machine icons
 If you want to save the image file, just call `rustMap.save("name.png")` which will save it to the current directory. You can also call `rustMap.show()` which will open the map as a picture file.
 
-##### Getting server Info:
+#### Getting server Info:
 ```py
 info = rust_socket.getInfo()
 ```
@@ -114,12 +114,12 @@ This method returns a dictionary with the following data:
 	'seed': Map Seed - Integer
 }
 ```
-##### Getting server time:
+#### Getting server time:
 ```py
 time = rust_socket.getTime()
 ```
 The method returns a string of the current time, in the format `"HOURS:MINUTES"` in 24Hr format. The method has already parsed the raw data to a human-readable string.
-##### Getting the Team Chat
+#### Getting the Team Chat
 ```py
 team_chat = rust_socket.getTeamChat()
 ```
@@ -135,38 +135,38 @@ So, you could print out the messages like this:
 for message in team_chat:
 	print(message.message)
 ```
-##### Sending a message to the Team Chat:
+#### Sending a message to the Team Chat:
 ```py
 status = rust_socket.sendTeamMessage("Yo! I sent this with Rust+.py")
 ```
 This method returns a status, however this can be ignored if you would like. The message will be sent as if you are sending it.
-##### Getting team info:
+#### Getting team info:
 ```py
 team_info = rust_socket.getTeamInfo()
 ```
 This returns a list of the players in your team, as well as a lot of data about them such as: `x`,`y`,`dead`,`online`,`name` etc etc
 
-##### Getting Entity Information:
+#### Getting Entity Information:
 ```py
 entity_info = rust_socket.getEntityInfo(ENTITYID)
 ```
 Returns some information on the entity you provided. See __below__ on how to get the Entity ID
 Works on many entities like Smart Switches and Storage Monitors
 
-##### Turning On/Off a Smart Switch:
+#### Turning On/Off a Smart Switch:
 ```py
 rust_socket.turnOffSmartSwitch(ENTITYID)
 rust_socket.turnOnSmartSwitch(ENTITYID)
 ```
 Both return some data on the action fullfilled. See __below__ on how to get the Entity ID
 
-##### Promoting a Player to team leader
+#### Promoting a Player to team leader
 ```py
 rust_socket.promoteToTeamLeader(SteamID)
 ```
 Returns the success of the action. 
 
-##### Getting information on the contents of a Tool Cupboard
+#### Getting information on the contents of a Tool Cupboard
 ```py
 rust_socket.getTCStorageContents(ENTITYID, MERGESTACKS : bool)
 ```
@@ -181,7 +181,7 @@ Returns a dictionary of data:
 	- quantity : The amount of this Item
 	- isBlueprint : whether the item is a blueprint
 
-##### Getting Current Events:
+#### Getting Current Events:
 ```py
 events = rust_socket.getCurrentEvents()
 ```
@@ -191,18 +191,19 @@ Returns a list of Map Markers for the following events:
 - Cargo Ship
 - Locked Crate
 
-##### Closing the connection:
+#### Closing the connection:
 ```py
 rust_socket.closeConnection()
 ```
 This can be called in order to close the websocket, however it does not destroy the object you made. This means that you can close and reopen the websocket effectively infinitely.
 
 ### Getting the Entity ID
+##### This is important for many of the methods above
 #### As an Admin:
 The Entity ID Can be obtained by looking at the entity in game and typing `entity.debug_lookat` into the `F1` console. This will display the entity ID on the screen. 
 Please Note:  the Entity ID is the numbers at the beginning
 #### As a player:
-You can hit the entity and then use the `combatlog` in order to to see the entity ID. Note: it is the 2nd id from the left - the first is yours
+You can hit the entity and then use the `combatlog` in order to to see the entity ID. Note: it is the 2nd id from the left - the first is your player's
 
 ### Getting Your Steam ID and PlayerToken:
 This is where it gets a bit finnicky. The Steam ID is unique to your steam account, so can be used for any server you connect to. However, the `PlayerToken` is unique to each server. There are two ways to get this data:
@@ -245,15 +246,18 @@ You get:
 
 And these are the costs:
 ```
-Info : 1
-Map : 5
-Camera Frame: 2
-Map Markers : 1
-Time : 1
-SendTeamChat : 2
-GetTeamInfo : 1
-EntityInfo: 1
-SetEntityValue: 1
+getMap = 5 or 6 (depending on what you add to the map)
+getTime = 1
+getInfo = 1
+getMarkers = 1
+sendTeamChat = 2
+getCameraFrame = 2
+getTeamInfo = 1
+turnOn/OffSwitch = 1
+getEntityInfo = 1
+promoteToTeamLeader = 1
+getTCStorage = 1
+getCurrentEvents = 1
 ```
 
 ### Support:
