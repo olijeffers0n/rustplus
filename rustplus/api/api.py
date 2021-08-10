@@ -409,7 +409,7 @@ class RustSocket:
 
         return map
 
-    def getMarkers(self) -> list:
+    def getMarkers(self) -> AppMapMarkers:
         """
         Gets the map markers for the server. Returns a list of them
         """
