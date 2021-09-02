@@ -57,6 +57,9 @@ camera_image = rust_socket.getCameraFrame("CAMID",FRAMENO)
 #Get Map Image:
 rust_map = rust_socket.getMap(addIcons = True, addEvents = True, addVendingMachines= True)
 
+#Getting Map Data
+rust_map_data = rust_socket.getRawMapData()
+
 #Get Entity Information
 entity_info = rust_socket.getEntityInfo(ENTITYID)
 

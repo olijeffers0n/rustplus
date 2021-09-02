@@ -99,6 +99,22 @@ class RustSocket:
 
         return (im, monuments)
 
+    def __getRawMapData(self): 
+        request = self.__initProto()
+        request.getMap.CopyFrom(AppEmpty())
+        data = request.SerializeToString()
+
+        self.ws.send_binary(data)
+
+        return_data = self.ws.recv()
+
+        app_message = AppMessage()
+        app_message.ParseFromString(return_data)
+
+        self.error_checker.check(app_message)
+
+        return app_message.response.map
+
     def __getMarkers(self):
 
         request = self.__initProto()
@@ -356,6 +372,12 @@ class RustSocket:
         outData["seed"] = data.seed
 
         return outData
+
+    def getRawMapData(self) -> AppMap:
+        """
+        Returns the list of monuments on the server. This is a relatively expensive operation as the monuments are part of the map data
+        """
+        return self.__getRawMapData()
 
     def getMap(self, addIcons : bool = False, addEvents : bool = False, addVendingMachines : bool = False) -> Image:
         """
