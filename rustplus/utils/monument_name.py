@@ -31,6 +31,7 @@ class MonumentNameToImage:
         }
 
     def convert(self, name : str) -> Image:
+        
         if name in self.name_to_file:
             file_name = self.name_to_file[name]
             with resources.path("rustplus.api.icons", file_name) as path:

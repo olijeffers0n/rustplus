@@ -1,6 +1,7 @@
 class CoordUtil:
     
     def format(self, x, y, map_size) -> tuple:
+        
         y = map_size - y - 75
         x -= 75
 

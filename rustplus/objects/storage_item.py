@@ -1,5 +1,7 @@
 class Storage_Item:
+
     def __init__(self, name : str, itemId : int, quantity : int, isBlueprint : bool) -> None:
+        
         self.name = name
         self.itemId = itemId
         self.quantity = quantity

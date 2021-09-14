@@ -72,6 +72,7 @@ class RustSocket:
         return appMessage
 
     def __getMap(self, MAPSIZE):
+
         request = self.__initProto()
         request.getMap.CopyFrom(AppEmpty())
         data = request.SerializeToString()
@@ -100,6 +101,7 @@ class RustSocket:
         return (im, monuments)
 
     def __getRawMapData(self): 
+
         request = self.__initProto()
         request.getMap.CopyFrom(AppEmpty())
         data = request.SerializeToString()

@@ -12,6 +12,7 @@ class MapMarkerConverter:
         }
 
     def convert(self, name, angle) -> Image:
+        
         with resources.path("rustplus.api.icons", self.nameToFile[name]) as path:
             icon = Image.open(path).convert("RGBA")
         if name == "6":

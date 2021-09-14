@@ -1,5 +1,7 @@
 class TimeParser:
+
     def convert(self, time) -> str:
+        
         input_time = float(time)
         input_time_minutes = input_time * 60
         HOURS = int(input_time_minutes // 60)

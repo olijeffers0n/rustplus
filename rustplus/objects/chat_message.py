@@ -1,5 +1,7 @@
 class ChatMessage():
+
     def __init__(self, steamID, senderName, message, colour):
+        
         self.steamID = steamID
         self.senderName = senderName
         self.message = message
