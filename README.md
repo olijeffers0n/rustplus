@@ -1,11 +1,11 @@
 ![Rust+.py](https://raw.githubusercontent.com/olijeffers0n/rustplus/master/icon.png)
 <div align = "center">
-	<img src = "https://img.shields.io/pypi/dm/rustplus?label=Downloads&style=for-the-badge">
-	<img src = "https://img.shields.io/pypi/v/rustplus?label=PYPI%20Version&style=for-the-badge">
-	<img src = "https://img.shields.io/pypi/l/rustplus?style=for-the-badge">
-	<img src = "https://img.shields.io/github/stars/olijeffers0n/rustplus?label=GitHub%20Stars&style=for-the-badge">
+	<img src = "https://static.pepy.tech/personalized-badge/rustplus?period=total&units=abbreviation&left_color=black&right_color=orange&left_text=Downloads">
+	<img src = "https://img.shields.io/pypi/v/rustplus?label=PYPI%20Version">
+	<img src = "https://img.shields.io/pypi/l/rustplus">
+	<img src = "https://img.shields.io/github/stars/olijeffers0n/rustplus?label=GitHub%20Stars">
 	<a href = "https://discord.gg/nQqJe8qvP8">
-		<img src = https://img.shields.io/discord/872406750639321088?label=Discord&style=for-the-badge>
+		<img src = "https://img.shields.io/discord/872406750639321088?label=Discord">
 	</a>
 </div>
 
