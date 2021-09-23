@@ -9,9 +9,9 @@
 	</a>
 </div>
 
-A lot of code and ideas have come from the JavaScript version of a wrapper, so I will credit him now:
+A lot of code and ideas have come from the JavaScript version of a wrapper, so I will credit it now:
 [RustPlus.js](https://github.com/liamcottle/rustplus.js)
-I have used his Protocol Buffer file for this, as well as instructions on how to use his command line tool to get the information you need.
+I have used their Protocol Buffer file for this, as well as instructions on how to use the command line tool to get the information you need.
 
 ## Installation:
 Install the package with:
@@ -55,7 +55,7 @@ status = rust_socket.sendTeamMessage("Yo! I sent this with Rust+.py")
 camera_image = rust_socket.getCameraFrame("CAMID",FRAMENO)
 
 #Get Map Image:
-rust_map = rust_socket.getMap(addIcons = True, addEvents = True, addVendingMachines= True)
+rust_map = rust_socket.getMap(addIcons = True, addEvents = True, addVendingMachines= True, overrideImages = {})
 
 #Getting Map Data
 rust_map_data = rust_socket.getRawMapData()
@@ -86,6 +86,6 @@ If you need help, or you think that there is an issue feel free to open an issue
 
 I have tried to explain this a well as possible, but if you should need further clarification, join me on my discord server: [here](https://discord.gg/nQqJe8qvP8)
 
-I may add some of this functionality soon, depends on the interest :-)
+GitHub ⭐'s are always welcome :)
 
 Have Fun! 
