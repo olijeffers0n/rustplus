@@ -3,7 +3,7 @@ from PIL import Image
 
 class MonumentNameToImage:
 
-    def __init__(self) -> None:
+    def __init__(self, overrideImages : dict = {}) -> None:
         self.name_to_file = {
             "train_tunnel_display_name" : "train.png",
             "supermarket" : "supermarket.png",
@@ -30,7 +30,14 @@ class MonumentNameToImage:
             "underwater_lab" : "underwater_lab.png"
         }
 
+        self.overrideImages = overrideImages
+
     def convert(self, name : str) -> Image:
+
+        try:
+            return self.overrideImages[name]
+        except KeyError as e:
+            pass
         
         if name in self.name_to_file:
             file_name = self.name_to_file[name]

@@ -7,7 +7,7 @@ class ClientError(Error):
     pass
 
 class ImageError(Error):
-    """Raised when the Image Returned is not valid"""
+    """Raised when the Returned Image Bytes are not valid"""
     pass
 
 class ServerNotResponsiveError(Error):

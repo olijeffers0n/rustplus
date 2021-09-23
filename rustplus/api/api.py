@@ -14,11 +14,11 @@ class RustSocket:
     def __init__(self, ip : str, port : str, steamid : int, playertoken : int) -> None:
         
         self.seq = 1
-        self.error_checker = ErrorChecker()
         self.ip = ip
         self.port = port
         self.steamid = steamid
         self.playertoken = playertoken
+        self.error_checker = ErrorChecker()
 
     def __repr__(self) -> str:
         return "RustSocket: ip = {} | port = {} | steamid = {} | playertoken = {}".format(self.ip, self.port, self.steamid, self.playertoken)
@@ -31,11 +31,9 @@ class RustSocket:
         request.playerToken = self.playertoken
         return request
 
-    def __getTime(self) -> dict:
-        request = self.__initProto()
-        request.getTime.CopyFrom(AppEmpty())
-        data = request.SerializeToString()
+    def __sendAndRecieve(self, request) -> AppMessage:
 
+        data = request.SerializeToString()
         self.ws.send_binary(data)
 
         return_data = self.ws.recv()
@@ -44,6 +42,15 @@ class RustSocket:
         app_message.ParseFromString(return_data)
 
         self.error_checker.check(app_message)
+
+        return app_message
+
+    def __getTime(self) -> dict:
+
+        request = self.__initProto()
+        request.getTime.CopyFrom(AppEmpty())
+
+        app_message = self.__sendAndRecieve(request)
 
         time_parser = TimeParser()
 
@@ -58,33 +65,17 @@ class RustSocket:
 
         request = self.__initProto()
         request.getInfo.CopyFrom(AppEmpty())
-        data = request.SerializeToString()
+        
+        app_message = self.__sendAndRecieve(request)
 
-        self.ws.send_binary(data)
-
-        returndata = self.ws.recv()
-
-        appMessage = AppMessage()
-        appMessage.ParseFromString(returndata)
-
-        self.error_checker.check(appMessage)
-
-        return appMessage
+        return app_message
 
     def __getMap(self, MAPSIZE):
 
         request = self.__initProto()
         request.getMap.CopyFrom(AppEmpty())
-        data = request.SerializeToString()
-
-        self.ws.send_binary(data)
-
-        return_data = self.ws.recv()
-
-        app_message = AppMessage()
-        app_message.ParseFromString(return_data)
-
-        self.error_checker.check(app_message)
+        
+        app_message = self.__sendAndRecieve(request)
 
         map = app_message.response.map
         monuments = list(map.monuments)
@@ -100,20 +91,60 @@ class RustSocket:
 
         return (im, monuments)
 
+    def __getAndFormatMap(self, addIcons : bool, addEvents : bool, addVendingMachines : bool, overrideImages : dict = {}):
+
+        MAPSIZE = int(self.__getInfo().response.info.mapSize)
+
+        map, monuments = self.__getMap(MAPSIZE)
+
+        if addIcons or addEvents or addVendingMachines:
+            cood_formatter = CoordUtil()
+
+        if addIcons:
+            monument_name_converter = MonumentNameToImage(overrideImages)
+            for monument in monuments:
+                if str(monument.token) == "DungeonBase":
+                    continue
+                icon = monument_name_converter.convert(monument.token)
+                icon = icon.resize((150, 150))
+                if str(monument.token) == "train_tunnel_display_name":
+                    icon = icon.resize((100, 125))
+                map.paste(icon, (cood_formatter.format(int(monument.x), int(monument.y), MAPSIZE)), icon)
+
+        mapMarkers = list(self.__getMarkers().response.mapMarkers.markers)
+
+        if addVendingMachines:
+            with resources.path("rustplus.api.icons", "vending_machine.png") as path:
+                vendingMachine = Image.open(path).convert("RGBA")
+                vendingMachine = vendingMachine.resize((100, 100))
+
+        for marker in mapMarkers:
+            if addEvents:
+                markerConverter = MapMarkerConverter()
+                if marker.type == 2 or marker.type == 4 or marker.type == 5 or marker.type == 6:
+                    icon = markerConverter.convert(str(marker.type), marker.rotation)
+                    if marker.type == 6:
+                        x = marker.x
+                        y = marker.y
+                        if y > MAPSIZE: y = MAPSIZE
+                        if y < 0: y = 100
+                        if x > MAPSIZE: x = MAPSIZE - 75
+                        if x < 0: x = 50
+                        map.paste(icon, (int(x), MAPSIZE - int(y)), icon)
+                    else:
+                        map.paste(icon, (cood_formatter.format(int(marker.x), int(marker.y), MAPSIZE)), icon)
+            if addVendingMachines:
+                if marker.type == 3:
+                    map.paste(vendingMachine, (int(marker.x) - 50, MAPSIZE - int(marker.y) - 50), vendingMachine)
+
+        return map.resize((2000, 2000), Image.ANTIALIAS)
+
     def __getRawMapData(self): 
 
         request = self.__initProto()
         request.getMap.CopyFrom(AppEmpty())
-        data = request.SerializeToString()
-
-        self.ws.send_binary(data)
-
-        return_data = self.ws.recv()
-
-        app_message = AppMessage()
-        app_message.ParseFromString(return_data)
-
-        self.error_checker.check(app_message)
+        
+        app_message = self.__sendAndRecieve(request)
 
         return app_message.response.map
 
@@ -121,35 +152,19 @@ class RustSocket:
 
         request = self.__initProto()
         request.getMapMarkers.CopyFrom(AppEmpty())
-        data = request.SerializeToString()
 
-        self.ws.send_binary(data)
+        app_message = self.__sendAndRecieve(request)
 
-        returndata = self.ws.recv()
-
-        appMessage = AppMessage()
-        appMessage.ParseFromString(returndata)
-
-        self.error_checker.check(appMessage)
-
-        return appMessage
+        return app_message
 
     def __getTeamChat(self):
 
         request = self.__initProto()
         request.getTeamChat.CopyFrom(AppEmpty())
-        data = request.SerializeToString()
+        
+        app_message = self.__sendAndRecieve(request)
 
-        self.ws.send_binary(data)
-
-        returndata = self.ws.recv()
-
-        appMessage = AppMessage()
-        appMessage.ParseFromString(returndata)
-
-        self.error_checker.check(appMessage)
-
-        return appMessage
+        return app_message
 
     def __sendTeamChatMessage(self, message):
 
@@ -185,35 +200,19 @@ class RustSocket:
 
         request = self.__initProto()
         request.getCameraFrame.CopyFrom(cameraPacket)
-        data = request.SerializeToString()
 
-        self.ws.send_binary(data)
+        app_message = self.__sendAndRecieve(request)
 
-        returndata = self.ws.recv()
-
-        appMessage = AppMessage()
-        appMessage.ParseFromString(returndata)
-
-        self.error_checker.check(appMessage)
-
-        return appMessage
+        return app_message
 
     def __getTeamInfo(self):
 
         request = self.__initProto()
         request.getTeamInfo.CopyFrom(AppEmpty())
-        data = request.SerializeToString()
 
-        self.ws.send_binary(data)
+        app_message = self.__sendAndRecieve(request)
 
-        returndata = self.ws.recv()
-
-        appMessage = AppMessage()
-        appMessage.ParseFromString(returndata)
-
-        self.error_checker.check(appMessage)
-
-        return appMessage
+        return app_message
 
     def __getEntityInfo(self, eid : int): 
 
@@ -221,18 +220,10 @@ class RustSocket:
 
         request.entityId = eid
         request.getEntityInfo.CopyFrom(AppEmpty())
-        data = request.SerializeToString()
+        
+        app_message = self.__sendAndRecieve(request)
 
-        self.ws.send_binary(data)
-
-        returndata = self.ws.recv()
-
-        appMessage = AppMessage()
-        appMessage.ParseFromString(returndata)
-
-        self.error_checker.check(appMessage)
-
-        return appMessage
+        return app_message
 
     def __updateSmartDevice(self, eid : int, value : bool) -> AppMessage:
 
@@ -244,18 +235,9 @@ class RustSocket:
         request.entityId = eid
         request.setEntityValue.CopyFrom(entityValue)
 
-        data = request.SerializeToString()
+        app_message = self.__sendAndRecieve(request)
 
-        self.ws.send_binary(data)
-
-        returndata = self.ws.recv()
-
-        appMessage = AppMessage()
-        appMessage.ParseFromString(returndata)
-
-        self.error_checker.check(appMessage)
-    
-        return appMessage
+        return app_message
 
     def __promoteToTeamLeader(self, SteamID : int):
 
@@ -264,20 +246,13 @@ class RustSocket:
 
         request = self.__initProto()
         request.promoteToLeader.CopyFrom(leaderPacket)
-        data = request.SerializeToString()
+        
+        app_message = self.__sendAndRecieve(request)
 
-        self.ws.send_binary(data)
-
-        returndata = self.ws.recv()
-
-        appMessage = AppMessage()
-        appMessage.ParseFromString(returndata)
-
-        self.error_checker.check(appMessage)
-
-        return appMessage
+        return app_message
 
     def __getTCStorage(self, EID, combineStacks):
+
         returnedData = self.__getEntityInfo(EID)
 
         returnDict = {}
@@ -381,57 +356,11 @@ class RustSocket:
         """
         return self.__getRawMapData()
 
-    def getMap(self, addIcons : bool = False, addEvents : bool = False, addVendingMachines : bool = False) -> Image:
+    def getMap(self, addIcons : bool = False, addEvents : bool = False, addVendingMachines : bool = False, overrideImages : dict = {}) -> Image:
         """
         Returns the Map of the server with the option to add icons.
         """
-        MAPSIZE = int(self.__getInfo().response.info.mapSize)
-
-        map, monuments = self.__getMap(MAPSIZE)
-
-        if addIcons or addEvents or addVendingMachines:
-            cood_formatter = CoordUtil()
-
-        if addIcons:
-            monument_name_converter = MonumentNameToImage()
-            for monument in monuments:
-                if str(monument.token) == "DungeonBase":
-                    continue
-                icon = monument_name_converter.convert(monument.token)
-                icon = icon.resize((150, 150))
-                if str(monument.token) == "train_tunnel_display_name":
-                    icon = icon.resize((100, 125))
-                map.paste(icon, (cood_formatter.format(int(monument.x), int(monument.y), MAPSIZE)), icon)
-
-        mapMarkers = list(self.__getMarkers().response.mapMarkers.markers)
-
-        if addVendingMachines:
-            with resources.path("rustplus.api.icons", "vending_machine.png") as path:
-                vendingMachine = Image.open(path).convert("RGBA")
-                vendingMachine = vendingMachine.resize((100, 100))
-
-        for marker in mapMarkers:
-            if addEvents:
-                markerConverter = MapMarkerConverter()
-                if marker.type == 2 or marker.type == 4 or marker.type == 5 or marker.type == 6:
-                    icon = markerConverter.convert(str(marker.type), marker.rotation)
-                    if marker.type == 6:
-                        x = marker.x
-                        y = marker.y
-                        if y > MAPSIZE: y = MAPSIZE
-                        if y < 0: y = 100
-                        if x > MAPSIZE: x = MAPSIZE - 75
-                        if x < 0: x = 50
-                        map.paste(icon, (int(x), MAPSIZE - int(y)), icon)
-                    else:
-                        map.paste(icon, (cood_formatter.format(int(marker.x), int(marker.y), MAPSIZE)), icon)
-            if addVendingMachines:
-                if marker.type == 3:
-                    map.paste(vendingMachine, (int(marker.x) - 50, MAPSIZE - int(marker.y) - 50), vendingMachine)
-
-        map = map.resize((2000, 2000), Image.ANTIALIAS)
-
-        return map
+        return self.__getAndFormatMap(addIcons, addEvents, addVendingMachines, overrideImages)
 
     def getMarkers(self) -> AppMapMarkers:
         """

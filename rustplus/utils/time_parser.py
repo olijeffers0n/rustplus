@@ -6,10 +6,7 @@ class TimeParser:
         input_time_minutes = input_time * 60
         HOURS = int(input_time_minutes // 60)
         MINUTES = int(input_time_minutes % 60)
-        
-        if MINUTES <= 9:
-            time_string = "{}:0{}".format(HOURS, MINUTES)
-        else:
-            time_string = "{}:{}".format(HOURS, MINUTES)
 
-        return time_string
+        time_string = "{}:0{}" if MINUTES <= 9 else "{}:{}"
+
+        return time_string.format(HOURS, MINUTES)
