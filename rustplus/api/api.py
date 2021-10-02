@@ -21,7 +21,7 @@ class RustSocket:
         self.error_checker = ErrorChecker()
 
     def __repr__(self) -> str:
-        return "RustSocket: ip = {} | port = {} | steamid = {} | playertoken = {}".format(self.ip, self.port, self.steamid, self.playertoken)
+        return "RustSocket[ip = {} | port = {} | steamid = {} | playertoken = {}]".format(self.ip, self.port, self.steamid, self.playertoken)
 
     def __initProto(self) -> AppRequest:
         request = AppRequest()

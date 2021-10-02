@@ -8,4 +8,4 @@ class Storage_Item:
         self.isBlueprint = isBlueprint
 
     def __repr__(self) -> str:
-        return "Storage Item(name = {} | itemId = {} | quantity = {} | isBlueprint = {})".format(self.name, self.itemId, self.quantity, self.isBlueprint)
+        return "Storage Item[name = {} | itemId = {} | quantity = {} | isBlueprint = {}]".format(self.name, self.itemId, self.quantity, self.isBlueprint)
