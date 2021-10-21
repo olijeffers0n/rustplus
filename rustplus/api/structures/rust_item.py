@@ -1,4 +1,4 @@
-class Storage_Item:
+class RustItem:
 
     def __init__(self, name : str, itemId : int, quantity : int, isBlueprint : bool) -> None:
         
@@ -7,5 +7,5 @@ class Storage_Item:
         self.quantity = quantity
         self.isBlueprint = isBlueprint
 
-    def __repr__(self) -> str:
-        return "Storage Item[name = {} | itemId = {} | quantity = {} | isBlueprint = {}]".format(self.name, self.itemId, self.quantity, self.isBlueprint)
+    def __str__(self) -> str:
+        return "RustItem[name={}, itemId={}, quantity={}, isBlueprint={}]".format(self.name, self.itemId, self.quantity, self.isBlueprint)

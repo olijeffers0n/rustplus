@@ -1,3 +1,4 @@
+from typing import List
 from websocket import create_connection
 from PIL import Image
 from io import BytesIO
@@ -6,9 +7,9 @@ from datetime import datetime
 from importlib import resources
 
 from .rustplus_pb2 import *
-from ..utils import *
-from ..exceptions import *
-from ..objects import *
+from .structures import RustTime, RustInfo, RustMap, RustMarker, RustChatMessage, RustSuccess, RustTeamInfo, RustTeamMember, RustTeamNote, RustEntityInfo, RustContents, RustItem
+from ..utils import MonumentNameToImage, TimeParser, CoordUtil, ErrorChecker, IdToName, MapMarkerConverter
+from ..exceptions import ImageError, ServerNotResponsiveError
 
 class RustSocket:
     def __init__(self, ip : str, port : str, steamid : int, playertoken : int) -> None:
@@ -31,7 +32,7 @@ class RustSocket:
         request.playerToken = self.playertoken
         return request
 
-    def __sendAndRecieve(self, request) -> AppMessage:
+    async def __sendAndRecieve(self, request) -> AppMessage:
 
         data = request.SerializeToString()
         self.ws.send_binary(data)
@@ -41,41 +42,36 @@ class RustSocket:
         app_message = AppMessage()
         app_message.ParseFromString(return_data)
 
-        self.error_checker.check(app_message)
+        await self.error_checker.check(app_message)
 
         return app_message
 
-    def __getTime(self) -> dict:
+    async def __getTime(self) -> RustTime:
 
         request = self.__initProto()
         request.getTime.CopyFrom(AppEmpty())
 
-        app_message = self.__sendAndRecieve(request)
+        time = (await self.__sendAndRecieve(request)).response.time
 
         time_parser = TimeParser()
 
-        return {
-            "DAYLENGTHMINUTES" : app_message.response.time.dayLengthMinutes,
-            "SUNRISE" : time_parser.convert(app_message.response.time.sunrise),
-            "SUNSET" : time_parser.convert(app_message.response.time.sunset),
-            "TIME" : time_parser.convert(app_message.response.time.time)
-        }
+        return RustTime(time.dayLengthMinutes, time_parser.convert(time.sunrise), time_parser.convert(time.sunset), time_parser.convert(time.time))
 
-    def __getInfo(self):
+    async def __getInfo(self) -> RustInfo:
 
         request = self.__initProto()
         request.getInfo.CopyFrom(AppEmpty())
         
-        app_message = self.__sendAndRecieve(request)
+        app_message = await self.__sendAndRecieve(request)
 
-        return app_message
+        return RustInfo(app_message.response.info)
 
-    def __getMap(self, MAPSIZE):
+    async def __getMap(self, MAPSIZE):
 
         request = self.__initProto()
         request.getMap.CopyFrom(AppEmpty())
         
-        app_message = self.__sendAndRecieve(request)
+        app_message = await self.__sendAndRecieve(request)
 
         map = app_message.response.map
         monuments = list(map.monuments)
@@ -91,11 +87,11 @@ class RustSocket:
 
         return (im, monuments)
 
-    def __getAndFormatMap(self, addIcons : bool, addEvents : bool, addVendingMachines : bool, overrideImages : dict = {}):
+    async def __getAndFormatMap(self, addIcons : bool, addEvents : bool, addVendingMachines : bool, overrideImages : dict = {}):
 
-        MAPSIZE = int(self.__getInfo().response.info.mapSize)
+        MAPSIZE = int((await self.__getInfo()).size)
 
-        map, monuments = self.__getMap(MAPSIZE)
+        map, monuments = await self.__getMap(MAPSIZE)
 
         if addIcons or addEvents or addVendingMachines:
             cood_formatter = CoordUtil()
@@ -111,7 +107,7 @@ class RustSocket:
                     icon = icon.resize((100, 125))
                 map.paste(icon, (cood_formatter.format(int(monument.x), int(monument.y), MAPSIZE)), icon)
 
-        mapMarkers = list(self.__getMarkers().response.mapMarkers.markers)
+        mapMarkers = list((await self.__getMarkers()).response.mapMarkers.markers)
 
         if addVendingMachines:
             with resources.path("rustplus.api.icons", "vending_machine.png") as path:
@@ -133,40 +129,39 @@ class RustSocket:
                         map.paste(icon, (int(x), MAPSIZE - int(y)), icon)
                     else:
                         map.paste(icon, (cood_formatter.format(int(marker.x), int(marker.y), MAPSIZE)), icon)
-            if addVendingMachines:
-                if marker.type == 3:
+            if addVendingMachines and marker.type == 3:
                     map.paste(vendingMachine, (int(marker.x) - 50, MAPSIZE - int(marker.y) - 50), vendingMachine)
 
         return map.resize((2000, 2000), Image.ANTIALIAS)
 
-    def __getRawMapData(self): 
+    async def __getRawMapData(self) -> RustMap: 
 
         request = self.__initProto()
         request.getMap.CopyFrom(AppEmpty())
         
-        app_message = self.__sendAndRecieve(request)
+        app_message = (await self.__sendAndRecieve(request)).response.map
 
-        return app_message.response.map
+        return RustMap(app_message)
 
-    def __getMarkers(self):
+    async def __getMarkers(self) -> List[RustMarker]:
 
         request = self.__initProto()
         request.getMapMarkers.CopyFrom(AppEmpty())
 
-        app_message = self.__sendAndRecieve(request)
+        markers = (await self.__sendAndRecieve(request)).response.mapMarkers
 
-        return app_message
+        return [RustMarker(marker) for marker in markers.markers]
 
-    def __getTeamChat(self):
+    async def __getTeamChat(self):
 
         request = self.__initProto()
         request.getTeamChat.CopyFrom(AppEmpty())
         
-        app_message = self.__sendAndRecieve(request)
+        messages = (await self.__sendAndRecieve(request)).response.teamChat.messages
 
-        return app_message
+        return [RustChatMessage(message) for message in messages]
 
-    def __sendTeamChatMessage(self, message):
+    async def __sendTeamChatMessage(self, message) -> RustSuccess:
 
         msg = AppSendMessage()
         msg.message = message
@@ -188,11 +183,11 @@ class RustSocket:
         appMessage = AppMessage()
         appMessage.ParseFromString(success)
 
-        self.error_checker.check(appMessage)
+        await self.error_checker.check(appMessage)
 
-        return appMessage
+        return RustSuccess(appMessage.response.seq, appMessage.response.success)
 
-    def __getCameraFrame(self, id, frame):
+    async def __getCameraFrame(self, id, frame):
 
         cameraPacket = AppCameraFrameRequest()
         cameraPacket.identifier = id
@@ -201,31 +196,29 @@ class RustSocket:
         request = self.__initProto()
         request.getCameraFrame.CopyFrom(cameraPacket)
 
-        app_message = self.__sendAndRecieve(request)
+        app_message = await self.__sendAndRecieve(request)
 
         return app_message
 
-    def __getTeamInfo(self):
+    async def __getTeamInfo(self):
 
         request = self.__initProto()
         request.getTeamInfo.CopyFrom(AppEmpty())
 
-        app_message = self.__sendAndRecieve(request)
+        app_message = await self.__sendAndRecieve(request)
 
-        return app_message
+        return RustTeamInfo(app_message.response.teamInfo)
 
-    def __getEntityInfo(self, eid : int): 
+    async def __getEntityInfo(self, eid : int) -> RustEntityInfo: 
 
         request = self.__initProto()
 
         request.entityId = eid
         request.getEntityInfo.CopyFrom(AppEmpty())
         
-        app_message = self.__sendAndRecieve(request)
+        return RustEntityInfo((await self.__sendAndRecieve(request)).response.entityInfo)
 
-        return app_message
-
-    def __updateSmartDevice(self, eid : int, value : bool) -> AppMessage:
+    async def __updateSmartDevice(self, eid : int, value : bool) -> AppMessage:
 
         entityValue = AppSetEntityValue()
         entityValue.value = value
@@ -235,11 +228,11 @@ class RustSocket:
         request.entityId = eid
         request.setEntityValue.CopyFrom(entityValue)
 
-        app_message = self.__sendAndRecieve(request)
+        app_message = await self.__sendAndRecieve(request)
 
-        return app_message
+        return RustSuccess(app_message.response.seq, app_message.response.success)
 
-    def __promoteToTeamLeader(self, SteamID : int):
+    async def __promoteToTeamLeader(self, SteamID : int):
 
         leaderPacket = AppPromoteToLeader()
         leaderPacket.steamId = SteamID
@@ -247,64 +240,48 @@ class RustSocket:
         request = self.__initProto()
         request.promoteToLeader.CopyFrom(leaderPacket)
         
-        app_message = self.__sendAndRecieve(request)
+        app_message = await self.__sendAndRecieve(request)
 
-        return app_message
+        return RustSuccess(app_message.response.seq, app_message.response.success)
 
-    def __getTCStorage(self, EID, combineStacks):
+    async def __getTCStorage(self, EID, combineStacks):
 
-        returnedData = self.__getEntityInfo(EID)
+        returnedData = await self.__getEntityInfo(EID)
 
-        returnDict = {}
-
-        targetTime = datetime.utcfromtimestamp(int(returnedData.response.entityInfo.payload.protectionExpiry))
+        targetTime = datetime.utcfromtimestamp(int(returnedData.protectionExpiry))
         difference = targetTime - datetime.utcnow()
-
-        returnDict["protectionTime"] = difference
-        returnDict["hasProtection"] = bool(returnedData.response.entityInfo.payload.hasProtection)
-
-        returnItems = list(returnedData.response.entityInfo.payload.items)
 
         idConverter = IdToName()
 
         items = []
 
-        for item in returnItems:
-            items.append(Storage_Item(idConverter.translate(item.itemId), item.itemId, item.quantity, item.itemIsBlueprint))
+        for item in returnedData.items:
+            items.append(RustItem(idConverter.translate(item.itemId), item.itemId, item.quantity, item.itemIsBlueprint))
 
-        if not combineStacks:
-            returnDict["contents"] = items
-            return returnDict
+        if combineStacks:
+            mergedMap = defaultdict(tuple)
 
-        mergedMap = defaultdict(tuple)
+            for item in items:
+                data = mergedMap[str(item.itemId)]
+                if data:
+                    count = int(data[0]) + int(item.quantity)
+                    mergedMap[str(item.itemId)] = (count, bool(item.isBlueprint))
+                else:
+                    mergedMap[str(item.itemId)] = (int(item.quantity), bool(item.isBlueprint))
 
-        for item in items:
-            data = mergedMap[str(item.itemId)]
-            if data:
-                count = int(data[0]) + int(item.quantity)
-                mergedMap[str(item.itemId)] = (count, bool(item.isBlueprint))
-            else:
-                mergedMap[str(item.itemId)] = (int(item.quantity), bool(item.isBlueprint))
+            items = []
+            for key in mergedMap.keys():
+                items.append(RustItem(idConverter.translate(key), key, int(mergedMap[key][0]), bool(mergedMap[key][1])))
 
-        items = []
-        for key in mergedMap.keys():
-            items.append(Storage_Item(idConverter.translate(key), key, int(mergedMap[key][0]), bool(mergedMap[key][1])))
+        return RustContents(difference, bool(returnedData.hasProtection), items)
 
-        returnDict["contents"] = items
-        return returnDict
+    async def __getCurrentEvents(self):
 
-    def __getCurrentEvents(self):
-
-        mapMarkers = list(self.__getMarkers().response.mapMarkers.markers)
-        poi = []
-        for marker in mapMarkers:
-            if marker.type == 2 or marker.type == 4 or marker.type == 5 or marker.type == 6:
-                poi.append(marker)
-        return poi
+        return [marker for marker in (await self.__getMarkers()) if marker.type == 2 or marker.type == 4 or marker.type == 5 or marker.type == 6]
 
     ################################################
 
-    def connect(self) -> None:
+    async def connect(self) -> None:
         """
         Connect to the Rust Server
         """
@@ -313,99 +290,74 @@ class RustSocket:
         except:
             raise ServerNotResponsiveError("The sever is not available to connect to - your ip/port are either correct or the server is offline")
 
-    def closeConnection(self) -> None:
+    async def closeConnection(self) -> None:
         """
         Close the connection to the Rust Server
         """
         self.ws.abort()
 
-    def disconnect(self) -> None:
+    async def disconnect(self) -> None:
         """
         Close the connection to the Rust Server
         """
-        self.closeConnection()
+        await self.closeConnection()
 
-    def getTime(self) -> dict:
+    async def getTime(self) -> RustTime:
         """
         Gets the current in-game time
         """
-        return self.__getTime()
+        return await self.__getTime()
 
-    def getInfo(self) -> dict:
+    async def getInfo(self) -> RustInfo:
         """
         Gets information on the Rust Server
         """
-        data = self.__getInfo().response.info
+        return await self.__getInfo()
 
-        outData = {}   
-
-        outData["url"] = data.url
-        outData["name"] = data.name
-        outData["map"] = data.map
-        outData["size"] = data.mapSize
-        outData["currentPlayers"] = data.players
-        outData["maxPlayers"] = data.maxPlayers
-        outData["queuedPlayers"] = data.queuedPlayers
-        outData["seed"] = data.seed
-
-        return outData
-
-    def getRawMapData(self) -> AppMap:
+    async def getRawMapData(self) -> RustMap:
         """
         Returns the list of monuments on the server. This is a relatively expensive operation as the monuments are part of the map data
         """
-        return self.__getRawMapData()
+        return await self.__getRawMapData()
 
-    def getMap(self, addIcons : bool = False, addEvents : bool = False, addVendingMachines : bool = False, overrideImages : dict = {}) -> Image:
+    async def getMap(self, addIcons : bool = False, addEvents : bool = False, addVendingMachines : bool = False, overrideImages : dict = {}) -> Image:
         """
         Returns the Map of the server with the option to add icons.
         """
-        return self.__getAndFormatMap(addIcons, addEvents, addVendingMachines, overrideImages)
+        return await self.__getAndFormatMap(addIcons, addEvents, addVendingMachines, overrideImages)
 
-    def getMarkers(self) -> AppMapMarkers:
+    async def getMarkers(self) -> List[RustMarker]:
         """
         Gets the map markers for the server. Returns a list of them
         """
-        
-        markers = self.__getMarkers()
 
-        return markers.response.mapMarkers
+        return await self.__getMarkers()
 
-    def getTeamChat(self) -> list:
+    async def getTeamChat(self) -> List[RustChatMessage]:
         """
         Returns a list of chat messages, formatted as 'ChatMessage' objects with entries:
-        - steamID, 
-        - senderName,
+        - steamId, 
+        - name,
         - message, 
         - colour
+        - time
         """
 
-        chat = self.__getTeamChat()
+        return await self.__getTeamChat()
 
-        messages = chat.response.teamChat.messages
-
-        messagesToReturn = []
-
-        for i in range(0,len(messages)-1):
-            currentMessage = messages[i]
-            messagesToReturn.append(ChatMessage(currentMessage.steamId,currentMessage.name,currentMessage.message,currentMessage.color))
-
-        return messagesToReturn
-
-    def sendTeamMessage(self, message : str) -> AppMessage:
+    async def sendTeamMessage(self, message : str) -> RustSuccess:
         """
         Sends a team chat message as yourself. Returns the success data back from the server. Can be ignored
         """
 
-        data = self.__sendTeamChatMessage(message)
-        return data
+        return await self.__sendTeamChatMessage(message)
 
-    def getCameraFrame(self, id : str, frame : int) -> Image:
+    async def getCameraFrame(self, id : str, frame : int) -> Image:
         """
         Returns a low quality jpeg image from a camera in-game
         """
 
-        returnData = self.__getCameraFrame(id,frame)
+        returnData = await self.__getCameraFrame(id,frame)
 
         try:
             image = Image.open(BytesIO(returnData.response.cameraFrame.jpgImage))
@@ -414,53 +366,50 @@ class RustSocket:
 
         return image
 
-    def getTeamInfo(self) -> AppTeamInfo:
+    async def getTeamInfo(self) -> RustTeamInfo:
         """
         Returns an AppTeamInfo object of the players in your team, as well as a lot of data about them
         """
 
-        teamInfo = self.__getTeamInfo()
+        return await self.__getTeamInfo()
 
-        return teamInfo.response.teamInfo
-
-    def turnOnSmartSwitch(self, EID : int) -> AppMessage:
+    async def turnOnSmartSwitch(self, EID : int) -> RustSuccess:
         """
         Turns on a smart switch on the server
         """
 
-        return self.__updateSmartDevice(EID, True)
+        return await self.__updateSmartDevice(EID, True)
 
-    def turnOffSmartSwitch(self, EID : int) -> AppMessage:
+    async def turnOffSmartSwitch(self, EID : int) -> RustSuccess:
         """
         Turns off a smart switch on the server
         """
 
-        return self.__updateSmartDevice(EID, False)
+        return await self.__updateSmartDevice(EID, False)
 
-    def getEntityInfo(self, EID : int) -> AppEntityInfo: 
+    async def getEntityInfo(self, EID : int) -> RustEntityInfo: 
         """
         Get the entity info from a given entity ID
         """
-        data = self.__getEntityInfo(EID)
 
-        return data.response.entityInfo
+        return await self.__getEntityInfo(EID)
 
-    def promoteToTeamLeader(self, SteamID : int) -> AppMessage:
+    async def promoteToTeamLeader(self, SteamID : int) -> RustSuccess:
         """
         Promotes a given user to the team leader by their 64-bit Steam ID
         """
 
-        return self.__promoteToTeamLeader(SteamID)
+        return await self.__promoteToTeamLeader(SteamID)
 
-    def getTCStorageContents(self, EID : int, combineStacks : bool = False) -> dict:
+    async def getTCStorageContents(self, EID : int, combineStacks : bool = False) -> RustContents:
         """
         Gets the Information about TC Upkeep and Contents.
         Do not use this for any other storage monitor than a TC
         """
         
-        return self.__getTCStorage(EID, combineStacks)
+        return await self.__getTCStorage(EID, combineStacks)
 
-    def getCurrentEvents(self) -> list:
+    async def getCurrentEvents(self) -> List[RustMarker]:
         """
         Gets all current ongoing events on the map
         Can detect:
@@ -472,4 +421,4 @@ class RustSocket:
         Returns the MapMarker for the event
         """
         
-        return self.__getCurrentEvents()
+        return await self.__getCurrentEvents()
