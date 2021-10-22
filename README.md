@@ -28,55 +28,55 @@ rust_socket = RustSocket("IPADDRESS", "PORT", 64BITSTEAMID, PLAYERTOKEN)
 #See below for more information on the above ^^
 
 #Connects to the server's websocket
-rust_socket.connect()
+await rust_socket.connect()
 
 """
 For information on the following see below
 """
 #Get mapMarkers:
-markers = rust_socket.getMarkers()
+markers = await rust_socket.getMarkers()
 
 #Get Server Info:
-info = rust_socket.getInfo()
+info = await rust_socket.getInfo()
 
 #Get Current time:
-time = rust_socket.getTime()
+time = await rust_socket.getTime()
 
 #Getting Team info
-team_info = rust_socket.getTeamInfo()
+team_info = await rust_socket.getTeamInfo()
 
 #Getting Team Chat:
-team_chat = rust_socket.getTeamChat()
+team_chat = await rust_socket.getTeamChat()
 
 #Sending a Team Chat message:
-status = rust_socket.sendTeamMessage("Yo! I sent this with Rust+.py")
+status = await rust_socket.sendTeamMessage("Yo! I sent this with Rust+.py")
 
 #Get Camera Image:
-camera_image = rust_socket.getCameraFrame("CAMID",FRAMENO)
+camera_image = await rust_socket.getCameraFrame("CAMID",FRAMENO)
 
 #Get Map Image:
-rust_map = rust_socket.getMap(addIcons = True, addEvents = True, addVendingMachines= True, overrideImages = {})
+rust_map = await rust_socket.getMap(addIcons = True, addEvents = True, addVendingMachines= True, overrideImages = {})
 
 #Getting Map Data
-rust_map_data = rust_socket.getRawMapData()
+rust_map_data = await rust_socket.getRawMapData()
 
 #Get Entity Information
-entity_info = rust_socket.getEntityInfo(ENTITYID)
+entity_info = await rust_socket.getEntityInfo(ENTITYID)
 
 #Turning On/Off a Smart Switch
-rust_socket.turnOffSmartSwitch(ENTITYID)
-rust_socket.turnOnSmartSwitch(ENTITYID)
+await rust_socket.turnOffSmartSwitch(ENTITYID)
+await rust_socket.turnOnSmartSwitch(ENTITYID)
 
 #Promoting a TeamMate to team leader
-rust_socket.promoteToTeamLeader(SteamID)
+await rust_socket.promoteToTeamLeader(SteamID)
 
 #Getting the contents of a TC:
-tc_contents = rust_socket.getTCStorageContents(ENTITYID, MERGESTACKS : bool)
+tc_contents = await rust_socket.getTCStorageContents(ENTITYID, MERGESTACKS : bool)
 
 #Getting Current Map Events
-events = rust_socket.getCurrentEvents()
+events = await rust_socket.getCurrentEvents()
 
-rust_socket.closeConnection()
+await rust_socket.closeConnection()
 ```
 
 # For information on all of the above methods, see the [Wiki](https://github.com/olijeffers0n/rustplus/wiki)
