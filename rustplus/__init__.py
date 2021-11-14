@@ -3,5 +3,5 @@ from .exceptions import ClientError, ImageError, ServerNotResponsiveError, Clien
 
 __name__ = "rustplus"
 __author__ = "olijefferson"
-__version__ = "4.0.1"
+__version__ = "4.0.2"
 __support__ = "Discord: https://discord.gg/nQqJe8qvP8"
