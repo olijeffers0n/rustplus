@@ -1,5 +1,5 @@
 from .api import RustSocket
-from .exceptions import ClientError, ImageError, ServerNotResponsiveError
+from .exceptions import ClientError, ImageError, ServerNotResponsiveError, ClientNotConnectedError
 
 __name__ = "rustplus"
 __author__ = "olijefferson"

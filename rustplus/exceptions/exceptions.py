@@ -13,3 +13,7 @@ class ImageError(Error):
 class ServerNotResponsiveError(Error):
     """Raised when the target Server is not online / Unavailable"""
     pass
+
+class ClientNotConnectedError(Error):
+    """Raised when the client is not connected to the server"""
+    pass

@@ -9,7 +9,7 @@ from importlib import resources
 from .rustplus_pb2 import *
 from .structures import RustTime, RustInfo, RustMap, RustMarker, RustChatMessage, RustSuccess, RustTeamInfo, RustTeamMember, RustTeamNote, RustEntityInfo, RustContents, RustItem
 from ..utils import MonumentNameToImage, TimeParser, CoordUtil, ErrorChecker, IdToName, MapMarkerConverter
-from ..exceptions import ImageError, ServerNotResponsiveError
+from ..exceptions import ImageError, ServerNotResponsiveError, ClientNotConnectedError
 
 class RustSocket:
     def __init__(self, ip : str, port : str, steamid : int, playertoken : int) -> None:
@@ -21,7 +21,7 @@ class RustSocket:
         self.playertoken = playertoken
         self.error_checker = ErrorChecker()
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return "RustSocket[ip = {} | port = {} | steamid = {} | playertoken = {}]".format(self.ip, self.port, self.steamid, self.playertoken)
 
     def __initProto(self) -> AppRequest:
@@ -35,6 +35,10 @@ class RustSocket:
     async def __sendAndRecieve(self, request) -> AppMessage:
 
         data = request.SerializeToString()
+
+        if self.ws == None:
+            raise ClientNotConnectedError("Not Connected")
+
         self.ws.send_binary(data)
 
         return_data = self.ws.recv()
@@ -169,6 +173,9 @@ class RustSocket:
         request.sendTeamMessage.CopyFrom(msg)
         data = request.SerializeToString()
 
+        if self.ws == None:
+            raise ClientNotConnectedError("Not Connected")
+
         self.ws.send_binary(data)
 
         messageReturn = self.ws.recv()
@@ -294,6 +301,7 @@ class RustSocket:
         Close the connection to the Rust Server
         """
         self.ws.abort()
+        self.ws = None
 
     async def disconnect(self) -> None:
         """
@@ -334,12 +342,7 @@ class RustSocket:
 
     async def getTeamChat(self) -> List[RustChatMessage]:
         """
-        Returns a list of chat messages, formatted as 'ChatMessage' objects with entries:
-        - steamId, 
-        - name,
-        - message, 
-        - colour
-        - time
+        Returns a list of RustChatMessage objects
         """
 
         return await self.__getTeamChat()
