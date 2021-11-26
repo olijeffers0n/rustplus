@@ -1,13 +1,17 @@
-import threading
-from flask import Flask, render_template, request
 from push_receiver.push_receiver import listen, gcm_register, fcm_register
+from selenium.webdriver.chrome.service import Service
+from flask import Flask, render_template, request
+from chromedriver_py import binary_path
 from selenium import webdriver
-import time
-import json
-import requests
 from uuid import uuid4
-import json
-import urllib3
+import time, requests, json, urllib3, threading, sys, logging
+
+# Dealing with hiding the messages :)
+cli = sys.modules['flask.cli']
+cli.show_server_banner = lambda *x: None
+
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
 
 class RustCli:
@@ -18,7 +22,7 @@ class RustCli:
 
 
     def getConfigFile(self):
-        return "rustpy.config.json"
+        return "rustplus.py.config.json"
 
 
     def readConfig(self, file):
@@ -35,6 +39,7 @@ class RustCli:
 
 
     def getExpoPushToken(self, credentials):
+
         response = requests.post("https://exp.host/--/api/v2/push/getExpoPushToken", data={
             "deviceId" : self.uuid,
             "experienceId": '@facepunch/RustCompanion',
@@ -56,20 +61,20 @@ class RustCli:
                 "PushToken": expoPushToken,
             }).encode('utf-8')
 
-        http = urllib3.PoolManager()
-
-        return http.request('POST', 'https://companion-rust.facepunch.com:443/api/push/register',
+        return urllib3.PoolManager().request('POST', 'https://companion-rust.facepunch.com:443/api/push/register',
                         headers={'Content-Type': 'application/json'},
                         body=encoded_body)
 
     
     def clientView(self):
+
         options = webdriver.ChromeOptions()
         options.add_argument("--disable-web-security")
         options.add_argument("--disable-popup-blocking")
         options.add_argument("--disable-site-isolation-trials")
 
-        driver = webdriver.Chrome(options=options)
+        service = Service(binary_path)
+        driver = webdriver.Chrome(service=service, options=options, service_log_path='/dev/null')
         driver.get("http://localhost:3000")
         
         while True:
@@ -77,7 +82,7 @@ class RustCli:
                 if str(driver.current_url).startswith("http://localhost:3000/callback"):
                     driver.close()
                     break
-                time.sleep(2)
+                time.sleep(1)
             except Exception:
                 return
     
@@ -97,8 +102,7 @@ class RustCli:
         def callback():
             self.token = request.args["token"]
             try:
-                func = request.environ.get('werkzeug.server.shutdown')
-                func()
+                request.environ.get('werkzeug.server.shutdown')()
             except:
                 pass
 
@@ -109,6 +113,7 @@ class RustCli:
         return self.token
 
     def registerWithFCM(self, sender_id):
+
         appId = "wp:receiver.push.com#{}".format(self.uuid)
         subscription = gcm_register(appId=appId, retries=50)
         fcm = fcm_register(sender_id=sender_id, token=subscription["token"])
@@ -122,7 +127,7 @@ class RustCli:
         print("Registering with FCM")
         fcmCredentials = self.registerWithFCM(976529667804)
 
-        print(fcmCredentials)
+        print("Registered with FCM")
 
         print("Fetching Expo Push Token")
         try:
@@ -138,7 +143,6 @@ class RustCli:
         # tell user to link steam with rust+ through Google Chrome
         print("Google Chrome is launching so you can link your Steam account with Rust+")
         rustplusAuthToken = self.linkSteamWithRustPlus()
-        #rustplusAuthToken = "eyJzdGVhbUlkIjoiNzY1NjExOTg0Mzg3OTY0OTUiLCJpc3MiOjE2Mzc3NjI3MDYsImV4cCI6MTYzODk3MjMwNn0=.f7Fw8w3k1M1j11vaOUzoqQRwC4s2S1jUbwlgnjwFUCSXvwTpj6o6aqxOYk8Vuf8a4Nk7Y4aB45vlIWO9t0ogBg=="
 
         # show rust+ auth token to user
         print("Successfully linked Steam account with Rust+")
@@ -170,7 +174,7 @@ class RustCli:
 
     def fcmListen(self):
 
-        with open("rustpy.config.json", "r") as file:
+        with open(self.getConfigFile(), "r") as file:
             credentials = json.load(file)
 
         print("Listening...")
