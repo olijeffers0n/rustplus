@@ -10,8 +10,11 @@ import time, requests, json, urllib3, threading, sys, logging
 cli = sys.modules['flask.cli']
 cli.show_server_banner = lambda *x: None
 
-log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)
+flask_logger = logging.getLogger('werkzeug')
+flask_logger.setLevel(logging.ERROR)
+
+push_receiver_logger = logging.getLogger("push_receiver")
+push_receiver_logger.setLevel(logging.ERROR)
 
 
 class RustCli:

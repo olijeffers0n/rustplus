@@ -1,3 +1,7 @@
+r"""
+RustPlus, An API wrapper for interfacing with the Rust+ App API
+"""
+
 from .api import RustSocket
 from .exceptions import ClientError, ImageError, ServerNotResponsiveError, ClientNotConnectedError
 
