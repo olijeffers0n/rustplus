@@ -1,10 +1,12 @@
 from typing import List
-from websocket import create_connection
+from websocket import create_connection, WebSocketConnectionClosedException
 from PIL import Image
 from io import BytesIO
 from collections import defaultdict
 from datetime import datetime
 from importlib import resources
+import threading
+import asyncio
 
 from .rustplus_pb2 import *
 from .structures import RustTime, RustInfo, RustMap, RustMarker, RustChatMessage, RustSuccess, RustTeamInfo, RustTeamMember, RustTeamNote, RustEntityInfo, RustContents, RustItem
@@ -20,6 +22,7 @@ class RustSocket:
         self.steamid = steamid
         self.playertoken = playertoken
         self.error_checker = ErrorChecker()
+        self.responses = {}
 
     def __str__(self) -> str:
         return "RustSocket[ip = {} | port = {} | steamid = {} | playertoken = {}]".format(self.ip, self.port, self.steamid, self.playertoken)
@@ -32,6 +35,33 @@ class RustSocket:
         request.playerToken = self.playertoken
         return request
 
+    def __listener(self):
+
+        while self.ws != None:
+
+            try:
+
+                data = self.ws.recv()
+
+                app_message = AppMessage()
+                app_message.ParseFromString(data)
+
+                if not app_message.broadcast.teamMessage.message.message != "":
+                    self.responses[app_message.response.seq] = app_message
+                else:
+                    print(app_message.broadcast.teamMessage.message)
+                    
+            except WebSocketConnectionClosedException:
+                return
+
+    async def __getResponse(self, seq):
+
+        while seq not in self.responses:
+            await asyncio.sleep(0.1)
+        response = self.responses[seq]
+        del self.responses[seq]
+        return response
+
     async def __sendAndRecieve(self, request) -> AppMessage:
 
         data = request.SerializeToString()
@@ -41,10 +71,7 @@ class RustSocket:
 
         self.ws.send_binary(data)
 
-        return_data = self.ws.recv()
-
-        app_message = AppMessage()
-        app_message.ParseFromString(return_data)
+        app_message = await self.__getResponse(request.seq)
 
         await self.error_checker.check(app_message)
 
@@ -295,6 +322,8 @@ class RustSocket:
             self.ws = create_connection("ws://{}:{}".format(self.ip,self.port))
         except:
             raise ServerNotResponsiveError("The sever is not available to connect to - your ip/port are either correct or the server is offline")
+
+        threading.Thread(target=self.__listener).start()
 
     async def closeConnection(self) -> None:
         """
