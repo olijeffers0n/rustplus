@@ -22,9 +22,12 @@ It should also install all the dependencies, but if not you will have to install
 
 ## Usage:
 ```py
-from  rustplus  import  RustSocket
+from rustplus import RustSocket, CommandOptions, Command
 
-rust_socket = RustSocket("IPADDRESS", "PORT", 64BITSTEAMID, PLAYERTOKEN)
+#Registering the Command Options in order to listen for commands
+options = CommandOptions(prefix="!")
+
+rust_socket = RustSocket("IPADDRESS", "PORT", 64BITSTEAMID, PLAYERTOKEN, command_options=options)
 #See below for more information on the above ^^
 
 #Connects to the server's websocket
@@ -49,10 +52,7 @@ team_info = await rust_socket.getTeamInfo()
 team_chat = await rust_socket.getTeamChat()
 
 #Sending a Team Chat message:
-status = await rust_socket.sendTeamMessage("Yo! I sent this with Rust+.py")
-
-#Get Camera Image:
-camera_image = await rust_socket.getCameraFrame("CAMID",FRAMENO)
+await rust_socket.sendTeamMessage("Yo! I sent this with Rust+.py")
 
 #Get Map Image:
 rust_map = await rust_socket.getMap(addIcons = True, addEvents = True, addVendingMachines= True, overrideImages = {})
@@ -75,6 +75,14 @@ tc_contents = await rust_socket.getTCStorageContents(ENTITYID, MERGESTACKS : boo
 
 #Getting Current Map Events
 events = await rust_socket.getCurrentEvents()
+
+#Registering a command listener, which will listen for the command 'hi' with the prefix we defined earlier
+@socket.command
+async def hi(command : Command): 
+	await rust_socket.sendTeamMessage(f"Hi {command.sender_name}, This is an automated reply from RustPlus.py!")
+
+#Used to just stop a script from ending. Use this if you are using commands
+await rust_socket.hang()
 
 await rust_socket.closeConnection()
 ```

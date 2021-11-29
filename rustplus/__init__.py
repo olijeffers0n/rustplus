@@ -3,7 +3,7 @@ RustPlus, An API wrapper for interfacing with the Rust+ App API
 """
 
 from .api import RustSocket
-from .exceptions import ClientError, ImageError, ServerNotResponsiveError, ClientNotConnectedError, PrefixNotDefinedError, EventsNotEnabledError
+from .exceptions import ClientError, ImageError, ServerNotResponsiveError, ClientNotConnectedError, PrefixNotDefinedError, CommandsNotEnabledError
 from .commands import CommandOptions, Command
 
 __name__ = "rustplus"

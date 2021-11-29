@@ -22,6 +22,6 @@ class PrefixNotDefinedError(Error):
     """Raised when a prefix is not given"""
     pass
 
-class EventsNotEnabledError(Error):
+class CommandsNotEnabledError(Error):
     """Raised when events are not enabled"""
     pass

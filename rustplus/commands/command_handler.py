@@ -26,4 +26,4 @@ class RustCommandHandler:
             
             coro = getattr(self, command)
 
-            await coro(Command(message.name, message.steamId, message.message, message.time))
+            await coro(Command(message.name, message.steamId, message.time, command, message.message.split(" ")[1:]))

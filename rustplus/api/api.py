@@ -11,7 +11,7 @@ import asyncio
 from .rustplus_pb2 import *
 from .structures import RustTime, RustInfo, RustMap, RustMarker, RustChatMessage, RustSuccess, RustTeamInfo, RustTeamMember, RustTeamNote, RustEntityInfo, RustContents, RustItem
 from ..utils import MonumentNameToImage, TimeParser, CoordUtil, ErrorChecker, IdToName, MapMarkerConverter
-from ..exceptions import ImageError, ServerNotResponsiveError, ClientNotConnectedError, EventsNotEnabledError
+from ..exceptions import ImageError, ServerNotResponsiveError, ClientNotConnectedError, CommandsNotEnabledError
 from ..commands import CommandOptions, RustCommandHandler
 
 class RustSocket:
@@ -67,6 +67,8 @@ class RustSocket:
                 if app_message.broadcast.teamMessage.message.message == "":
                     if app_message.response.seq not in self.ignored_responses:
                         self.responses[app_message.response.seq] = app_message
+                    else:
+                        self.ignored_responses.remove(app_message.response.seq)
                 else:
                     message = RustChatMessage(app_message.broadcast.teamMessage.message)
                     
@@ -230,19 +232,6 @@ class RustSocket:
 
         return RustSuccess(0,"Success")
 
-    async def __getCameraFrame(self, id, frame):
-
-        cameraPacket = AppCameraFrameRequest()
-        cameraPacket.identifier = id
-        cameraPacket.frame = frame
-
-        request = self.__initProto()
-        request.getCameraFrame.CopyFrom(cameraPacket)
-
-        app_message = await self.__sendAndRecieve(request)
-
-        return app_message
-
     async def __getTeamInfo(self):
 
         request = self.__initProto()
@@ -393,20 +382,6 @@ class RustSocket:
 
         return await self.__sendTeamChatMessage(message)
 
-    async def getCameraFrame(self, id : str, frame : int) -> Image:
-        """
-        Returns a low quality jpeg image from a camera in-game
-        """
-
-        returnData = await self.__getCameraFrame(id,frame)
-
-        try:
-            image = Image.open(BytesIO(returnData.response.cameraFrame.jpgImage))
-        except:
-            raise ImageError("Invalid Bytes Recieved")
-
-        return image
-
     async def getTeamInfo(self) -> RustTeamInfo:
         """
         Returns an AppTeamInfo object of the players in your team, as well as a lot of data about them
@@ -464,16 +439,16 @@ class RustSocket:
         
         return await self.__getCurrentEvents()
 
-    def event(self, coro) -> None:
-        """A Decorator that registers an event listener"""
+    def command(self, coro) -> None:
+        """A Decorator that registers an commands listener"""
 
         if self.command_handler is None:
-            raise EventsNotEnabledError("Events have not been enabled in the constructor")
+            raise CommandsNotEnabledError("Commands have not been enabled in the constructor")
             
         self.command_handler.register_command(coro.__name__, coro)
 
     async def hang(self) -> None:
-        """This Will permanently put your script into a state of 'hanging'. Only do this in scripts using events"""
+        """This Will permanently put your script into a state of 'hanging'. Only do this in scripts using commands"""
 
         while True:
             await asyncio.sleep(1)
