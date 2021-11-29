@@ -23,6 +23,7 @@ class RustSocket:
         self.playertoken = playertoken
         self.error_checker = ErrorChecker()
         self.responses = {}
+        self.ws = None
 
     def __str__(self) -> str:
         return "RustSocket[ip = {} | port = {} | steamid = {} | playertoken = {}]".format(self.ip, self.port, self.steamid, self.playertoken)
