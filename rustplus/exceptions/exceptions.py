@@ -21,3 +21,7 @@ class ClientNotConnectedError(Error):
 class PrefixNotDefinedError(Error):
     """Raised when a prefix is not given"""
     pass
+
+class EventsNotEnabledError(Error):
+    """Raised when events are not enabled"""
+    pass

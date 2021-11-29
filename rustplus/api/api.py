@@ -11,10 +11,11 @@ import asyncio
 from .rustplus_pb2 import *
 from .structures import RustTime, RustInfo, RustMap, RustMarker, RustChatMessage, RustSuccess, RustTeamInfo, RustTeamMember, RustTeamNote, RustEntityInfo, RustContents, RustItem
 from ..utils import MonumentNameToImage, TimeParser, CoordUtil, ErrorChecker, IdToName, MapMarkerConverter
-from ..exceptions import ImageError, ServerNotResponsiveError, ClientNotConnectedError
+from ..exceptions import ImageError, ServerNotResponsiveError, ClientNotConnectedError, EventsNotEnabledError
 from ..commands import CommandOptions, RustCommandHandler
 
 class RustSocket:
+
     def __init__(self, ip : str, port : str, steamid : int, playertoken : int, command_options : CommandOptions = None) -> None:
         
         self.seq = 1
@@ -25,13 +26,14 @@ class RustSocket:
         self.error_checker = ErrorChecker()
         self.responses = {}
         self.ignored_responses = []
+        self.prefix = None
+        self.command_handler = None
+        self.ws = None
 
         if command_options is not None:
-            self.prefix = command_options.prefix
 
+            self.prefix = command_options.prefix
             self.command_handler = RustCommandHandler(command_options)
-            
-        self.ws = None
 
     def __str__(self) -> str:
         return "RustSocket[ip = {} | port = {} | steamid = {} | playertoken = {}]".format(self.ip, self.port, self.steamid, self.playertoken)
@@ -465,6 +467,9 @@ class RustSocket:
     def event(self, coro) -> None:
         """A Decorator that registers an event listener"""
 
+        if self.command_handler is None:
+            raise EventsNotEnabledError("Events have not been enabled in the constructor")
+            
         self.command_handler.register_command(coro.__name__, coro)
 
     async def hang(self) -> None:
