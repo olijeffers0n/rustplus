@@ -4,7 +4,7 @@ class RustChatMessage():
         
         self.steamId = data.steamId
         self.name = data.name
-        self.message = data.message
+        self.message = str(data.message)
         self.colour = data.color
         self.time = data.time
 

@@ -17,3 +17,7 @@ class ServerNotResponsiveError(Error):
 class ClientNotConnectedError(Error):
     """Raised when the client is not connected to the server"""
     pass
+
+class PrefixNotDefinedError(Error):
+    """Raised when a prefix is not given"""
+    pass

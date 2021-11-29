@@ -12,7 +12,7 @@ setup(
       project_urls={
         "Issue tracker": "https://github.com/olijeffers0n/rustplus/issues",
       },
-      version="4.0.2",
+      version="4.1.0",
       include_package_data=True,
       packages = ['rustplus', 'rustplus.api', 'rustplus.api.icons', 'rustplus.exceptions', 'rustplus.utils', 'rustplus.api.structures'],
       license='MIT',
@@ -22,7 +22,9 @@ setup(
       install_requires=[
         "Pillow",
         "websocket-client",
-        "protobuf"
+        "protobuf",
+        "threading",
+        "asyncio"
       ],
       python_requires='>=3.7.0',
 )

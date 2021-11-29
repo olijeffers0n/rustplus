@@ -12,9 +12,10 @@ from .rustplus_pb2 import *
 from .structures import RustTime, RustInfo, RustMap, RustMarker, RustChatMessage, RustSuccess, RustTeamInfo, RustTeamMember, RustTeamNote, RustEntityInfo, RustContents, RustItem
 from ..utils import MonumentNameToImage, TimeParser, CoordUtil, ErrorChecker, IdToName, MapMarkerConverter
 from ..exceptions import ImageError, ServerNotResponsiveError, ClientNotConnectedError
+from ..commands import CommandOptions, RustCommandHandler
 
 class RustSocket:
-    def __init__(self, ip : str, port : str, steamid : int, playertoken : int) -> None:
+    def __init__(self, ip : str, port : str, steamid : int, playertoken : int, command_options : CommandOptions = None) -> None:
         
         self.seq = 1
         self.ip = ip
@@ -23,6 +24,12 @@ class RustSocket:
         self.playertoken = playertoken
         self.error_checker = ErrorChecker()
         self.responses = {}
+        self.ignored_responses = []
+
+        if command_options is not None:
+            self.prefix = command_options.prefix
+
+            self.command_handler = RustCommandHandler(command_options)
 
     def __str__(self) -> str:
         return "RustSocket[ip = {} | port = {} | steamid = {} | playertoken = {}]".format(self.ip, self.port, self.steamid, self.playertoken)
@@ -35,7 +42,14 @@ class RustSocket:
         request.playerToken = self.playertoken
         return request
 
-    def __listener(self):
+    def __start_listener(self) -> None:
+
+        loop = asyncio.new_event_loop()
+
+        loop.run_until_complete(self.__listener())
+        loop.close()
+
+    async def __listener(self) -> None:
 
         while self.ws != None:
 
@@ -46,10 +60,14 @@ class RustSocket:
                 app_message = AppMessage()
                 app_message.ParseFromString(data)
 
-                if not app_message.broadcast.teamMessage.message.message != "":
-                    self.responses[app_message.response.seq] = app_message
+                if app_message.broadcast.teamMessage.message.message == "":
+                    if app_message.response.seq not in self.ignored_responses:
+                        self.responses[app_message.response.seq] = app_message
                 else:
-                    print(app_message.broadcast.teamMessage.message)
+                    message = RustChatMessage(app_message.broadcast.teamMessage.message)
+                    
+                    if message.message.startswith(self.prefix):
+                        await self.command_handler.run_command(message=message)
                     
             except WebSocketConnectionClosedException:
                 return
@@ -62,7 +80,7 @@ class RustSocket:
         del self.responses[seq]
         return response
 
-    async def __sendAndRecieve(self, request) -> AppMessage:
+    async def __sendAndRecieve(self, request, response = True) -> AppMessage:
 
         data = request.SerializeToString()
 
@@ -71,11 +89,15 @@ class RustSocket:
 
         self.ws.send_binary(data)
 
-        app_message = await self.__getResponse(request.seq)
+        if response:
 
-        await self.error_checker.check(app_message)
+            app_message = await self.__getResponse(request.seq)
 
-        return app_message
+            await self.error_checker.check(app_message)
+
+            return app_message
+
+        return None
 
     async def __getTime(self) -> RustTime:
 
@@ -198,27 +220,11 @@ class RustSocket:
 
         request = self.__initProto()
         request.sendTeamMessage.CopyFrom(msg)
-        data = request.SerializeToString()
 
-        if self.ws == None:
-            raise ClientNotConnectedError("Not Connected")
+        self.ignored_responses.append(request.seq)
+        await self.__sendAndRecieve(request, False)
 
-        self.ws.send_binary(data)
-
-        messageReturn = self.ws.recv()
-        messageReturnAppMessage = AppMessage()
-        messageReturnAppMessage.ParseFromString(messageReturn)
-        if str(messageReturnAppMessage.response.error) != "":
-            return messageReturnAppMessage
-        
-        success = self.ws.recv()
-
-        appMessage = AppMessage()
-        appMessage.ParseFromString(success)
-
-        await self.error_checker.check(appMessage)
-
-        return RustSuccess(appMessage.response.seq, appMessage.response.success)
+        return RustSuccess(0,"Success")
 
     async def __getCameraFrame(self, id, frame):
 
@@ -323,7 +329,7 @@ class RustSocket:
         except:
             raise ServerNotResponsiveError("The sever is not available to connect to - your ip/port are either correct or the server is offline")
 
-        threading.Thread(target=self.__listener).start()
+        threading.Thread(target=self.__start_listener).start()
 
     async def closeConnection(self) -> None:
         """
@@ -453,3 +459,14 @@ class RustSocket:
         """
         
         return await self.__getCurrentEvents()
+
+    def event(self, coro) -> None:
+        """A Decorator that registers an event listener"""
+
+        self.command_handler.register_command(coro.__name__, coro)
+
+    async def hang(self) -> None:
+        """This Will permanently put your script into a state of 'hanging'. Only do this in scripts using events"""
+
+        while True:
+            await asyncio.sleep(1)
