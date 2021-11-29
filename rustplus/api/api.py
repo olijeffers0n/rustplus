@@ -30,6 +30,8 @@ class RustSocket:
             self.prefix = command_options.prefix
 
             self.command_handler = RustCommandHandler(command_options)
+            
+        self.ws = None
 
     def __str__(self) -> str:
         return "RustSocket[ip = {} | port = {} | steamid = {} | playertoken = {}]".format(self.ip, self.port, self.steamid, self.playertoken)
