@@ -16,7 +16,8 @@ I have used their Protocol Buffer file for this, as well as instructions on how 
 ## Installation:
 Install the package with:
 ```
-pip install rustplus
+pip install rustplus 
+(latest is slightly unstable as of now, use 4.0.1 for stability but no commands)
 ```
 It should also install all the dependencies, but if not you will have to install them yourself
 
