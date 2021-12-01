@@ -1,13 +1,12 @@
 from typing import List
-from websocket import create_connection, WebSocketConnectionClosedException
 from PIL import Image
 from io import BytesIO
 from collections import defaultdict
 from datetime import datetime
 from importlib import resources
-import threading
 import asyncio
 
+from .socket import EchoClient
 from .rustplus_pb2 import *
 from .structures import RustTime, RustInfo, RustMap, RustMarker, RustChatMessage, RustSuccess, RustTeamInfo, RustTeamMember, RustTeamNote, RustEntityInfo, RustContents, RustItem
 from ..utils import MonumentNameToImage, TimeParser, CoordUtil, ErrorChecker, IdToName, MapMarkerConverter
@@ -46,44 +45,11 @@ class RustSocket:
         request.playerToken = self.playertoken
         return request
 
-    def __start_listener(self) -> None:
-
-        loop = asyncio.new_event_loop()
-
-        loop.run_until_complete(self.__listener())
-        loop.close()
-
-    async def __listener(self) -> None:
-
-        while self.ws != None:
-
-            try:
-
-                data = self.ws.recv()
-
-                app_message = AppMessage()
-                app_message.ParseFromString(data)
-
-                if app_message.broadcast.teamMessage.message.message == "":
-                    if app_message.response.seq not in self.ignored_responses:
-                        self.responses[app_message.response.seq] = app_message
-                    else:
-                        self.ignored_responses.remove(app_message.response.seq)
-                else:
-                    message = RustChatMessage(app_message.broadcast.teamMessage.message)
-                    
-                    if message.message.startswith(self.prefix):
-                        await self.command_handler.run_command(message=message)
-                    
-            except WebSocketConnectionClosedException:
-                return
-
     async def __getResponse(self, seq):
 
         while seq not in self.responses:
             await asyncio.sleep(0.1)
-        response = self.responses[seq]
-        del self.responses[seq]
+        response = self.responses.pop(seq)
         return response
 
     async def __sendAndRecieve(self, request, response = True) -> AppMessage:
@@ -93,7 +59,7 @@ class RustSocket:
         if self.ws == None:
             raise ClientNotConnectedError("Not Connected")
 
-        self.ws.send_binary(data)
+        self.ws.send(data, binary=True)
 
         if response:
 
@@ -313,23 +279,31 @@ class RustSocket:
 
     ################################################
 
+    async def __start_websocket(self) -> None:
+
+        self.ws = EchoClient(ip=self.ip, port=self.port, api=self, protocols=['http-only', 'chat'])
+        self.ws.daemon = False
+        self.ws.connect()
+
     async def connect(self) -> None:
         """
         Connect to the Rust Server
         """
-        try:
-            self.ws = create_connection("ws://{}:{}".format(self.ip,self.port))
-        except:
-            raise ServerNotResponsiveError("The sever is not available to connect to - your ip/port are either correct or the server is offline")
+        
+        await self.__start_websocket()
 
-        threading.Thread(target=self.__start_listener).start()
+        #except:
+        #    raise ServerNotResponsiveError("The sever is not available to connect to - your ip/port are either correct or the server is offline")
 
     async def closeConnection(self) -> None:
         """
         Close the connection to the Rust Server
         """
-        self.ws.abort()
+        self.ws.close()
         self.ws = None
+        self.seq = 1
+        self.responses = {}
+        self.ignored_responses = []
 
     async def disconnect(self) -> None:
         """
