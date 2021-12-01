@@ -25,3 +25,11 @@ class PrefixNotDefinedError(Error):
 class CommandsNotEnabledError(Error):
     """Raised when events are not enabled"""
     pass
+
+class RustSocketDestroyedError(Error):
+    """Raised when the RustSocket has had #terminate called and tries to reconnect"""
+    pass
+
+class RateLimitError(Error):
+    """Raised When an issue with the ratelimit has occurred"""
+    pass

@@ -12,10 +12,10 @@ class EchoClient(WebSocketClient):
         self.api = api
 
     def opened(self): 
-        pass
+        return 
 
     def closed(self, code, reason):
-        pass
+        return
 
     def received_message(self, message):
 

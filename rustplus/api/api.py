@@ -6,16 +6,16 @@ from datetime import datetime
 from importlib import resources
 import asyncio
 
-from .socket import EchoClient
+from .socket import EchoClient, TokenBucket
 from .rustplus_pb2 import *
 from .structures import RustTime, RustInfo, RustMap, RustMarker, RustChatMessage, RustSuccess, RustTeamInfo, RustTeamMember, RustTeamNote, RustEntityInfo, RustContents, RustItem
 from ..utils import MonumentNameToImage, TimeParser, CoordUtil, ErrorChecker, IdToName, MapMarkerConverter
-from ..exceptions import ImageError, ServerNotResponsiveError, ClientNotConnectedError, CommandsNotEnabledError
+from ..exceptions import ImageError, ServerNotResponsiveError, ClientNotConnectedError, CommandsNotEnabledError, RustSocketDestroyedError, RateLimitError
 from ..commands import CommandOptions, RustCommandHandler
 
 class RustSocket:
 
-    def __init__(self, ip : str, port : str, steamid : int, playertoken : int, command_options : CommandOptions = None) -> None:
+    def __init__(self, ip : str, port : str, steamid : int, playertoken : int, command_options : CommandOptions = None, raise_ratelimit_exception : bool = True, ratelimit_limit : int = 25, ratelimit_refill : int = 3) -> None:
         
         self.seq = 1
         self.ip = ip
@@ -28,6 +28,8 @@ class RustSocket:
         self.prefix = None
         self.command_handler = None
         self.ws = None
+        self.bucket = TokenBucket(ratelimit_limit, ratelimit_limit, 1, ratelimit_refill)
+        self.raise_ratelimit_exception = raise_ratelimit_exception
 
         if command_options is not None:
 
@@ -70,6 +72,21 @@ class RustSocket:
             return app_message
 
         return None
+
+    async def __handle_ratelimit(self, cost = 1) -> None:
+
+        while True:
+
+            if self.bucket.can_consume(cost):
+                self.bucket.consume(cost)
+                return
+
+            if self.raise_ratelimit_exception:
+                raise RateLimitError("Out of tokens")
+
+            await asyncio.sleep(1)
+
+    ## End of Utility Functions
 
     async def __getTime(self) -> RustTime:
 
@@ -282,7 +299,7 @@ class RustSocket:
     async def __start_websocket(self) -> None:
 
         self.ws = EchoClient(ip=self.ip, port=self.port, api=self, protocols=['http-only', 'chat'])
-        self.ws.daemon = False
+        self.ws.daemon = True
         self.ws.connect()
 
     async def connect(self) -> None:
@@ -290,9 +307,12 @@ class RustSocket:
         Connect to the Rust Server
         """
         
+        if self.bucket is None:
+            raise RustSocketDestroyedError("Socket is terminated")
+
         await self.__start_websocket()
 
-        #except:
+        # TODO Make a `create_connection` request to the server to ping & check it is online
         #    raise ServerNotResponsiveError("The sever is not available to connect to - your ip/port are either correct or the server is offline")
 
     async def closeConnection(self) -> None:
@@ -311,28 +331,50 @@ class RustSocket:
         """
         await self.closeConnection()
 
+    async def terminate(self) -> None:
+        """
+        Closes and shuts down any processes like the rate limit manager. 
+        You CANNOT reconnect after this.
+        You take your own responsibilty for managing your rate limit.
+        """
+        await self.closeConnection()
+        self.bucket.refiller.stop()
+        self.bucket.refiller = None
+        self.bucket = None
+
     async def getTime(self) -> RustTime:
         """
         Gets the current in-game time
         """
+
+        self.__handle_ratelimit()
         return await self.__getTime()
 
     async def getInfo(self) -> RustInfo:
         """
         Gets information on the Rust Server
         """
+
+        self.__handle_ratelimit()
         return await self.__getInfo()
 
     async def getRawMapData(self) -> RustMap:
         """
         Returns the list of monuments on the server. This is a relatively expensive operation as the monuments are part of the map data
         """
+        await self.__handle_ratelimit(6)
         return await self.__getRawMapData()
 
     async def getMap(self, addIcons : bool = False, addEvents : bool = False, addVendingMachines : bool = False, overrideImages : dict = {}) -> Image:
         """
         Returns the Map of the server with the option to add icons.
         """
+
+        cost = 6
+        if addIcons or addEvents or addVendingMachines: 
+            cost += 1
+
+        await self.__handle_ratelimit(cost)
         return await self.__getAndFormatMap(addIcons, addEvents, addVendingMachines, overrideImages)
 
     async def getMarkers(self) -> List[RustMarker]:
@@ -340,6 +382,7 @@ class RustSocket:
         Gets the map markers for the server. Returns a list of them
         """
 
+        await self.__handle_ratelimit()
         return await self.__getMarkers()
 
     async def getTeamChat(self) -> List[RustChatMessage]:
@@ -347,6 +390,7 @@ class RustSocket:
         Returns a list of RustChatMessage objects
         """
 
+        await self.__handle_ratelimit()
         return await self.__getTeamChat()
 
     async def sendTeamMessage(self, message : str) -> RustSuccess:
@@ -354,6 +398,7 @@ class RustSocket:
         Sends a team chat message as yourself. Returns the success data back from the server. Can be ignored
         """
 
+        await self.__handle_ratelimit(2)
         return await self.__sendTeamChatMessage(message)
 
     async def getTeamInfo(self) -> RustTeamInfo:
@@ -361,6 +406,7 @@ class RustSocket:
         Returns an AppTeamInfo object of the players in your team, as well as a lot of data about them
         """
 
+        await self.__handle_ratelimit()
         return await self.__getTeamInfo()
 
     async def turnOnSmartSwitch(self, EID : int) -> RustSuccess:
@@ -368,6 +414,7 @@ class RustSocket:
         Turns on a smart switch on the server
         """
 
+        await self.__handle_ratelimit()
         return await self.__updateSmartDevice(EID, True)
 
     async def turnOffSmartSwitch(self, EID : int) -> RustSuccess:
@@ -375,6 +422,7 @@ class RustSocket:
         Turns off a smart switch on the server
         """
 
+        await self.__handle_ratelimit()
         return await self.__updateSmartDevice(EID, False)
 
     async def getEntityInfo(self, EID : int) -> RustEntityInfo: 
@@ -382,6 +430,7 @@ class RustSocket:
         Get the entity info from a given entity ID
         """
 
+        await self.__handle_ratelimit()
         return await self.__getEntityInfo(EID)
 
     async def promoteToTeamLeader(self, SteamID : int) -> RustSuccess:
@@ -389,6 +438,7 @@ class RustSocket:
         Promotes a given user to the team leader by their 64-bit Steam ID
         """
 
+        await self.__handle_ratelimit()
         return await self.__promoteToTeamLeader(SteamID)
 
     async def getTCStorageContents(self, EID : int, combineStacks : bool = False) -> RustContents:
@@ -396,7 +446,8 @@ class RustSocket:
         Gets the Information about TC Upkeep and Contents.
         Do not use this for any other storage monitor than a TC
         """
-        
+
+        await self.__handle_ratelimit()
         return await self.__getTCStorage(EID, combineStacks)
 
     async def getCurrentEvents(self) -> List[RustMarker]:
@@ -410,7 +461,8 @@ class RustSocket:
 
         Returns the MapMarker for the event
         """
-        
+
+        await self.__handle_ratelimit()
         return await self.__getCurrentEvents()
 
     def command(self, coro) -> None:

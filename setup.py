@@ -14,7 +14,7 @@ setup(
       },
       version="4.1.2",
       include_package_data=True,
-      packages = ['rustplus', 'rustplus.api', 'rustplus.api.icons', 'rustplus.exceptions', 'rustplus.utils', 'rustplus.api.structures', 'rustplus.commands'],
+      packages = ['rustplus', 'rustplus.api', 'rustplus.api.icons', 'rustplus.exceptions', 'rustplus.utils', 'rustplus.api.structures', 'rustplus.commands', 'rustplus.api.socket'],
       license='MIT',
       description='A python wrapper for the Rust Plus API',
       long_description=readme,
