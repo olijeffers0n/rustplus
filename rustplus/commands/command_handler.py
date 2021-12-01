@@ -1,10 +1,9 @@
 import asyncio
-
-from rustplus import commands, exceptions
+from datetime import datetime
 
 from ..api.structures import RustChatMessage
 from .command_options import CommandOptions
-from .command import Command
+from .command import Command, CommandTime
 
 class RustCommandHandler:
 
@@ -26,4 +25,6 @@ class RustCommandHandler:
             
             coro = getattr(self, command)
 
-            await coro(Command(message.name, message.steamId, message.time, command, message.message.split(" ")[1:]))
+            time = CommandTime(datetime.utcfromtimestamp(message.time), message.time)
+
+            await coro(Command(message.name, message.steamId, time, command, message.message.split(" ")[1:]))

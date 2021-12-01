@@ -80,7 +80,7 @@ class RustSocket:
 
         time_parser = TimeParser()
 
-        return RustTime(time.dayLengthMinutes, time_parser.convert(time.sunrise), time_parser.convert(time.sunset), time_parser.convert(time.time))
+        return RustTime(time.dayLengthMinutes, time_parser.convert(time.sunrise), time_parser.convert(time.sunset), time_parser.convert(time.time), time.time)
 
     async def __getInfo(self) -> RustInfo:
 
