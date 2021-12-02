@@ -1,10 +1,7 @@
 from push_receiver.push_receiver import listen, gcm_register, fcm_register
-from selenium.webdriver.chrome.service import Service
 from flask import Flask, render_template, request
-from chromedriver_py import binary_path
-from selenium import webdriver
 from uuid import uuid4
-import time, requests, json, urllib3, threading, sys, logging
+import requests, json, urllib3, threading, sys, logging, os, easygui
 
 # Dealing with hiding the messages :)
 cli = sys.modules['flask.cli']
@@ -25,8 +22,11 @@ class RustCli:
 
 
     def getConfigFile(self):
-        return "rustplus.py.config.json"
+        return str(os.path.dirname(os.path.realpath(__file__))) + "\\rustplus.py.config.json"
 
+    
+    def getUserDataDirectory(self):
+        return str(os.path.dirname(os.path.realpath(__file__))) + "\\ChromeData"
 
     def readConfig(self, file):
         try:
@@ -71,24 +71,10 @@ class RustCli:
     
     def clientView(self):
 
-        options = webdriver.ChromeOptions()
-        options.add_argument("--disable-web-security")
-        options.add_argument("--disable-popup-blocking")
-        options.add_argument("--disable-site-isolation-trials")
+        if self.chrome_path is None:
+            self.chrome_path = easygui.fileopenbox()
 
-        service = Service(binary_path)
-        driver = webdriver.Chrome(service=service, options=options, service_log_path='/dev/null')
-        driver.get("http://localhost:3000")
-        
-        while True:
-            try:
-                if str(driver.current_url).startswith("http://localhost:3000/callback"):
-                    driver.close()
-                    break
-                time.sleep(1)
-            except Exception:
-                return
-    
+        os.system('"{}" -incognito http://localhost:3000 --disable-web-security --disable-popup-blocking --disable-site-isolation-trials --user-data-dir={}'.format(self.chrome_path, self.getUserDataDirectory()))
 
     def linkSteamWithRustPlus(self):
 
@@ -126,6 +112,12 @@ class RustCli:
 
 
     def fcmRegister(self):
+
+        try:
+            with open(self.getConfigFile(), "r") as file:
+                self.chrome_path = json.load(file)["chrome_path"]
+        except FileNotFoundError:
+            self.chrome_path = None
 
         print("Registering with FCM")
         fcmCredentials = self.registerWithFCM(976529667804)
@@ -165,6 +157,7 @@ class RustCli:
             "fcm_credentials": fcmCredentials,
             "expo_push_token": expoPushToken,
             "rustplus_auth_token": rustplusAuthToken,
+            "chrome_path" : self.chrome_path,
         })
 
         print("FCM, Expo and Rust+ auth tokens have been saved to " + configFile)
@@ -177,8 +170,12 @@ class RustCli:
 
     def fcmListen(self):
 
-        with open(self.getConfigFile(), "r") as file:
-            credentials = json.load(file)
+        try:
+            with open(self.getConfigFile(), "r") as file:
+                credentials = json.load(file)
+        except FileNotFoundError:
+            print("Config File doesn't exist! Run 'register' first")
+            quit()
 
         print("Listening...")
 
@@ -190,6 +187,12 @@ if __name__ == "__main__":
 
     cli = RustCli()
 
-    
-    cli.fcmRegister()
-    cli.fcmListen()
+    if len(sys.argv) >= 2:
+        if sys.argv[1] == "register":
+            cli.fcmRegister()
+        elif sys.argv[1] == "listen":
+            cli.fcmListen()
+
+    else:
+        cli.fcmRegister()
+        cli.fcmListen()
