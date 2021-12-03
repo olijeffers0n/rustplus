@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 readme = ''
 with open('README.md') as f:
@@ -14,7 +14,7 @@ setup(
       },
       version="4.1.2",
       include_package_data=True,
-      packages = ['rustplus', 'rustplus.api', 'rustplus.api.icons', 'rustplus.exceptions', 'rustplus.utils', 'rustplus.api.structures', 'rustplus.commands', 'rustplus.api.socket'],
+      packages = find_packages(include=['rustplus', 'rustplus.*']),
       license='MIT',
       description='A python wrapper for the Rust Plus API',
       long_description=readme,
