@@ -347,7 +347,7 @@ class RustSocket:
         Gets the current in-game time
         """
 
-        self.__handle_ratelimit()
+        await self.__handle_ratelimit()
         return await self.__getTime()
 
     async def getInfo(self) -> RustInfo:
@@ -355,7 +355,7 @@ class RustSocket:
         Gets information on the Rust Server
         """
 
-        self.__handle_ratelimit()
+        await self.__handle_ratelimit()
         return await self.__getInfo()
 
     async def getRawMapData(self) -> RustMap:
