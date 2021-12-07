@@ -319,8 +319,9 @@ class RustSocket:
         """
         Close the connection to the Rust Server
         """
-        self.ws.close()
-        self.ws = None
+        if self.ws is not None:
+            self.ws.close()
+            self.ws = None
         self.seq = 1
         self.responses = {}
         self.ignored_responses = []
