@@ -1,4 +1,5 @@
 import asyncio
+from typing import List
 
 from .structures import *
 from .remote.rustproto import *
@@ -87,5 +88,23 @@ class BaseRustSocket:
     async def send_team_message(self, message : str) -> None:
         """
         Sends a message to the in-game team chat
+        """
+        pass
+
+    async def get_info(self) -> RustInfo:
+        """
+        Gets information on the Rust Server
+        """
+        pass
+
+    async def get_team_chat(self) -> List[RustChatMessage]:
+        """
+        Gets the team chat from the server
+        """
+        pass
+
+    async def get_team_info(self):
+        """
+        Gets Information on the members of your team
         """
         pass

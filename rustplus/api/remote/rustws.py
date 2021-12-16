@@ -58,10 +58,16 @@ class RustWsClient(WebSocketClient):
             self.command_handler.run_command(message)
             return
 
+        elif self.is_message(app_message):
+            return
+
         self.responses[app_message.response.seq] = app_message
 
     def is_command(self, app_message) -> bool:
         return self.use_commands and str(app_message.broadcast.teamMessage.message.message).startswith(self.command_options.prefix)
+
+    def is_message(self, app_message) -> bool:
+        return str(app_message.broadcast.teamMessage.message.message) != ""
 
     async def send_message(self, request : AppRequest) -> None:
         """

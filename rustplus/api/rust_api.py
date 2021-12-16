@@ -1,8 +1,10 @@
-from .remote.rustproto import AppEmpty, AppSendMessage
+from typing import List
+
 from .base_rust_api import BaseRustSocket
-from .structures import RustTime
 from ..commands import CommandOptions
 from ..utils import *
+from .structures import RustTime, RustInfo, RustMap, RustMarker, RustChatMessage, RustTeamInfo, RustTeamMember, RustTeamNote, RustEntityInfo, RustContents, RustItem
+from .remote.rustproto import *
 
 class RustSocket(BaseRustSocket):
 
@@ -36,5 +38,44 @@ class RustSocket(BaseRustSocket):
 
         await self.ws.send_message(app_request)
 
+    async def get_info(self) -> RustInfo:
+        
+        self._handle_ratelimit()
+
+        app_request = self._generate_protobuf()
+        app_request.getInfo.CopyFrom(AppEmpty())
+
+        await self.ws.send_message(app_request)
+
+        response = await self.ws.get_response(app_request.seq)
+
+        return RustInfo(response.response.info)
+
+    async def get_team_chat(self) -> List[RustChatMessage]:
+        
+        self._handle_ratelimit()
+
+        app_request = self._generate_protobuf()
+        app_request.getTeamChat.CopyFrom(AppEmpty())
+
+        await self.ws.send_message(app_request)
+
+        messages = (await self.ws.get_response(app_request.seq)).response.teamChat.messages
+
+        return [RustChatMessage(message) for message in messages]
+
+    async def get_team_info(self):
+
+        self._handle_ratelimit()
+
+        app_request = self._generate_protobuf()
+        app_request.getTeamInfo.CopyFrom(AppEmpty())
+
+        await self.ws.send_message(app_request)
+
+        app_message = await self.ws.get_response(app_request.seq)
+
+        return RustTeamInfo(app_message.response.teamInfo)
+    
 
 
