@@ -6,6 +6,7 @@ from .rustproto import AppMessage, AppRequest
 from .token_bucket import RateLimiter
 from ..structures import RustChatMessage
 from ...commands import CommandOptions, CommandHandler
+from ...exceptions import ResponseNotRecievedError
 
 class RustWsClient(WebSocketClient):
 
@@ -86,7 +87,7 @@ class RustWsClient(WebSocketClient):
         while seq not in self.responses:
 
             if attempts == 20:
-                raise Exception("Not Recieved")
+                raise ResponseNotRecievedError("Not Recieved")
 
             attempts += 1
             await asyncio.sleep(0.1)

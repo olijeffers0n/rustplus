@@ -5,6 +5,7 @@ from .structures import *
 from .remote.rustproto import *
 from .remote.rustws import RustWsClient
 from ..commands import CommandOptions
+from ..exceptions import *
 
 class BaseRustSocket:
 
@@ -35,7 +36,7 @@ class BaseRustSocket:
         Handles the ratelimit for a specific request
         """
         if not self.ws.ratelimiter.can_consume():
-            raise Exception()
+            raise RateLimitError("Not enough tokens")
 
         self.ws.ratelimiter.consume()
     
@@ -60,7 +61,7 @@ class BaseRustSocket:
         try:
             self.ws.connect()
         except ConnectionRefusedError:
-            raise Exception()
+            raise ServerNotResponsiveError("Cannot Connect")
 
     async def close_connection(self) -> None:
         """
@@ -75,7 +76,7 @@ class BaseRustSocket:
         """
 
         if self.command_options is None:
-            raise Exception()
+            raise CommandsNotEnabledError("Not enabled")
 
         self.ws.command_handler.registerCommand(coro.__name__, coro)
 
