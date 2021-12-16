@@ -1,10 +1,13 @@
+import asyncio
+
 from .structures import *
 from .remote.rustproto import *
 from .remote.rustws import RustWsClient
+from ..commands import CommandOptions
 
 class BaseRustSocket:
 
-    def __init__(self, ip : str = None, port : str = None, steamid : int = None, playertoken : int = None, ratelimit_limit : int = 25, ratelimit_refill : int = 3) -> None:
+    def __init__(self, ip : str = None, port : str = None, steamid : int = None, playertoken : int = None, command_options : CommandOptions = None, ratelimit_limit : int = 25, ratelimit_refill : int = 3) -> None:
         
         if ip is None:
             raise ValueError("Ip cannot be None")
@@ -20,8 +23,9 @@ class BaseRustSocket:
         self.steamid = steamid
         self.playertoken = playertoken
         self.seq = 1
+        self.command_options = command_options
 
-        self.ws = RustWsClient(ip=self.ip, port=self.port, protocols=['http-only', 'chat'])
+        self.ws = RustWsClient(ip=self.ip, port=self.port, protocols=['http-only', 'chat'], command_options=command_options, loop=asyncio.get_event_loop())
         self.ws.daemon = True
         self.ws.start_ratelimiter(ratelimit_limit, ratelimit_limit, 1, ratelimit_refill)
 
@@ -64,8 +68,24 @@ class BaseRustSocket:
         self.ws.close()
         self.ws.responses.clear()
     
+    def command(self, coro) -> None:
+        """
+        A Decorator to register a command listener
+        """
+
+        if self.command_options is None:
+            raise Exception()
+
+        self.ws.command_handler.registerCommand(coro.__name__, coro)
+
     async def get_time(self) -> RustTime:
         """
         Gets the current in-game time from the server. Returns a RustTime object
+        """
+        pass
+
+    async def send_team_message(self, message : str) -> None:
+        """
+        Sends a message to the in-game team chat
         """
         pass

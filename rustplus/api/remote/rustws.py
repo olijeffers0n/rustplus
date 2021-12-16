@@ -1,16 +1,27 @@
 import asyncio
+from asyncio import AbstractEventLoop
 from ws4py.client.threadedclient import WebSocketClient
 
 from .rustproto import AppMessage, AppRequest
 from .token_bucket import RateLimiter
+from ..structures import RustChatMessage
+from ...commands import CommandOptions, CommandHandler
 
 class RustWsClient(WebSocketClient):
 
-    def __init__(self, ip, port, protocols=None, extensions=None, heartbeat_freq=None, ssl_options=None, headers=None, exclude_headers=None):
+    def __init__(self, ip, port, command_options : CommandOptions, loop : AbstractEventLoop, protocols=None, extensions=None, heartbeat_freq=None, ssl_options=None, headers=None, exclude_headers=None):
         super().__init__(f"ws://{ip}:{port}", protocols=protocols, extensions=extensions, heartbeat_freq=heartbeat_freq, ssl_options=ssl_options, headers=headers, exclude_headers=exclude_headers)
 
         self.responses = {}
+        self.ignored_responses = []
         self.ratelimiter = None
+
+        if command_options is None:
+            self.use_commands = False
+        else:
+            self.use_commands = True
+            self.command_options = command_options
+            self.command_handler = CommandHandler(loop, self.command_options)
 
     def start_ratelimiter(self, current, max, refresh_rate, refresh_amount) -> None:
 
@@ -36,7 +47,21 @@ class RustWsClient(WebSocketClient):
         app_message = AppMessage()
         app_message.ParseFromString(message.data)
 
+        if app_message.response.seq in self.ignored_responses:
+            self.ignored_responses.remove(app_message.response.seq)
+            return
+
+        if self.is_command(app_message):
+
+            message = RustChatMessage(app_message.broadcast.teamMessage.message)
+
+            self.command_handler.run_command(message)
+            return
+
         self.responses[app_message.response.seq] = app_message
+
+    def is_command(self, app_message) -> bool:
+        return self.use_commands and str(app_message.broadcast.teamMessage.message.message).startswith(self.command_options.prefix)
 
     async def send_message(self, request : AppRequest) -> None:
         """
@@ -63,7 +88,4 @@ class RustWsClient(WebSocketClient):
         response = self.responses.pop(seq)
 
         return response
-
-
-
 

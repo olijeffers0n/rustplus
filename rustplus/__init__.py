@@ -3,6 +3,7 @@ RustPlus, An API wrapper for interfacing with the Rust+ App API
 """
 
 from .api import RustSocket
+from .commands import CommandOptions, Command
 
 __name__ = "rustplus"
 __author__ = "olijefferson"
