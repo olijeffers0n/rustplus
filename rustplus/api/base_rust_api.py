@@ -1,5 +1,6 @@
 import asyncio
 from typing import List
+from PIL import Image
 
 from .structures import *
 from .remote.rustproto import *
@@ -107,5 +108,65 @@ class BaseRustSocket:
     async def get_team_info(self):
         """
         Gets Information on the members of your team
+        """
+        pass
+
+    async def get_markers(self) -> List[RustMarker]:
+        """
+        Gets all the map markers from the server
+        """
+        pass
+
+    async def get_map(self, add_icons : bool = False, add_events : bool = False, add_vending_machines : bool = False, override_images : dict = {}) -> Image:
+        """
+        Gets an image of the map from the server with the specified additions
+        """
+        pass
+
+    async def get_raw_map_data(self) -> RustMap:
+        """
+        Gets the raw map data from the server
+        """
+        pass
+
+    async def get_entity_info(self, eid : int = None) -> RustEntityInfo:
+        """
+        Gets entity info from the server
+        """
+        pass
+
+    async def turn_on_smart_switch(self, eid : int = None) -> None:
+        """
+        Turns on a given smart switch by entity ID
+        """
+        pass
+
+    async def turn_off_smart_switch(self, eid : int = None) -> None:
+        """
+        Turns off a given smart switch by entity ID
+        """
+        pass
+
+    async def promote_to_team_leader(self, steamid : int = None) -> None:
+        """
+        Promotes a given user to the team leader by their 64-bit Steam ID
+        """
+        pass
+
+    async def get_current_events(self) -> List[RustMarker]:
+        """
+        Returns all the map markers that are for events:
+        Can detect:
+            - Explosion
+            - CH47 (Chinook)
+            - Cargo Ship
+            - Locked Crate
+        """
+        pass
+
+    async def get_tc_storage_contents(self, eid : int = None, combine_stacks : bool = False) -> RustContents:
+        """
+        Gets the Information about TC Upkeep and Contents.
+        Do not use this for any other storage monitor than a TC
         """
         pass

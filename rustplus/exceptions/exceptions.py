@@ -22,3 +22,6 @@ class PrefixNotDefinedError(Error):
     """Raised when a prefix is not given"""
     pass
 
+class ImageError(Error):
+    """Raised when the bytes received are not valid"""
+    pass
