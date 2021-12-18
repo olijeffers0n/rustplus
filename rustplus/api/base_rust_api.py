@@ -3,7 +3,7 @@ from typing import List
 from PIL import Image
 
 from .structures import *
-from .remote.rustproto import *
+from .remote.rustplus_pb2 import *
 from .remote.rustws import RustWsClient
 from ..commands import CommandOptions
 from ..exceptions import *
