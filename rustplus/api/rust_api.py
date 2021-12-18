@@ -10,7 +10,7 @@ from ..commands import CommandOptions
 from ..exceptions import *
 from ..utils import *
 from .structures import RustTime, RustInfo, RustMap, RustMarker, RustChatMessage, RustTeamInfo, RustTeamMember, RustTeamNote, RustEntityInfo, RustContents, RustItem
-from .remote.rustproto import *
+from .remote.rustplus_pb2 import *
 
 class RustSocket(BaseRustSocket):
 
