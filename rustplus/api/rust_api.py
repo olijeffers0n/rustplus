@@ -14,12 +14,12 @@ from .remote.rustproto import *
 
 class RustSocket(BaseRustSocket):
 
-    def __init__(self, ip: str = None, port: str = None, steamid: int = None, playertoken: int = None, command_options : CommandOptions = None, ratelimit_limit : int = 25, ratelimit_refill : int = 3) -> None:
-        super().__init__(ip=ip, port=port, steamid=steamid, playertoken=playertoken, command_options=command_options, ratelimit_limit=ratelimit_limit, ratelimit_refill=ratelimit_refill)
+    def __init__(self, ip: str = None, port: str = None, steamid: int = None, playertoken: int = None, command_options : CommandOptions = None, raise_ratelimit_exception : bool = True, ratelimit_limit : int = 25, ratelimit_refill : int = 3) -> None:
+        super().__init__(ip=ip, port=port, steamid=steamid, playertoken=playertoken, command_options=command_options, raise_ratelimit_exception=raise_ratelimit_exception, ratelimit_limit=ratelimit_limit, ratelimit_refill=ratelimit_refill)
 
     async def get_time(self) -> RustTime:
         
-        self._handle_ratelimit()
+        await self._handle_ratelimit()
         
         app_request = self._generate_protobuf()
         app_request.getTime.CopyFrom(AppEmpty())
@@ -32,7 +32,7 @@ class RustSocket(BaseRustSocket):
 
     async def send_team_message(self, message: str) -> None:
         
-        self._handle_ratelimit(2)
+        await self._handle_ratelimit(2)
 
         app_send_message = AppSendMessage()
         app_send_message.message = message
@@ -46,7 +46,7 @@ class RustSocket(BaseRustSocket):
 
     async def get_info(self) -> RustInfo:
         
-        self._handle_ratelimit()
+        await self._handle_ratelimit()
 
         app_request = self._generate_protobuf()
         app_request.getInfo.CopyFrom(AppEmpty())
@@ -59,7 +59,7 @@ class RustSocket(BaseRustSocket):
 
     async def get_team_chat(self) -> List[RustChatMessage]:
         
-        self._handle_ratelimit()
+        await self._handle_ratelimit()
 
         app_request = self._generate_protobuf()
         app_request.getTeamChat.CopyFrom(AppEmpty())
@@ -72,7 +72,7 @@ class RustSocket(BaseRustSocket):
 
     async def get_team_info(self):
 
-        self._handle_ratelimit()
+        await self._handle_ratelimit()
 
         app_request = self._generate_protobuf()
         app_request.getTeamInfo.CopyFrom(AppEmpty())
@@ -85,7 +85,7 @@ class RustSocket(BaseRustSocket):
 
     async def get_markers(self) -> List[RustMarker]:
         
-        self._handle_ratelimit()
+        await self._handle_ratelimit()
 
         app_request = self._generate_protobuf()
         app_request.getMapMarkers.CopyFrom(AppEmpty())
@@ -98,7 +98,7 @@ class RustSocket(BaseRustSocket):
 
     async def get_raw_map_data(self) -> RustMap:
 
-        self._handle_ratelimit(5)
+        await self._handle_ratelimit(5)
 
         app_request = self._generate_protobuf()
         app_request.getMap.CopyFrom(AppEmpty())
@@ -113,7 +113,7 @@ class RustSocket(BaseRustSocket):
 
         MAPSIZE = int((await self.get_info()).size)
         
-        self._handle_ratelimit(5 + 1 if [add_icons, add_events, add_vending_machines].count(True) >= 1 else 0)
+        await self._handle_ratelimit(5 + 1 if [add_icons, add_events, add_vending_machines].count(True) >= 1 else 0)
 
         app_request = self._generate_protobuf()
         app_request.getMap.CopyFrom(AppEmpty())
@@ -173,12 +173,12 @@ class RustSocket(BaseRustSocket):
     
     async def get_entity_info(self, eid: int = None) -> RustEntityInfo:
 
-        self._handle_ratelimit()
+        await self._handle_ratelimit()
 
         if eid is None:
             raise ValueError("EID cannot be None")
         
-        app_request = AppRequest()
+        app_request = self._generate_protobuf()
         app_request.entityId = eid
         app_request.getEntityInfo.CopyFrom(AppEmpty())
 
@@ -190,12 +190,12 @@ class RustSocket(BaseRustSocket):
 
     async def _update_smart_device(self, eid : int, value : bool) -> None:
 
-        self._handle_ratelimit()
+        await self._handle_ratelimit()
 
         entityValue = AppSetEntityValue()
         entityValue.value = value
 
-        app_request = self.__initProto()
+        app_request = self._generate_protobuf()
 
         app_request.entityId = eid
         app_request.setEntityValue.CopyFrom(entityValue)
@@ -209,14 +209,14 @@ class RustSocket(BaseRustSocket):
         if eid is None:
             raise ValueError("EID cannot be None")
 
-        self._update_smart_device(eid, True)
+        await self._update_smart_device(eid, True)
 
     async def turn_off_smart_switch(self, eid: int = None) -> None:
         
         if eid is None:
             raise ValueError("EID cannot be None")
 
-        self._update_smart_device(eid, False)
+        await self._update_smart_device(eid, False)
 
     async def promote_to_team_leader(self, steamid: int = None) -> None:
         

@@ -10,7 +10,7 @@ from ..exceptions import *
 
 class BaseRustSocket:
 
-    def __init__(self, ip : str = None, port : str = None, steamid : int = None, playertoken : int = None, command_options : CommandOptions = None, ratelimit_limit : int = 25, ratelimit_refill : int = 3) -> None:
+    def __init__(self, ip : str = None, port : str = None, steamid : int = None, playertoken : int = None, command_options : CommandOptions = None, raise_ratelimit_exception : bool = True, ratelimit_limit : int = 25, ratelimit_refill : int = 3) -> None:
         
         if ip is None:
             raise ValueError("Ip cannot be None")
@@ -27,19 +27,27 @@ class BaseRustSocket:
         self.playertoken = playertoken
         self.seq = 1
         self.command_options = command_options
+        self.raise_ratelimit_exception = raise_ratelimit_exception
 
         self.ws = RustWsClient(ip=self.ip, port=self.port, protocols=['http-only', 'chat'], command_options=command_options, loop=asyncio.get_event_loop())
         self.ws.daemon = True
         self.ws.start_ratelimiter(ratelimit_limit, ratelimit_limit, 1, ratelimit_refill)
 
-    def _handle_ratelimit(self, amount = 1) -> None:
+    async def _handle_ratelimit(self, amount = 1) -> None:
         """
         Handles the ratelimit for a specific request
         """
-        if not self.ws.ratelimiter.can_consume():
-            raise RateLimitError("Not enough tokens")
 
-        self.ws.ratelimiter.consume()
+        while True:
+
+            if self.ws.ratelimiter.can_consume(amount):
+                self.ws.ratelimiter.consume(amount)
+                return
+
+            if self.raise_ratelimit_exception:
+                raise RateLimitError("Out of tokens")
+
+            await asyncio.sleep(self.ws.ratelimiter.get_estimated_delay_time(amount))
     
     def _generate_protobuf(self) -> AppRequest:
         """
@@ -80,6 +88,12 @@ class BaseRustSocket:
             raise CommandsNotEnabledError("Not enabled")
 
         self.ws.command_handler.registerCommand(coro.__name__, coro)
+
+    async def hang(self) -> None:
+        """This Will permanently put your script into a state of 'hanging' Cannot be Undone. Only do this in scripts using commands"""
+
+        while True:
+            await asyncio.sleep(1)
 
     async def get_time(self) -> RustTime:
         """
