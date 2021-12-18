@@ -9,4 +9,4 @@ class RustTime:
         self.raw_time = raw_time
 
     def __str__(self) -> str:
-        return "RustTime[day_length={}, sunrise={}, sunset={}, time={}, raw_time={}]".format(self.day_length, self.sunset, self.sunset, self.time, self.raw_time)
+        return f"RustTime[day_length={self.day_length}, sunrise={self.sunrise}, sunset={self.sunset}, time={self.time}, raw_time={self.raw_time}]"

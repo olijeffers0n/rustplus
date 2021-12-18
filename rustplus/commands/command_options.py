@@ -5,6 +5,6 @@ class CommandOptions:
     def __init__(self, prefix : str = None) -> None:
         
         if prefix is None:
-            raise PrefixNotDefinedError("Not Defined")
+            raise PrefixNotDefinedError("No prefix")
 
         self.prefix = prefix

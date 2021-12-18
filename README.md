@@ -16,8 +16,7 @@ I have used their Protocol Buffer file for this, as well as instructions on how 
 ## Installation:
 Install the package with:
 ```
-pip install rustplus 
-(latest is slightly unstable as of now, use 4.0.1 for stability but no commands)
+pip install rustplus
 ```
 It should also install all the dependencies, but if not you will have to install them yourself
 
@@ -38,49 +37,49 @@ await rust_socket.connect()
 For information on the following see below
 """
 #Get mapMarkers:
-markers = await rust_socket.getMarkers()
+markers = await rust_socket.get_markers()
 
 #Get Server Info:
-info = await rust_socket.getInfo()
+info = await rust_socket.get_info()
 
 #Get Current time:
-time = await rust_socket.getTime()
+time = await rust_socket.get_time()
 
 #Getting Team info
-team_info = await rust_socket.getTeamInfo()
+team_info = await rust_socket.get_team_info()
 
 #Getting Team Chat:
-team_chat = await rust_socket.getTeamChat()
+team_chat = await rust_socket.get_team_chat()
 
 #Sending a Team Chat message:
-await rust_socket.sendTeamMessage("Yo! I sent this with Rust+.py")
+await rust_socket.send_team_message("Yo! I sent this with Rust+.py")
 
 #Get Map Image:
-rust_map = await rust_socket.getMap(addIcons = True, addEvents = True, addVendingMachines= True, overrideImages = {})
+rust_map = await rust_socket.get_map(add_icons = True, add_events = True, add_vending_machines= True, override_images = {})
 
 #Getting Map Data
-rust_map_data = await rust_socket.getRawMapData()
+rust_map_data = await rust_socket.get_raw_map_data()
 
 #Get Entity Information
-entity_info = await rust_socket.getEntityInfo(ENTITYID)
+entity_info = await rust_socket.get_entity_info(ENTITYID)
 
 #Turning On/Off a Smart Switch
-await rust_socket.turnOffSmartSwitch(ENTITYID)
-await rust_socket.turnOnSmartSwitch(ENTITYID)
+await rust_socket.turn_off_smart_switch(ENTITYID)
+await rust_socket.turn_on_smart_switch(ENTITYID)
 
 #Promoting a TeamMate to team leader
-await rust_socket.promoteToTeamLeader(SteamID)
+await rust_socket.promote_to_team_leader(SteamID)
 
 #Getting the contents of a TC:
-tc_contents = await rust_socket.getTCStorageContents(ENTITYID, MERGESTACKS : bool)
+tc_contents = await rust_socket.get_tc__storage_contents(ENTITYID, MERGESTACKS : bool)
 
 #Getting Current Map Events
-events = await rust_socket.getCurrentEvents()
+events = await rust_socket.get_current_events()
 
 #Registering a command listener, which will listen for the command 'hi' with the prefix we defined earlier
 @socket.command
 async def hi(command : Command): 
-	await rust_socket.sendTeamMessage(f"Hi {command.sender_name}, This is an automated reply from RustPlus.py!")
+	await rust_socket.send_team_message(f"Hi {command.sender_name}, This is an automated reply from RustPlus.py!")
 
 #Used to just stop a script from ending. Use this if you are using commands
 await rust_socket.hang()

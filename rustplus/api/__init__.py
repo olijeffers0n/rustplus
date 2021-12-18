@@ -1,1 +1,1 @@
-from .api import RustSocket
+from .rust_api import RustSocket

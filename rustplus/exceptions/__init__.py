@@ -1,1 +1,1 @@
-from .exceptions import ClientError, ImageError, ServerNotResponsiveError, ClientNotConnectedError, PrefixNotDefinedError, CommandsNotEnabledError, RustSocketDestroyedError, RateLimitError
+from .exceptions import RateLimitError, ServerNotResponsiveError, CommandsNotEnabledError, ResponseNotRecievedError, PrefixNotDefinedError, ImageError

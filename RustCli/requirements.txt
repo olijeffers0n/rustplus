@@ -1,4 +1,4 @@
-﻿Flask
+Flask
 push-receiver
 requests
 urllib3
