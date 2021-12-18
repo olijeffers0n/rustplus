@@ -2,7 +2,7 @@ import asyncio
 from asyncio import AbstractEventLoop
 from ws4py.client.threadedclient import WebSocketClient
 
-from .rustproto import AppMessage, AppRequest
+from .rustplus_pb2 import AppMessage, AppRequest
 from .token_bucket import RateLimiter
 from ..structures import RustChatMessage
 from ...commands import CommandOptions, CommandHandler
