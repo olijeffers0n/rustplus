@@ -95,4 +95,3 @@ class RustWsClient(WebSocketClient):
         response = self.responses.pop(seq)
 
         return response
-

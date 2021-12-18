@@ -12,7 +12,7 @@ setup(
       project_urls={
         "Issue tracker": "https://github.com/olijeffers0n/rustplus/issues",
       },
-      version="4.1.4",
+      version="5.0.0",
       include_package_data=True,
       packages = find_packages(include=['rustplus', 'rustplus.*']),
       license='MIT',

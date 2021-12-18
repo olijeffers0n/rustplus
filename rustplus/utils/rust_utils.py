@@ -1,6 +1,7 @@
 from importlib import resources
 from PIL import Image
 import logging
+import string
 
 from ..api.structures import RustTime
 
@@ -91,7 +92,7 @@ def convert_monument(name : str, override_images : dict) -> Image:
 
     try:
         return overrideImages[name]
-    except KeyError as e:
+    except KeyError:
         pass
     
     if name in name_to_file:
