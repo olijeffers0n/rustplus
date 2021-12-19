@@ -1,1 +1,1 @@
-from .exceptions import RateLimitError, ServerNotResponsiveError, CommandsNotEnabledError, ResponseNotRecievedError, PrefixNotDefinedError, ImageError
+from .exceptions import RateLimitError, ServerNotResponsiveError, CommandsNotEnabledError, ResponseNotRecievedError, PrefixNotDefinedError, ImageError, ClientNotConnectedError

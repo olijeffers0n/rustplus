@@ -71,7 +71,7 @@ await rust_socket.turn_on_smart_switch(ENTITYID)
 await rust_socket.promote_to_team_leader(SteamID)
 
 #Getting the contents of a TC:
-tc_contents = await rust_socket.get_tc__storage_contents(ENTITYID, MERGESTACKS : bool)
+tc_contents = await rust_socket.get_tc_storage_contents(ENTITYID, MERGESTACKS : bool)
 
 #Getting Current Map Events
 events = await rust_socket.get_current_events()
@@ -84,7 +84,7 @@ async def hi(command : Command):
 #Used to just stop a script from ending. Use this if you are using commands
 await rust_socket.hang()
 
-await rust_socket.closeConnection()
+await rust_socket.close_connection()
 ```
 
 # For information on all of the above methods, see the [Wiki](https://github.com/olijeffers0n/rustplus/wiki)

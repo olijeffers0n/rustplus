@@ -25,3 +25,7 @@ class PrefixNotDefinedError(Error):
 class ImageError(Error):
     """Raised when the bytes received are not valid"""
     pass
+
+class ClientNotConnectedError(Error):
+    """Raised when you are not connected to the Rust server"""
+    pass

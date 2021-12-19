@@ -78,6 +78,12 @@ class BaseRustSocket:
         """
         self.ws.close()
         self.ws.responses.clear()
+
+    async def disconnect(self) -> None:
+        """
+        Disconnects from the Rust Server
+        """
+        await self.close_connection()
     
     def command(self, coro) -> None:
         """

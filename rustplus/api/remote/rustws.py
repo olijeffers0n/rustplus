@@ -2,12 +2,13 @@ import asyncio
 from asyncio import AbstractEventLoop
 from ws4py.client.threadedclient import WebSocketClient
 
+from rustplus.exceptions.exceptions import ClientNotConnectedError
+
 from .rustplus_pb2 import AppMessage, AppRequest
 from .token_bucket import RateLimiter
 from ..structures import RustChatMessage
 from ...commands import CommandOptions, CommandHandler
 from ...exceptions import ResponseNotRecievedError
-
 class RustWsClient(WebSocketClient):
 
     def __init__(self, ip, port, command_options : CommandOptions, loop : AbstractEventLoop, protocols=None, extensions=None, heartbeat_freq=None, ssl_options=None, headers=None, exclude_headers=None):
@@ -76,7 +77,10 @@ class RustWsClient(WebSocketClient):
         """
         raw_data = request.SerializeToString()
 
-        self.send(raw_data, binary=True)
+        try:
+            self.send(raw_data, binary=True)
+        except:
+            raise ClientNotConnectedError("Not Connected")
 
     async def get_response(self, seq) -> AppMessage:
         """
