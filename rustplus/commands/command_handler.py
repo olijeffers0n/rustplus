@@ -20,9 +20,7 @@ class CommandHandler:
         setattr(self, command, coro)
 
     def _schedule_event(self, coro, arg) -> None:
-
-        # I would like to find a replacement for the following, as it can be a bit slow to execute but it will do for now
-        self.loop.create_task(coro(arg))
+        asyncio.run_coroutine_threadsafe(coro(arg), self.loop)
 
     def run_command(self, message : RustChatMessage) -> None:
 

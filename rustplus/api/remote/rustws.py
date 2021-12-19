@@ -90,7 +90,7 @@ class RustWsClient(WebSocketClient):
         attempts = 0
         while seq not in self.responses:
 
-            if attempts == 20:
+            if attempts == 50:
                 raise ResponseNotRecievedError("Not Recieved")
 
             attempts += 1

@@ -69,6 +69,7 @@ class BaseRustSocket:
         """
         try:
             self.ws.connect()
+            await self._send_wakeup_request()
         except ConnectionRefusedError:
             raise ServerNotResponsiveError("Cannot Connect")
 
@@ -84,6 +85,19 @@ class BaseRustSocket:
         Disconnects from the Rust Server
         """
         await self.close_connection()
+
+    async def _send_wakeup_request(self) -> None:
+        """
+        Sends a request to the server to wake up broadcast responses
+        """
+        await self._handle_ratelimit()
+
+        app_request = self._generate_protobuf()
+        app_request.checkSubscription.CopyFrom(AppEmpty())
+
+        self.ws.ignored_responses.append(app_request.seq)
+
+        await self.ws.send_message(app_request)
     
     def command(self, coro) -> None:
         """
