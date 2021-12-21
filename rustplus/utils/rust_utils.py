@@ -137,6 +137,7 @@ def translate_id_to_stack(id : int) -> str:
         "-1982036270" : "High Quality Metal Ore",
         "-1579932985" : "Horse Dung",
         "996293980" : "Human Skull",
+        "1381010055" : "Leather",
         "-946369541" : "Low Grade Fuel",
         "69511070" : "Metal Fragments",
         "-4031221" : "Metal Ore",
