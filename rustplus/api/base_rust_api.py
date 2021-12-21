@@ -107,7 +107,7 @@ class BaseRustSocket:
         if self.command_options is None:
             raise CommandsNotEnabledError("Not enabled")
 
-        self.ws.command_handler.registerCommand(coro.__name__, coro)
+        self.ws.command_handler.registerCommand(coro.__name__, coro, asyncio.get_event_loop())
 
     async def hang(self) -> None:
         """This Will permanently put your script into a state of 'hanging' Cannot be Undone. Only do this in scripts using commands"""
