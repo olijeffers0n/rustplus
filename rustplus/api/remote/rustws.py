@@ -92,7 +92,7 @@ class RustWsClient(WebSocketClient):
             if not self.open or depth >= 10:
                 raise ClientNotConnectedError("Not Connected")
             self.connect()
-            await self.send_message(request=request)
+            await self.send_message(request=request, depth=depth + 1)
 
     async def get_response(self, seq) -> AppMessage:
         """
