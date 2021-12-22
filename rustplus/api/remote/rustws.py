@@ -9,6 +9,7 @@ from .token_bucket import RateLimiter
 from ..structures import RustChatMessage
 from ...commands import CommandOptions, CommandHandler
 from ...exceptions import ResponseNotRecievedError
+
 class RustWsClient(WebSocketClient):
 
     def __init__(self, ip, port, command_options : CommandOptions, loop : AbstractEventLoop, protocols=None, extensions=None, heartbeat_freq=None, ssl_options=None, headers=None, exclude_headers=None):
@@ -43,7 +44,12 @@ class RustWsClient(WebSocketClient):
         return
 
     def connect(self) -> None:
-        super().connect()
+
+        try:
+            super().connect()
+        except OSError:
+            pass
+
         self.open = True
 
     def close(self, code=1000, reason='') -> None:
@@ -103,7 +109,7 @@ class RustWsClient(WebSocketClient):
         attempts = 0
         while seq not in self.responses:
 
-            if attempts == 50:
+            if attempts == 300:
                 raise ResponseNotRecievedError("Not Recieved")
 
             attempts += 1

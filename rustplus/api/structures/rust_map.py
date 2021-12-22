@@ -4,7 +4,7 @@ class RustMap:
         
         self.width : int = data.width
         self.height : int = data.height
-        self.jpgImage : float = data.jpgImage
+        self.jpgImage : bytes = data.jpgImage
         self.margin : int = data.oceanMargin
         self.monuments = [RustMonument(monument.token, monument.x, monument.y) for monument in data.monuments]
         self.background : str = None if data.background == "" else data.background
