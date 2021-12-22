@@ -17,6 +17,7 @@ class RustWsClient(WebSocketClient):
         self.responses = {}
         self.ignored_responses = []
         self.ratelimiter = None
+        self.open = False
 
         if command_options is None:
             self.use_commands = False
@@ -40,6 +41,14 @@ class RustWsClient(WebSocketClient):
         Called when the connection is closed
         """
         return
+
+    def connect(self) -> None:
+        super().connect()
+        self.open = True
+
+    def close(self, code=1000, reason='') -> None:
+        super().close(code=code, reason=reason)
+        self.open = False
 
     def received_message(self, message):
         """
@@ -71,7 +80,7 @@ class RustWsClient(WebSocketClient):
     def is_message(self, app_message) -> bool:
         return str(app_message.broadcast.teamMessage.message.message) != ""
 
-    async def send_message(self, request : AppRequest) -> None:
+    async def send_message(self, request : AppRequest, depth = 1) -> None:
         """
         Send the Protobuf to the server
         """
@@ -80,7 +89,10 @@ class RustWsClient(WebSocketClient):
         try:
             self.send(raw_data, binary=True)
         except:
-            raise ClientNotConnectedError("Not Connected")
+            if not self.open or depth >= 10:
+                raise ClientNotConnectedError("Not Connected")
+            self.connect()
+            await self.send_message(request=request)
 
     async def get_response(self, seq) -> AppMessage:
         """
