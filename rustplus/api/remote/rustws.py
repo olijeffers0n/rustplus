@@ -93,9 +93,6 @@ class RustWsClient(WebSocketClient):
 
         return None
 
-    def is_command(self, app_message) -> bool:
-        return self.use_commands and str(app_message.broadcast.teamMessage.message.message).startswith(self.command_options.prefix)
-
     def is_message(self, app_message) -> bool:
         return str(app_message.broadcast.teamMessage.message.message) != ""
 
