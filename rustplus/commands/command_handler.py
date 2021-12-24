@@ -1,16 +1,14 @@
 import asyncio
-from asyncio import AbstractEventLoop
 from datetime import datetime
 
-from . import CommandOptions
 from . import Command, CommandTime
 from ..api.structures import RustChatMessage
+from ..commands.command_options import CommandOptions
 
 class CommandHandler:
 
-    def __init__(self, loop : AbstractEventLoop, options : CommandOptions) -> None:
-        self.prefix = options.prefix
-        self.loop = loop
+    def __init__(self, command_options : CommandOptions) -> None:
+        self.command_options = command_options
 
     def registerCommand(self, command, coro, loop) -> None:
         
@@ -22,9 +20,12 @@ class CommandHandler:
     def _schedule_event(self, loop, coro, arg) -> None:
         asyncio.run_coroutine_threadsafe(coro(arg), loop)
 
-    def run_command(self, message : RustChatMessage) -> None:
+    def run_command(self, message : RustChatMessage, prefix) -> None:
 
-        command = message.message.split(" ")[0][len(self.prefix):]
+        if prefix == self.command_options.prefix:
+            command = message.message.split(" ")[0][len(prefix):]
+        else:
+            command = prefix
 
         if hasattr(self, command):
             coro, loop = getattr(self, command)

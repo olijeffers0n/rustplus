@@ -29,7 +29,7 @@ class BaseRustSocket:
         self.command_options = command_options
         self.raise_ratelimit_exception = raise_ratelimit_exception
 
-        self.ws = RustWsClient(ip=self.ip, port=self.port, protocols=['http-only', 'chat'], command_options=command_options, loop=asyncio.get_event_loop())
+        self.ws = RustWsClient(ip=self.ip, port=self.port, protocols=['http-only', 'chat'], command_options=command_options)
         self.ws.daemon = True
         self.ws.start_ratelimiter(ratelimit_limit, ratelimit_limit, 1, ratelimit_refill)
 
