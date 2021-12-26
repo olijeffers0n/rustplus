@@ -59,7 +59,7 @@ class BaseRustSocket:
         app_request.playerId = self.steamid
         app_request.playerToken = self.playertoken
 
-        self.seq += 1
+        #self.seq += 1
 
         return app_request
 

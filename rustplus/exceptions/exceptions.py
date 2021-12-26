@@ -29,3 +29,7 @@ class ImageError(Error):
 class ClientNotConnectedError(Error):
     """Raised when you are not connected to the Rust server"""
     pass
+
+class RequestError(Error):
+    """Raised when an error is recieved from the server"""
+    pass

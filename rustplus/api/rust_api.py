@@ -26,7 +26,7 @@ class RustSocket(BaseRustSocket):
 
         await self.ws.send_message(app_request)
 
-        response = await self.ws.get_response(app_request.seq)
+        response = await self.ws.get_response(app_request.seq, app_request)
 
         return format_time(response)
 
@@ -53,7 +53,7 @@ class RustSocket(BaseRustSocket):
 
         await self.ws.send_message(app_request)
 
-        response = await self.ws.get_response(app_request.seq)
+        response = await self.ws.get_response(app_request.seq, app_request)
 
         return RustInfo(response.response.info)
 
@@ -66,7 +66,7 @@ class RustSocket(BaseRustSocket):
 
         await self.ws.send_message(app_request)
 
-        messages = (await self.ws.get_response(app_request.seq)).response.teamChat.messages
+        messages = (await self.ws.get_response(app_request.seq, app_request)).response.teamChat.messages
 
         return [RustChatMessage(message) for message in messages]
 
@@ -79,7 +79,7 @@ class RustSocket(BaseRustSocket):
 
         await self.ws.send_message(app_request)
 
-        app_message = await self.ws.get_response(app_request.seq)
+        app_message = await self.ws.get_response(app_request.seq, app_request)
 
         return RustTeamInfo(app_message.response.teamInfo)
 
@@ -92,7 +92,7 @@ class RustSocket(BaseRustSocket):
 
         await self.ws.send_message(app_request)
 
-        app_message = await self.ws.get_response(app_request.seq)
+        app_message = await self.ws.get_response(app_request.seq, app_request)
 
         return [RustMarker(marker) for marker in app_message.response.mapMarkers.markers]
 
@@ -105,7 +105,7 @@ class RustSocket(BaseRustSocket):
 
         await self.ws.send_message(app_request)
 
-        app_message = await self.ws.get_response(app_request.seq)
+        app_message = await self.ws.get_response(app_request.seq, app_request)
 
         return RustMap(app_message.response.map)
 
@@ -120,7 +120,7 @@ class RustSocket(BaseRustSocket):
         
         await self.ws.send_message(app_request)
 
-        app_message = await self.ws.get_response(app_request.seq)
+        app_message = await self.ws.get_response(app_request.seq, app_request)
 
         map = app_message.response.map
         monuments = list(map.monuments)
@@ -184,7 +184,7 @@ class RustSocket(BaseRustSocket):
 
         await self.ws.send_message(app_request)
 
-        app_message = await self.ws.get_response(app_request.seq)
+        app_message = await self.ws.get_response(app_request.seq, app_request)
 
         return RustEntityInfo(app_message.response.entityInfo)
 
@@ -222,6 +222,8 @@ class RustSocket(BaseRustSocket):
         
         if steamid is None:
             raise ValueError("SteamID cannot be None")
+
+        self._handle_ratelimit()
 
         leaderPacket = AppPromoteToLeader()
         leaderPacket.steamId = steamid

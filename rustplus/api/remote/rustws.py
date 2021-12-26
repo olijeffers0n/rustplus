@@ -1,15 +1,13 @@
 import asyncio
-from asyncio import AbstractEventLoop
+import logging
 from typing import Optional
 from ws4py.client.threadedclient import WebSocketClient
-
-from rustplus.exceptions.exceptions import ClientNotConnectedError
 
 from .rustplus_pb2 import AppMessage, AppRequest
 from .token_bucket import RateLimiter
 from ..structures import RustChatMessage
 from ...commands import CommandOptions, CommandHandler
-from ...exceptions import ResponseNotRecievedError
+from ...exceptions import ResponseNotRecievedError, ClientNotConnectedError, RequestError
 
 class RustWsClient(WebSocketClient):
 
@@ -111,7 +109,30 @@ class RustWsClient(WebSocketClient):
             self.connect()
             await self.send_message(request=request, depth=depth + 1)
 
-    async def get_response(self, seq) -> AppMessage:
+    async def _retry_failed_request(self, app_request : AppRequest):
+        """
+        Resends an AppRequest to the server if it has failed
+        """
+        await self.send_message(app_request)
+
+    def _get_proto_cost(self, app_request) -> int:
+        """
+        Gets the cost of an AppRequest
+        """
+        costs = {"getTime" : 1,"sendTeamMessage" : 2,"getInfo" : 1,"getTeamChat" : 1,"getTeamInfo" : 1,"getMapMarkers" : 1,"getMap" : 5,"setEntityValue" : 1,"getEntityInfo" : 1,"promoteToLeader" : 1}
+        for request, cost in costs.items():
+            if app_request.HasField(request):
+                return cost
+
+        raise ValueError()
+
+    def _error_present(self, message) -> bool:
+        """
+        Checks message for error
+        """
+        return message != ""
+
+    async def get_response(self, seq : int, app_request : AppRequest, attempt_retry : bool = True) -> AppMessage:
         """
         Returns a given response from the server. After 2 seconds throws Exception as response is assumed to not be coming
         """
@@ -119,12 +140,42 @@ class RustWsClient(WebSocketClient):
         attempts = 0
         while seq not in self.responses:
 
-            if attempts == 300:
+            if attempts == 30:
+                if attempt_retry:
+
+                    await self._retry_failed_request(app_request)
+                    return await self.get_response(seq, app_request, False)
+
                 raise ResponseNotRecievedError("Not Recieved")
 
             attempts += 1
             await asyncio.sleep(0.1)
 
         response = self.responses.pop(seq)
+
+        if response.response.error.error == "rate_limit":
+            logging.getLogger("rustplus.py").warn("[Rustplus.py] RateLimit Exception Occurred. Retrying after bucket is full")
+
+            # Fully Refill the bucket
+            while self.ratelimiter.bucket.current < self.ratelimiter.bucket.max:
+                await asyncio.sleep(1)
+                self.ratelimiter.bucket.refresh()
+
+            # Reattempt the sending with a full bucket
+            cost = self._get_proto_cost(app_request)
+
+            while True:
+
+                if self.ratelimiter.can_consume(cost):
+                    self.ratelimiter.consume(cost)
+                    break
+
+                await asyncio.sleep(self.ratelimiter.get_estimated_delay_time(cost))
+
+            await self._retry_failed_request(app_request)
+            response = await self.get_response(seq, app_request, False)
+        
+        elif self._error_present(response.response.error.error):
+            raise RequestError(response.response.error.error)
 
         return response
