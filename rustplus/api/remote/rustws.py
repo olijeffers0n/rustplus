@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import time
 from typing import Optional
 from ws4py.client.threadedclient import WebSocketClient
 
@@ -157,6 +158,10 @@ class RustWsClient(WebSocketClient):
             logging.getLogger("rustplus.py").warn("[Rustplus.py] RateLimit Exception Occurred. Retrying after bucket is full")
 
             # Fully Refill the bucket
+
+            self.ratelimiter.last_consumed = time.time()
+            self.ratelimiter.bucket.current = 0
+
             while self.ratelimiter.bucket.current < self.ratelimiter.bucket.max:
                 await asyncio.sleep(1)
                 self.ratelimiter.bucket.refresh()

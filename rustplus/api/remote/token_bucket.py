@@ -60,4 +60,4 @@ class RateLimiter:
         """
         Returns how long until the amount of tokens needed will be available
         """
-        return 1 + ((target_cost - self.bucket.current) / self.refresh_per_second)
+        return 0.1 + ((target_cost - self.bucket.current) / self.refresh_per_second)
