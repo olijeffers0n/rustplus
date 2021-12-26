@@ -140,7 +140,7 @@ class RustWsClient(WebSocketClient):
         attempts = 0
         while seq not in self.responses:
 
-            if attempts == 30:
+            if attempts == 100:
                 if attempt_retry:
 
                     await self._retry_failed_request(app_request)
