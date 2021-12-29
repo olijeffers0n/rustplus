@@ -4,13 +4,13 @@ from PIL import Image
 
 from .structures import *
 from .remote.rustplus_pb2 import *
-from .remote import RustRemote
+from .remote import RustRemote, HeartBeat
 from ..commands import CommandOptions
 from ..exceptions import *
 
 class BaseRustSocket:
 
-    def __init__(self, ip : str = None, port : str = None, steamid : int = None, playertoken : int = None, command_options : CommandOptions = None, raise_ratelimit_exception : bool = True, ratelimit_limit : int = 25, ratelimit_refill : int = 3) -> None:
+    def __init__(self, ip : str = None, port : str = None, steamid : int = None, playertoken : int = None, command_options : CommandOptions = None, raise_ratelimit_exception : bool = True, ratelimit_limit : int = 25, ratelimit_refill : int = 3, heartbeat : HeartBeat = None) -> None:
         
         if ip is None:
             raise ValueError("Ip cannot be None")
@@ -30,6 +30,10 @@ class BaseRustSocket:
         self.raise_ratelimit_exception = raise_ratelimit_exception
 
         self.remote = RustRemote(ip=self.ip, port=self.port, command_options=command_options, ratelimit_limit=ratelimit_limit, ratelimit_refill=ratelimit_refill)
+        
+        if heartbeat is None:
+            raise ValueError("Heartbeat cammpt be None")
+        self.heartbeat = heartbeat
 
     async def _handle_ratelimit(self, amount = 1) -> None:
         """
@@ -40,6 +44,7 @@ class BaseRustSocket:
 
             if self.remote.ratelimiter.can_consume(amount):
                 self.remote.ratelimiter.consume(amount)
+                self.heartbeat.reset_rythm()
                 return
 
             if self.raise_ratelimit_exception:
@@ -67,7 +72,7 @@ class BaseRustSocket:
         """
         try:
             self.remote.connect()
-            await self._send_wakeup_request()
+            await self.heartbeat.start_beat()
         except ConnectionRefusedError:
             raise ServerNotResponsiveError("Cannot Connect")
 

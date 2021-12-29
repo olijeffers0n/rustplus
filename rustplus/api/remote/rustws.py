@@ -39,11 +39,8 @@ class RustWsClient(WebSocketClient):
         except OSError:
             raise ConnectionRefusedError()
 
-        self.open = True
-
     def close(self, code=1000, reason='') -> None:
         super().close(code=code, reason=reason)
-        self.open = False
 
     def received_message(self, message):
         """

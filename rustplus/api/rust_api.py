@@ -6,16 +6,17 @@ from datetime import datetime
 from collections import defaultdict
 
 from .base_rust_api import BaseRustSocket
+from .structures import RustTime, RustInfo, RustMap, RustMarker, RustChatMessage, RustTeamInfo, RustTeamMember, RustTeamNote, RustEntityInfo, RustContents, RustItem
+from .remote.rustplus_pb2 import *
+from .remote import HeartBeat
 from ..commands import CommandOptions
 from ..exceptions import *
 from ..utils import *
-from .structures import RustTime, RustInfo, RustMap, RustMarker, RustChatMessage, RustTeamInfo, RustTeamMember, RustTeamNote, RustEntityInfo, RustContents, RustItem
-from .remote.rustplus_pb2 import *
 
 class RustSocket(BaseRustSocket):
 
     def __init__(self, ip: str = None, port: str = None, steamid: int = None, playertoken: int = None, command_options : CommandOptions = None, raise_ratelimit_exception : bool = True, ratelimit_limit : int = 25, ratelimit_refill : int = 3) -> None:
-        super().__init__(ip=ip, port=port, steamid=steamid, playertoken=playertoken, command_options=command_options, raise_ratelimit_exception=raise_ratelimit_exception, ratelimit_limit=ratelimit_limit, ratelimit_refill=ratelimit_refill)
+        super().__init__(ip=ip, port=port, steamid=steamid, playertoken=playertoken, command_options=command_options, raise_ratelimit_exception=raise_ratelimit_exception, ratelimit_limit=ratelimit_limit, ratelimit_refill=ratelimit_refill, heartbeat=HeartBeat(self))
 
     async def get_time(self) -> RustTime:
         
