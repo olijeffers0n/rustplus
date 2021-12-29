@@ -5,31 +5,17 @@ from typing import Optional
 from ws4py.client.threadedclient import WebSocketClient
 
 from .rustplus_pb2 import AppMessage, AppRequest
-from .token_bucket import RateLimiter
 from ..structures import RustChatMessage
-from ...commands import CommandOptions, CommandHandler
 from ...exceptions import ResponseNotRecievedError, ClientNotConnectedError, RequestError
 
 class RustWsClient(WebSocketClient):
 
-    def __init__(self, ip, port, command_options : CommandOptions, protocols=None, extensions=None, heartbeat_freq=None, ssl_options=None, headers=None, exclude_headers=None):
+    def __init__(self, ip, port, remote, protocols=None, extensions=None, heartbeat_freq=None, ssl_options=None, headers=None, exclude_headers=None):
         super().__init__(f"ws://{ip}:{port}", protocols=protocols, extensions=extensions, heartbeat_freq=heartbeat_freq, ssl_options=ssl_options, headers=headers, exclude_headers=exclude_headers)
 
         self.responses = {}
         self.ignored_responses = []
-        self.ratelimiter = None
-        self.open = False
-
-        if command_options is None:
-            self.use_commands = False
-        else:
-            self.use_commands = True
-            self.command_options = command_options
-            self.command_handler = CommandHandler(self.command_options)
-
-    def start_ratelimiter(self, current, max, refresh_rate, refresh_amount) -> None:
-
-        self.ratelimiter = RateLimiter(current, max, refresh_rate, refresh_amount)
+        self.remote = remote
 
     def opened(self): 
         """
@@ -41,14 +27,17 @@ class RustWsClient(WebSocketClient):
         """
         Called when the connection is closed
         """
+        self.remote.ws = None
         return
 
     def connect(self) -> None:
 
         try:
             super().connect()
+            self.client_terminated = False
+            self.server_terminated = False
         except OSError:
-            pass
+            raise ConnectionRefusedError()
 
         self.open = True
 
@@ -74,7 +63,7 @@ class RustWsClient(WebSocketClient):
 
             message = RustChatMessage(app_message.broadcast.teamMessage.message)
 
-            self.command_handler.run_command(message, prefix)
+            self.remote.command_handler.run_command(message, prefix)
             return
 
         elif self.is_message(app_message):
@@ -83,10 +72,10 @@ class RustWsClient(WebSocketClient):
         self.responses[app_message.response.seq] = app_message
 
     def get_prefix(self, message : str) -> Optional[str]:
-        if message.startswith(self.command_options.prefix):
-            return self.command_options.prefix
+        if message.startswith(self.remote.command_options.prefix):
+            return self.remote.command_options.prefix
         
-        for overrule in self.command_options.overruling_commands:
+        for overrule in self.remote.command_options.overruling_commands:
             if message.startswith(overrule):
                 return overrule
 
@@ -95,7 +84,7 @@ class RustWsClient(WebSocketClient):
     def is_message(self, app_message) -> bool:
         return str(app_message.broadcast.teamMessage.message.message) != ""
 
-    async def send_message(self, request : AppRequest, depth = 1) -> None:
+    async def send_message(self, request : AppRequest) -> None:
         """
         Send the Protobuf to the server
         """
@@ -104,11 +93,7 @@ class RustWsClient(WebSocketClient):
         try:
             self.send(raw_data, binary=True)
         except:
-            if not self.open or depth >= 10:
-                raise ClientNotConnectedError("Not Connected")
-            self.close()
-            self.connect()
-            await self.send_message(request=request, depth=depth + 1)
+            raise ClientNotConnectedError("Not Connected")
 
     async def _retry_failed_request(self, app_request : AppRequest):
         """
@@ -159,23 +144,23 @@ class RustWsClient(WebSocketClient):
 
             # Fully Refill the bucket
 
-            self.ratelimiter.last_consumed = time.time()
-            self.ratelimiter.bucket.current = 0
+            self.remote.ratelimiter.last_consumed = time.time()
+            self.remote.ratelimiter.bucket.current = 0
 
-            while self.ratelimiter.bucket.current < self.ratelimiter.bucket.max:
+            while self.remote.ratelimiter.bucket.current < self.remote.ratelimiter.bucket.max:
                 await asyncio.sleep(1)
-                self.ratelimiter.bucket.refresh()
+                self.remote.ratelimiter.bucket.refresh()
 
             # Reattempt the sending with a full bucket
             cost = self._get_proto_cost(app_request)
 
             while True:
 
-                if self.ratelimiter.can_consume(cost):
-                    self.ratelimiter.consume(cost)
+                if self.remote.ratelimiter.can_consume(cost):
+                    self.remote.ratelimiter.consume(cost)
                     break
 
-                await asyncio.sleep(self.ratelimiter.get_estimated_delay_time(cost))
+                await asyncio.sleep(self.remote.ratelimiter.get_estimated_delay_time(cost))
 
             await self._retry_failed_request(app_request)
             response = await self.get_response(seq, app_request, False)

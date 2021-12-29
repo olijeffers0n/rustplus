@@ -4,7 +4,7 @@ from PIL import Image
 
 from .structures import *
 from .remote.rustplus_pb2 import *
-from .remote.rustws import RustWsClient
+from .remote import RustRemote
 from ..commands import CommandOptions
 from ..exceptions import *
 
@@ -29,9 +29,7 @@ class BaseRustSocket:
         self.command_options = command_options
         self.raise_ratelimit_exception = raise_ratelimit_exception
 
-        self.ws = RustWsClient(ip=self.ip, port=self.port, protocols=['http-only', 'chat'], command_options=command_options)
-        self.ws.daemon = True
-        self.ws.start_ratelimiter(ratelimit_limit, ratelimit_limit, 1, ratelimit_refill)
+        self.remote = RustRemote(ip=self.ip, port=self.port, command_options=command_options, ratelimit_limit=ratelimit_limit, ratelimit_refill=ratelimit_refill)
 
     async def _handle_ratelimit(self, amount = 1) -> None:
         """
@@ -40,14 +38,14 @@ class BaseRustSocket:
 
         while True:
 
-            if self.ws.ratelimiter.can_consume(amount):
-                self.ws.ratelimiter.consume(amount)
+            if self.remote.ratelimiter.can_consume(amount):
+                self.remote.ratelimiter.consume(amount)
                 return
 
             if self.raise_ratelimit_exception:
                 raise RateLimitError("Out of tokens")
 
-            await asyncio.sleep(self.ws.ratelimiter.get_estimated_delay_time(amount))
+            await asyncio.sleep(self.remote.ratelimiter.get_estimated_delay_time(amount))
     
     def _generate_protobuf(self) -> AppRequest:
         """
@@ -68,7 +66,7 @@ class BaseRustSocket:
         Opens the connection to the Rust Server
         """
         try:
-            self.ws.connect()
+            self.remote.connect()
             await self._send_wakeup_request()
         except ConnectionRefusedError:
             raise ServerNotResponsiveError("Cannot Connect")
@@ -77,8 +75,7 @@ class BaseRustSocket:
         """
         Disconnects from the Rust Server
         """
-        self.ws.close()
-        self.ws.responses.clear()
+        self.remote.close()
 
     async def disconnect(self) -> None:
         """
@@ -95,9 +92,9 @@ class BaseRustSocket:
         app_request = self._generate_protobuf()
         app_request.checkSubscription.CopyFrom(AppEmpty())
 
-        self.ws.ignored_responses.append(app_request.seq)
+        self.remote.sock().ignored_responses.append(app_request.seq)
 
-        await self.ws.send_message(app_request)
+        await self.remote.sock().send_message(app_request)
     
     def command(self, coro) -> None:
         """
@@ -107,7 +104,7 @@ class BaseRustSocket:
         if self.command_options is None:
             raise CommandsNotEnabledError("Not enabled")
 
-        self.ws.command_handler.registerCommand(coro.__name__, coro, asyncio.get_event_loop())
+        self.remote.command_handler.registerCommand(coro.__name__, coro, asyncio.get_event_loop())
 
     async def hang(self) -> None:
         """This Will permanently put your script into a state of 'hanging' Cannot be Undone. Only do this in scripts using commands"""
