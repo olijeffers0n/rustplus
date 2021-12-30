@@ -5,7 +5,7 @@ class EntityEvent:
 
     def __init__(self, app_message, type) -> None:
         
-        self.type = type
+        self.type = int(type)
         self.entityId : int = app_message.broadcast.entityChanged.entityId 
         self.value : bool = app_message.broadcast.entityChanged.payload.value
         self.capacity : int = app_message.broadcast.entityChanged.payload.capacity
