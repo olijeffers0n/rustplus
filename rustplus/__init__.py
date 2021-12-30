@@ -5,7 +5,7 @@ RustPlus, An API wrapper for interfacing with the Rust+ App API
 from .api import RustSocket
 from .commands import CommandOptions, Command
 from .exceptions import *
-from .api.structures import EntityEvent
+from .api.structures import EntityEvent, TeamEvent
 from .utils import entity_type_to_string
 
 __name__ = "rustplus"

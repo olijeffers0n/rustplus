@@ -111,6 +111,13 @@ class BaseRustSocket:
 
         self.remote.command_handler.registerCommand(coro.__name__, coro, asyncio.get_event_loop())
 
+    def team_event(self, coro) -> None:
+        """
+        A Decorator to register an event listener for team changes
+        """
+
+        self.remote.event_handler.register_event("team_changed", (coro, asyncio.get_event_loop()))
+
     async def hang(self) -> None:
         """This Will permanently put your script into a state of 'hanging' Cannot be Undone. Only do this in scripts using commands"""
 

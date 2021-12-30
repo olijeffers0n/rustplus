@@ -63,15 +63,18 @@ class RustWsClient(WebSocketClient):
             message = RustChatMessage(app_message.broadcast.teamMessage.message)
 
             self.remote.command_handler.run_command(message, prefix)
-            return
 
         elif self.is_entity_broadcast(app_message):
-            self.remote.event_handler.run_event(app_message.broadcast.entityChanged.entityId, app_message)
+            self.remote.event_handler.run_entity_event(app_message.broadcast.entityChanged.entityId, app_message)
+
+        elif self.is_team_broadcast(app_message):
+            self.remote.event_handler.run_team_event(app_message)
 
         elif self.is_message(app_message):
             return 
 
-        self.responses[app_message.response.seq] = app_message
+        else:
+            self.responses[app_message.response.seq] = app_message
 
     def get_prefix(self, message : str) -> Optional[str]:
         if self.remote.use_commands:
@@ -89,6 +92,9 @@ class RustWsClient(WebSocketClient):
 
     def is_entity_broadcast(self, app_message) -> bool:
         return str(app_message.broadcast.entityChanged) != ""
+
+    def is_team_broadcast(self, app_message) -> bool:
+        return str(app_message.broadcast.teamChanged) != ""
 
     async def send_message(self, request : AppRequest) -> None:
         """
