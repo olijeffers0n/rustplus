@@ -10,7 +10,7 @@ class EntityEvent:
         self.value : bool = app_message.broadcast.entityChanged.payload.value
         self.capacity : int = app_message.broadcast.entityChanged.payload.capacity
         self.hasProtection : bool = app_message.broadcast.entityChanged.payload.hasProtection
-        self.protectionExpiry : bool = app_message.broadcast.entityChanged.payload.protectionExpiry
+        self.protectionExpiry : int = app_message.broadcast.entityChanged.payload.protectionExpiry
 
         self.items : List[Item] = [Item(item) for item in app_message.broadcast.entityChanged.payload.items]
 
