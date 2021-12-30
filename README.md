@@ -11,7 +11,7 @@
 
 A lot of code and ideas have come from the JavaScript version of a wrapper, so I will credit it now:
 [RustPlus.js](https://github.com/liamcottle/rustplus.js)
-I have used their Protocol Buffer file for this, as well as instructions on how to use the command line tool to get the information you need.
+I have used their Protocol Buffer file for generating the necessary requests so chuck some support their way
 
 ## Installation:
 Install the package with:
@@ -22,7 +22,7 @@ It should also install all the dependencies, but if not you will have to install
 
 ## Usage:
 ```py
-from rustplus import RustSocket, CommandOptions, Command
+from rustplus import RustSocket, CommandOptions, Command, EntityEvent, TeamEvent, entity_type_to_string
 
 #Registering the Command Options in order to listen for commands
 options = CommandOptions(prefix="!")
@@ -79,9 +79,18 @@ events = await rust_socket.get_current_events()
 #Registering a command listener, which will listen for the command 'hi' with the prefix we defined earlier
 @socket.command
 async def hi(command : Command): 
-	await rust_socket.send_team_message(f"Hi {command.sender_name}, This is an automated reply from RustPlus.py!")
+  await rust_socket.send_team_message(f"Hi {command.sender_name}, This is an automated reply from RustPlus.py!")
 
-#Used to just stop a script from ending. Use this if you are using commands
+@rust_socket.entity_event(ENTITYID)
+async def alarm(event : EntityEvent):
+  value = "On" if event.value else "Off"
+  print(f"{entity_type_to_string(event.type)} has been turned {value}")
+
+@rust_socket.team_event
+async def team(event : TeamEvent):
+  print(f"The team leader's steamId is: {event.teamInfo.leaderSteamId}")
+
+#Used to just stop a script from ending. Use this if you are using commands or events in a script
 await rust_socket.hang()
 
 await rust_socket.close_connection()
