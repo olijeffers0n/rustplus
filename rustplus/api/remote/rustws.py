@@ -50,6 +50,8 @@ class RustWsClient(WebSocketClient):
         app_message = AppMessage()
         app_message.ParseFromString(message.data)
 
+        print(app_message)
+
         if app_message.response.seq in self.ignored_responses:
             self.ignored_responses.remove(app_message.response.seq)
             return
@@ -63,23 +65,30 @@ class RustWsClient(WebSocketClient):
             self.remote.command_handler.run_command(message, prefix)
             return
 
+        elif self.is_entity_broadcast(app_message):
+            self.remote.event_handler.run_event(app_message.broadcast.entityChanged.entityId, app_message)
+
         elif self.is_message(app_message):
-            return
+            return 
 
         self.responses[app_message.response.seq] = app_message
 
     def get_prefix(self, message : str) -> Optional[str]:
-        if message.startswith(self.remote.command_options.prefix):
-            return self.remote.command_options.prefix
-        
-        for overrule in self.remote.command_options.overruling_commands:
-            if message.startswith(overrule):
-                return overrule
+        if self.remote.use_commands:
+            if message.startswith(self.remote.command_options.prefix):
+                return self.remote.command_options.prefix
+            
+            for overrule in self.remote.command_options.overruling_commands:
+                if message.startswith(overrule):
+                    return overrule
 
         return None
 
     def is_message(self, app_message) -> bool:
         return str(app_message.broadcast.teamMessage.message.message) != ""
+
+    def is_entity_broadcast(self, app_message) -> bool:
+        return str(app_message.broadcast.entityChanged) != ""
 
     async def send_message(self, request : AppRequest) -> None:
         """

@@ -1,7 +1,6 @@
 from importlib import resources
 from PIL import Image
 import logging
-import string
 
 from ..api.structures import RustTime
 
@@ -154,3 +153,13 @@ def translate_id_to_stack(id : int) -> str:
         "2048317869" : "Wolf Skull",
         "-151838493" : "Wood"
     }[str(id)]
+
+def entity_type_to_string(id) -> str:
+    if id == 1:
+        return "Switch"
+    elif id == 2:
+        return "Alarm"
+    elif id == 3:
+        return "Storage Monitor"
+    else:
+        raise ValueError("Not Valid type")

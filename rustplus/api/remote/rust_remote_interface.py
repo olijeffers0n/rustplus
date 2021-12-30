@@ -1,5 +1,5 @@
-from typing import Optional
 from .rustws import RustWsClient
+from .event_handler import EventHandler
 from .token_bucket import RateLimiter
 from ...commands import CommandHandler
 from ...exceptions import ClientNotConnectedError
@@ -21,6 +21,8 @@ class RustRemote:
             self.use_commands = True
             self.command_options = command_options
             self.command_handler = CommandHandler(self.command_options)
+
+        self.event_handler = EventHandler()
 
     def connect(self) -> None:
 

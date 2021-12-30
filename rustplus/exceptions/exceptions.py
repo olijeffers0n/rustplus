@@ -33,3 +33,7 @@ class ClientNotConnectedError(Error):
 class RequestError(Error):
     """Raised when an error is recieved from the server"""
     pass
+
+class SmartDeviceRegistrationError(Error):
+    """Raised when the entity cannot be registered with"""
+    pass
