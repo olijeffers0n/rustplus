@@ -50,8 +50,6 @@ class RustWsClient(WebSocketClient):
         app_message = AppMessage()
         app_message.ParseFromString(message.data)
 
-        print(app_message)
-
         if app_message.response.seq in self.ignored_responses:
             self.ignored_responses.remove(app_message.response.seq)
             return
