@@ -1,6 +1,6 @@
 import asyncio
 
-from ..structures import EntityEvent, TeamEvent
+from ..structures import EntityEvent, TeamEvent, ChatEvent
 
 class EventHandler:
 
@@ -29,3 +29,9 @@ class EventHandler:
         if hasattr(self, "team_changed"):
             coro, loop = getattr(self, "team_changed")
             self._schedule_event(loop, coro, TeamEvent(app_message))
+
+    def run_chat_event(self, app_message) -> None:
+
+        if hasattr(self, "chat_message"):
+            coro, loop = getattr(self, "chat_message")
+            self._schedule_event(loop, coro, ChatEvent(app_message))

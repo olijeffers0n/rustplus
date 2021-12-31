@@ -69,7 +69,7 @@ class RustWsClient(WebSocketClient):
             self.remote.event_handler.run_team_event(app_message)
 
         elif self.is_message(app_message):
-            return 
+            self.remote.event_handler.run_chat_event(app_message) 
 
         else:
             self.responses[app_message.response.seq] = app_message

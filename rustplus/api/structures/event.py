@@ -1,5 +1,6 @@
 from typing import List
 from .rust_team_info import RustTeamInfo
+from .rust_chat_message import RustChatMessage
 
 class EntityEvent:
 
@@ -28,3 +29,9 @@ class TeamEvent:
         
         self.playerId : int = app_message.broadcast.teamChanged.playerId
         self.teamInfo = RustTeamInfo(app_message.broadcast.teamChanged.teamInfo)
+
+class ChatEvent:
+
+    def __init__(self, app_message) -> None:
+        
+        self.message = RustChatMessage(app_message.broadcast.teamMessage.message)
