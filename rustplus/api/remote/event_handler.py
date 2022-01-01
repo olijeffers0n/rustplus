@@ -1,4 +1,5 @@
 import asyncio
+from asyncio.futures import Future
 from typing import List
 
 from ..structures import EntityEvent, TeamEvent, ChatEvent
@@ -21,7 +22,12 @@ class EventHandler:
             setattr(self, str(name), [data])
 
     def _schedule_event(self, loop, coro, arg) -> None:
-        asyncio.run_coroutine_threadsafe(coro(arg), loop)
+
+        def callback(future : Future):
+            future.result()
+
+        future : Future = asyncio.run_coroutine_threadsafe(coro(arg), loop)
+        future.add_done_callback(callback)
 
     def run_entity_event(self, name, app_message) -> None:
 

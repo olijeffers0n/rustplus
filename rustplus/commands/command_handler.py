@@ -1,4 +1,5 @@
 import asyncio
+from asyncio.futures import Future
 from datetime import datetime
 
 from . import Command, CommandTime
@@ -18,7 +19,12 @@ class CommandHandler:
         setattr(self, command, (coro, loop))
 
     def _schedule_event(self, loop, coro, arg) -> None:
-        asyncio.run_coroutine_threadsafe(coro(arg), loop)
+
+        def callback(future : Future):
+            future.result()
+
+        future : Future = asyncio.run_coroutine_threadsafe(coro(arg), loop)
+        future.add_done_callback(callback)
 
     def run_command(self, message : RustChatMessage, prefix) -> None:
 
