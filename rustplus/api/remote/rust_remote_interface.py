@@ -14,6 +14,7 @@ class RustRemote:
         self.ratelimit_limit = ratelimit_limit
         self.ratelimit_refill = ratelimit_refill
         self.ratelimiter = RateLimiter(ratelimit_limit, ratelimit_limit, 1, ratelimit_refill)
+        self.open = False
 
         if command_options is None:
             self.use_commands = False
@@ -29,16 +30,20 @@ class RustRemote:
         self.ws = RustWsClient(ip=self.ip, port=self.port, remote=self, protocols=['http-only', 'chat'])
         self.ws.daemon = True
         self.ws.connect()
+        self.open = True
 
     def close(self) -> None:
 
-        if self.ws:
+        if self.ws is not None:
             self.ws.close()
             self.ws = None
+            self.open = False
 
     def sock(self) -> RustWsClient:
 
         if self.ws is None:
-            raise ClientNotConnectedError("No Current Websocket Connection")
-
+            if not self.open:
+                raise ClientNotConnectedError("No Current Websocket Connection")
+            else:
+                self.connect()
         return self.ws
