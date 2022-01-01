@@ -1,4 +1,5 @@
 import asyncio
+from typing import List
 
 from ..structures import EntityEvent, TeamEvent, ChatEvent
 
@@ -12,7 +13,12 @@ class EventHandler:
         if not asyncio.iscoroutinefunction(data[0]):
             raise TypeError("The event registered must be a coroutine")
 
-        setattr(self, str(name), data)
+        if hasattr(self, str(name)):
+            events : List[tuple] = getattr(self, str(name))
+            events.append(data)
+            setattr(self, str(name), events)
+        else:
+            setattr(self, str(name), [data])
 
     def _schedule_event(self, loop, coro, arg) -> None:
         asyncio.run_coroutine_threadsafe(coro(arg), loop)
@@ -20,18 +26,23 @@ class EventHandler:
     def run_entity_event(self, name, app_message) -> None:
 
         if hasattr(self, str(name)):
-            coro, loop, type = getattr(self, str(name))
+            for event in getattr(self, str(name)):
+                coro, loop, type = event
 
-            self._schedule_event(loop, coro, EntityEvent(app_message, type))
+                self._schedule_event(loop, coro, EntityEvent(app_message, type)) # I reconstruct the Event Object for each of these each time as i dont want the object to be mitakenly changed by one event, messing up subsequent events
 
     def run_team_event(self, app_message) -> None:
 
         if hasattr(self, "team_changed"):
-            coro, loop = getattr(self, "team_changed")
-            self._schedule_event(loop, coro, TeamEvent(app_message))
+            for event in getattr(self, "team_changed"):
+                coro, loop = event
+
+                self._schedule_event(loop, coro, TeamEvent(app_message))
 
     def run_chat_event(self, app_message) -> None:
 
         if hasattr(self, "chat_message"):
-            coro, loop = getattr(self, "chat_message")
-            self._schedule_event(loop, coro, ChatEvent(app_message))
+            for event in getattr(self, "chat_message"):
+                coro, loop = event
+
+                self._schedule_event(loop, coro, ChatEvent(app_message))
