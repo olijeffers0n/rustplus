@@ -10,5 +10,5 @@ from .utils import entity_type_to_string
 
 __name__ = "rustplus"
 __author__ = "olijefferson"
-__version__ = "5.1.4"
+__version__ = "5.1.5"
 __support__ = "Discord: https://discord.gg/nQqJe8qvP8"
