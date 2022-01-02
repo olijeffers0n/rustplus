@@ -32,7 +32,7 @@ class BaseRustSocket:
         self.remote = RustRemote(ip=self.ip, port=self.port, command_options=command_options, ratelimit_limit=ratelimit_limit, ratelimit_refill=ratelimit_refill)
         
         if heartbeat is None:
-            raise ValueError("Heartbeat cammpt be None")
+            raise ValueError("Heartbeat cannot be None")
         self.heartbeat = heartbeat
 
     async def _handle_ratelimit(self, amount = 1) -> None:
