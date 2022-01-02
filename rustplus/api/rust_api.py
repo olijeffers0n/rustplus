@@ -246,7 +246,7 @@ class RustSocket(BaseRustSocket):
         if steamid is None:
             raise ValueError("SteamID cannot be None")
 
-        self._handle_ratelimit()
+        await self._handle_ratelimit()
 
         leaderPacket = AppPromoteToLeader()
         leaderPacket.steamId = steamid
