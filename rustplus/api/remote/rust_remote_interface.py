@@ -1,3 +1,5 @@
+import time
+
 from .rustws import RustWsClient
 from .event_handler import EventHandler
 from .token_bucket import RateLimiter
@@ -27,7 +29,7 @@ class RustRemote:
 
     def connect(self) -> None:
 
-        self.ws = RustWsClient(ip=self.ip, port=self.port, remote=self, protocols=['http-only', 'chat'])
+        self.ws = RustWsClient(ip=self.ip, port=self.port, remote=self)
         self.ws.daemon = True
         self.ws.connect()
         self.open = True
@@ -46,4 +48,9 @@ class RustRemote:
                 raise ClientNotConnectedError("No Current Websocket Connection")
             else:
                 self.connect()
+
+        if time.time() - self.ws.connected_time >= 600:
+            self.close()
+            self.connect()
+
         return self.ws

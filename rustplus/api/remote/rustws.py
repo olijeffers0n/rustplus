@@ -16,6 +16,7 @@ class RustWsClient(WebSocketClient):
         self.responses = {}
         self.ignored_responses = []
         self.remote = remote
+        self.connected_time = time.time()
 
     def opened(self): 
         """
@@ -128,7 +129,7 @@ class RustWsClient(WebSocketClient):
         """
         return message != ""
 
-    async def get_response(self, seq : int, app_request : AppRequest, attempt_retry : bool = True) -> AppMessage:
+    async def get_response(self, seq : int, app_request : AppRequest, retry_depth : int = 10) -> AppMessage:
         """
         Returns a given response from the server. After 2 seconds throws Exception as response is assumed to not be coming
         """
@@ -137,10 +138,10 @@ class RustWsClient(WebSocketClient):
         while seq not in self.responses:
 
             if attempts == 100:
-                if attempt_retry:
+                if retry_depth != 0:
 
                     await self._retry_failed_request(app_request)
-                    return await self.get_response(seq, app_request, False)
+                    return await self.get_response(seq, app_request, retry_depth=retry_depth-1)
 
                 raise ResponseNotRecievedError("Not Recieved")
 
