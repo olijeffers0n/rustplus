@@ -165,7 +165,8 @@ class RustSocket(BaseRustSocket):
                     if str(monument.token) == "DungeonBase":
                         continue
                     icon = convert_monument(monument.token, override_images)
-                    icon = icon.resize((150, 150))
+                    if monument.token in override_images:
+                        icon = icon.resize((150, 150))
                     if str(monument.token) == "train_tunnel_display_name":
                         icon = icon.resize((100, 125))
                     map.paste(icon, (format_cood(int(monument.x), int(monument.y), MAPSIZE)), icon)
