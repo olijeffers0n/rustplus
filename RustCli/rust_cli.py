@@ -59,7 +59,7 @@ class RustCli:
             
         encoded_body = json.dumps({
                 "AuthToken": authToken,
-                "DeviceId": 'rustplus.js',
+                "DeviceId": 'rustplus.py',
                 "PushKind": 0,
                 "PushToken": expoPushToken,
             }).encode('utf-8')
