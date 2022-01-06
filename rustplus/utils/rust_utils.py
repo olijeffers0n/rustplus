@@ -32,7 +32,7 @@ def format_cood(x, y, map_size) -> tuple:
     if y > map_size:
         y = map_size-150
 
-    return (x,y)
+    return x, y
 
 def convert_marker(name, angle) -> Image:
 
@@ -163,3 +163,16 @@ def entity_type_to_string(id) -> str:
         return "Storage Monitor"
     else:
         raise ValueError("Not Valid type")
+
+def convert_xy_to_grid(coords : tuple, map_size : float) -> tuple:
+
+    import string
+    GRIDSIZE = 146.25
+
+    grids = list(string.ascii_uppercase) + [f"A{letter}" for letter in list(string.ascii_uppercase)]
+
+    if coords[0] > map_size or coords[0] < 0 or coords[1] > map_size or coords[1] < 0:
+        raise ValueError("Out of bounds")
+
+    
+    return grids[int(coords[0] // GRIDSIZE)], int((map_size - coords[1]) // GRIDSIZE)
