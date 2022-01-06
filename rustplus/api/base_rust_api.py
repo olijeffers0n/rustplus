@@ -72,6 +72,7 @@ class BaseRustSocket:
         """
         try:
             self.remote.connect()
+            await self._send_wakeup_request()
             await self.heartbeat.start_beat()
         except ConnectionRefusedError:
             raise ServerNotResponsiveError("Cannot Connect")

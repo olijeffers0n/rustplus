@@ -8,7 +8,7 @@ from ...exceptions import ClientNotConnectedError
 
 class RustRemote:
 
-    def __init__(self, ip, port, command_options, ratelimit_limit, ratelimit_refill) -> None:
+    def __init__(self, ip, port, command_options, ratelimit_limit, ratelimit_refill, websocket_length = 600) -> None:
 
         self.ip = ip
         self.port = port 
@@ -17,6 +17,7 @@ class RustRemote:
         self.ratelimit_refill = ratelimit_refill
         self.ratelimiter = RateLimiter(ratelimit_limit, ratelimit_limit, 1, ratelimit_refill)
         self.open = False
+        self.websocket_length = websocket_length
 
         if command_options is None:
             self.use_commands = False
@@ -49,8 +50,11 @@ class RustRemote:
             else:
                 self.connect()
 
-        if time.time() - self.ws.connected_time >= 600:
+        if time.time() - self.ws.connected_time >= self.websocket_length:
             self.close()
             self.connect()
+
+        if self.ws is None:
+            return self.sock()
 
         return self.ws

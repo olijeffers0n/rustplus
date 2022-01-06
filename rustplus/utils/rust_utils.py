@@ -165,13 +165,14 @@ def entity_type_to_string(id) -> str:
     else:
         raise ValueError("Not Valid type")
 
-def convert_xy_to_grid(coords : tuple, map_size : float) -> tuple:
+def convert_xy_to_grid(coords : tuple, map_size : float, catch_out_of_bounds : bool = True) -> tuple:
 
     GRIDSIZE = 146.25
     grids = list(string.ascii_uppercase) + [f"A{letter}" for letter in list(string.ascii_uppercase)]
 
     if coords[0] > map_size or coords[0] < 0 or coords[1] > map_size or coords[1] < 0:
-        raise ValueError("Out of bounds")
+        if catch_out_of_bounds:
+            raise ValueError("Out of bounds")
 
     
     return grids[int(coords[0] // GRIDSIZE)], int((map_size - coords[1]) // GRIDSIZE)
