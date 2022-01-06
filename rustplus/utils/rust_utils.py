@@ -1,6 +1,7 @@
 from importlib import resources
 from PIL import Image
 import logging
+import string
 
 from ..api.structures import RustTime
 
@@ -166,9 +167,7 @@ def entity_type_to_string(id) -> str:
 
 def convert_xy_to_grid(coords : tuple, map_size : float) -> tuple:
 
-    import string
     GRIDSIZE = 146.25
-
     grids = list(string.ascii_uppercase) + [f"A{letter}" for letter in list(string.ascii_uppercase)]
 
     if coords[0] > map_size or coords[0] < 0 or coords[1] > map_size or coords[1] < 0:
