@@ -33,12 +33,15 @@ class RustWsClient(WebSocketClient):
 
     def connect(self) -> None:
 
-        try:
-            super().connect()
-            self.client_terminated = False
-            self.server_terminated = False
-        except OSError:
-            raise ConnectionRefusedError()
+        while True:
+            try:
+                super().connect()
+                self.client_terminated = False
+                self.server_terminated = False
+                break
+            except:
+                logging.getLogger("rustplus.py").warn("Cannot Connect to server. Retrying in 10")
+                time.sleep(10)
 
     def close(self, code=1000, reason='') -> None:
         super().close(code=code, reason=reason)
@@ -104,7 +107,8 @@ class RustWsClient(WebSocketClient):
         try:
             self.send(raw_data, binary=True)
         except:
-            raise ClientNotConnectedError("Not Connected")
+            self.connect()
+            self._retry_failed_request(app_request=request)
 
     async def _retry_failed_request(self, app_request : AppRequest):
         """
