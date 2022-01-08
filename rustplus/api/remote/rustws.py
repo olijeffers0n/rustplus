@@ -1,8 +1,12 @@
 import asyncio
 import logging
 import time
+import socket
+import errno
 from typing import Optional
+from ws4py import exc
 from ws4py.client.threadedclient import WebSocketClient
+from ws4py.websocket import pyOpenSSLError
 
 from .rustplus_pb2 import AppMessage, AppRequest
 from ..structures import RustChatMessage
@@ -184,3 +188,39 @@ class RustWsClient(WebSocketClient):
             raise RequestError(response.response.error.error)
 
         return response
+
+    def once(self):
+
+        if self.terminated:
+            logging.getLogger("ws4py").debug("WebSocket is already terminated")
+            return False
+        try:
+            b = b''
+            if self._is_secure:
+                b = self._get_from_pending()
+            if not b and not self.buf:
+                try:
+                    b = self.sock.recv(self.reading_buffer_size)
+                except OSError:
+                    self.connect()
+                    return True
+            if not b and not self.buf:
+                return False
+            self.buf += b
+        except (socket.error, OSError, pyOpenSSLError) as e:
+            if hasattr(e, "errno") and e.errno == errno.EINTR:
+                pass
+            else:
+                self.unhandled_error(e)
+                return False
+        else:
+            # process as much as we can
+            # the process will stop either if there is no buffer left
+            # or if the stream is closed
+            # only pass the requested number of bytes, leave the rest in the buffer
+            requested = self.reading_buffer_size
+            if not self.process(self.buf[:requested]):
+                return False
+            self.buf = self.buf[requested:]
+
+        return True

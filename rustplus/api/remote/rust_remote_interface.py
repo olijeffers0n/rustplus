@@ -39,6 +39,7 @@ class RustRemote:
 
         if self.ws is not None:
             self.ws.close()
+            del self.ws
             self.ws = None
             self.open = False
 
