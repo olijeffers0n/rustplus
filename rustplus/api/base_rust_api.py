@@ -98,9 +98,9 @@ class BaseRustSocket:
         app_request = self._generate_protobuf()
         app_request.checkSubscription.CopyFrom(AppEmpty())
 
-        self.remote.sock().ignored_responses.append(app_request.seq)
+        self.remote.ignored_responses.append(app_request.seq)
 
-        await self.remote.sock().send_message(app_request)
+        await self.remote.send_message(app_request)
     
     def command(self, coro) -> None:
         """

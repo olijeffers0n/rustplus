@@ -1,4 +1,5 @@
 import time
+import math
 
 from ...exceptions.exceptions import RateLimitError
 
@@ -60,4 +61,4 @@ class RateLimiter:
         """
         Returns how long until the amount of tokens needed will be available
         """
-        return 0.1 + ((target_cost - self.bucket.current) / self.refresh_per_second)
+        return math.ceil((0.1 + ((target_cost - self.bucket.current) / self.refresh_per_second)) * 10) / 10

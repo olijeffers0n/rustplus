@@ -1,24 +1,19 @@
-import asyncio
 import logging
 import time
 import socket
 import errno
 from typing import Optional
-from ws4py import exc
 from ws4py.client.threadedclient import WebSocketClient
 from ws4py.websocket import pyOpenSSLError
 
 from .rustplus_pb2 import AppMessage, AppRequest
 from ..structures import RustChatMessage
-from ...exceptions import ResponseNotRecievedError, ClientNotConnectedError, RequestError
 
 class RustWsClient(WebSocketClient):
 
     def __init__(self, ip, port, remote, protocols=None, extensions=None, heartbeat_freq=None, ssl_options=None, headers=None, exclude_headers=None):
         super().__init__(f"ws://{ip}:{port}", protocols=protocols, extensions=extensions, heartbeat_freq=heartbeat_freq, ssl_options=ssl_options, headers=headers, exclude_headers=exclude_headers)
 
-        self.responses = {}
-        self.ignored_responses = []
         self.remote = remote
         self.connected_time = time.time()
 
@@ -37,15 +32,9 @@ class RustWsClient(WebSocketClient):
 
     def connect(self) -> None:
 
-        while True:
-            try:
-                super().connect()
-                self.client_terminated = False
-                self.server_terminated = False
-                break
-            except:
-                logging.getLogger("rustplus.py").warn("Cannot Connect to server. Retrying in 10")
-                time.sleep(10)
+        super().connect()
+        self.client_terminated = False
+        self.server_terminated = False
 
     def close(self, code=1000, reason='') -> None:
         super().close(code=code, reason=reason)
@@ -58,8 +47,8 @@ class RustWsClient(WebSocketClient):
         app_message = AppMessage()
         app_message.ParseFromString(message.data)
 
-        if app_message.response.seq in self.ignored_responses:
-            self.ignored_responses.remove(app_message.response.seq)
+        if app_message.response.seq in self.remote.ignored_responses:
+            self.remote.ignored_responses.remove(app_message.response.seq)
             return
 
         prefix = self.get_prefix(str(app_message.broadcast.teamMessage.message.message))
@@ -80,7 +69,7 @@ class RustWsClient(WebSocketClient):
             self.remote.event_handler.run_chat_event(app_message) 
 
         else:
-            self.responses[app_message.response.seq] = app_message
+            self.remote.responses[app_message.response.seq] = app_message
 
     def get_prefix(self, message : str) -> Optional[str]:
         if self.remote.use_commands:
@@ -108,11 +97,7 @@ class RustWsClient(WebSocketClient):
         """
         raw_data = request.SerializeToString()
 
-        try:
-            self.send(raw_data, binary=True)
-        except:
-            self.connect()
-            self._retry_failed_request(app_request=request)
+        self.send(raw_data, binary=True)
 
     async def _retry_failed_request(self, app_request : AppRequest):
         """
@@ -137,58 +122,6 @@ class RustWsClient(WebSocketClient):
         """
         return message != ""
 
-    async def get_response(self, seq : int, app_request : AppRequest, retry_depth : int = 10) -> AppMessage:
-        """
-        Returns a given response from the server. After 2 seconds throws Exception as response is assumed to not be coming
-        """
-
-        attempts = 0
-        while seq not in self.responses:
-
-            if attempts == 100:
-                if retry_depth != 0:
-
-                    await self._retry_failed_request(app_request)
-                    return await self.get_response(seq, app_request, retry_depth=retry_depth-1)
-
-                raise ResponseNotRecievedError("Not Recieved")
-
-            attempts += 1
-            await asyncio.sleep(0.1)
-
-        response = self.responses.pop(seq)
-
-        if response.response.error.error == "rate_limit":
-            logging.getLogger("rustplus.py").warn("[Rustplus.py] RateLimit Exception Occurred. Retrying after bucket is full")
-
-            # Fully Refill the bucket
-
-            self.remote.ratelimiter.last_consumed = time.time()
-            self.remote.ratelimiter.bucket.current = 0
-
-            while self.remote.ratelimiter.bucket.current < self.remote.ratelimiter.bucket.max:
-                await asyncio.sleep(1)
-                self.remote.ratelimiter.bucket.refresh()
-
-            # Reattempt the sending with a full bucket
-            cost = self._get_proto_cost(app_request)
-
-            while True:
-
-                if self.remote.ratelimiter.can_consume(cost):
-                    self.remote.ratelimiter.consume(cost)
-                    break
-
-                await asyncio.sleep(self.remote.ratelimiter.get_estimated_delay_time(cost))
-
-            await self._retry_failed_request(app_request)
-            response = await self.get_response(seq, app_request, False)
-        
-        elif self._error_present(response.response.error.error):
-            raise RequestError(response.response.error.error)
-
-        return response
-
     def once(self):
 
         if self.terminated:
@@ -202,7 +135,9 @@ class RustWsClient(WebSocketClient):
                 try:
                     b = self.sock.recv(self.reading_buffer_size)
                 except OSError:
-                    self.connect()
+                    self.close()
+                    self.terminate()
+                    self.remote.connect()
                     return True
             if not b and not self.buf:
                 return False
