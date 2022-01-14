@@ -21,6 +21,7 @@ class RustRemote:
         self.ratelimit_refill = ratelimit_refill
         self.ratelimiter = RateLimiter(ratelimit_limit, ratelimit_limit, 1, ratelimit_refill)
         self.open = False
+        self.ws = None
         self.websocket_length = websocket_length
         self.responses = {}
         self.ignored_responses = []
