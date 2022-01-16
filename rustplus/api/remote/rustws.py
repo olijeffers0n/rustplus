@@ -44,7 +44,7 @@ class RustWebsocket(websocket.WebSocket):
 
             if run:
 
-                self.thread = Thread(target=self.run, name="[rustplus.py] WebsocketThread")
+                self.thread = Thread(target=self.run, name="[RustPlus.py] WebsocketThread")
                 self.thread.daemon = True
                 self.thread.start()
 
