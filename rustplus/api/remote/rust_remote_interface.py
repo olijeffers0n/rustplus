@@ -1,9 +1,8 @@
 import time
 import asyncio
 import logging
-from datetime import datetime
 
-from .rustws import RustWsClient
+from .rustws import RustWebsocket
 from .rustplus_pb2 import *
 from .event_handler import EventHandler
 from .token_bucket import RateLimiter
@@ -20,7 +19,8 @@ class RustRemote:
         self.ratelimit_limit = ratelimit_limit
         self.ratelimit_refill = ratelimit_refill
         self.ratelimiter = RateLimiter(ratelimit_limit, ratelimit_limit, 1, ratelimit_refill)
-        self.open = False
+        self.ws = None
+        self.is_pending = False
         self.websocket_length = websocket_length
         self.responses = {}
         self.ignored_responses = []
@@ -36,34 +36,19 @@ class RustRemote:
 
     def connect(self) -> None:
 
-        while True:
-            try:
-                self.ws = RustWsClient(ip=self.ip, port=self.port, remote=self)
-                self.ws.daemon = True
-                self.ws.connect()
-                self.open = True
-                break
-            except:
-                logging.getLogger("rustplus.py").warn(f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} Cannot Connect to server. Retrying in 20 seconds")
-                time.sleep(20)
+        self.ws = RustWebsocket(ip=self.ip, port=self.port, remote=self)
+        self.ws.connect()
 
     def close(self) -> None:
 
         if self.ws is not None:
             self.ws.close()
-            self.ws.terminate()
             del self.ws
             self.ws = None
-            self.open = False
 
     async def send_message(self, request : AppRequest) -> None:
 
-        try:
-           await self.sock().send_message(request)
-        except:
-            self.close()
-            self.connect()
-            return self.send_message(request)
+        self.ws.send_message(request)
 
     async def get_response(self, seq : int, app_request : AppRequest, retry_depth : int = 10) -> AppMessage:
         """
@@ -117,19 +102,16 @@ class RustRemote:
 
         return response
 
-    def sock(self) -> RustWsClient:
+    def _sock(self) -> RustWebsocket:
 
         if self.ws is None:
-            if not self.open:
-                raise ClientNotConnectedError("No Current Websocket Connection")
-            else:
-                self.connect()
+            raise ClientNotConnectedError("No Current Websocket Connection")
+
+        while self.is_pending:
+            time.sleep(1)
 
         if time.time() - self.ws.connected_time >= self.websocket_length:
             self.close()
             self.connect()
-
-        if self.ws is None:
-            return self.sock()
 
         return self.ws

@@ -77,7 +77,7 @@ class RustSocket(BaseRustSocket):
         await self.remote.send_message(app_request)
 
         response = await self.remote.get_response(app_request.seq, app_request)
-
+        
         return RustInfo(response.response.info)
 
     async def get_team_chat(self) -> List[RustChatMessage]:

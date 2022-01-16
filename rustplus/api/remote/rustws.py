@@ -1,51 +1,90 @@
 import logging
-import time
-import socket
-import errno
+from threading import Thread
+import logging
+import websocket
 from typing import Optional
-from ws4py.client.threadedclient import WebSocketClient
-from ws4py.websocket import pyOpenSSLError
+from datetime import datetime
+import time
 
 from .rustplus_pb2 import AppMessage, AppRequest
 from ..structures import RustChatMessage
+from ...exceptions import ClientNotConnectedError
 
-class RustWsClient(WebSocketClient):
+class RustWebsocket(websocket.WebSocket):
 
-    def __init__(self, ip, port, remote, protocols=None, extensions=None, heartbeat_freq=None, ssl_options=None, headers=None, exclude_headers=None):
-        super().__init__(f"ws://{ip}:{port}", protocols=protocols, extensions=extensions, heartbeat_freq=heartbeat_freq, ssl_options=ssl_options, headers=headers, exclude_headers=exclude_headers)
+    def __init__(self, ip, port, remote):
 
+        self.ip = ip
+        self.port = port
+        self.thread = None
+        self.open = False
         self.remote = remote
+        self.logger = logging.getLogger("rustplus.py")
         self.connected_time = time.time()
 
-    def opened(self): 
-        """
-        Called when the connection is opened
-        """
-        return 
+        super().__init__(enable_multithread=True)
 
-    def closed(self, code, reason):
+    def connect(self, run = True) -> None:
+
+        if not self.open:
+
+            while True:
+
+                self.remote.is_pending = True
+
+                try:
+                    super().connect(f"ws://{self.ip}:{self.port}")
+                    self.connected_time = time.time()
+                    break
+                except:
+                    self.logger.warn(f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} Cannot Connect to server. Retrying in 20 seconds")
+                    time.sleep(20)
+
+            self.remote.is_pending = False
+
+            if run:
+
+                self.thread = Thread(target=self.run, name="[rustplus.py] WebsocketThread")
+                self.thread.daemon = True
+                self.thread.start()
+
+            self.open = True
+
+    def close(self) -> None:
+
+        super().close()
+        self.open = False
+
+    def send_message(self, message : AppRequest) -> None:
         """
-        Called when the connection is closed
+        Send the Protobuf to the server
         """
-        self.remote.ws = None
-        return
+        try:
+            self.send_binary(message.SerializeToString())
+        except:
+            if not self.open:
+                raise ClientNotConnectedError("Not Connected")
+            
+            self.connect()
 
-    def connect(self) -> None:
+            return self.send_message(message)
 
-        super().connect()
-        self.client_terminated = False
-        self.server_terminated = False
+    def run(self) -> None:
 
-    def close(self, code=1000, reason='') -> None:
-        super().close(code=code, reason=reason)
+        while self.open:
+            try:
+                data = self.recv()
+                app_message = AppMessage()
+                app_message.ParseFromString(data)
 
-    def received_message(self, message):
-        """
-        Called when a message is recieved from the server
-        """
+                self.handle_message(app_message)
+            except:
+                if self.open:
+                    self.connect(run=False)
+                    continue
+                return
 
-        app_message = AppMessage()
-        app_message.ParseFromString(message.data)
+    def handle_message(self, app_message : AppMessage) -> None:
 
         if app_message.response.seq in self.remote.ignored_responses:
             self.remote.ignored_responses.remove(app_message.response.seq)
@@ -75,10 +114,10 @@ class RustWsClient(WebSocketClient):
         if self.remote.use_commands:
             if message.startswith(self.remote.command_options.prefix):
                 return self.remote.command_options.prefix
-            
-            for overrule in self.remote.command_options.overruling_commands:
-                if message.startswith(overrule):
-                    return overrule
+
+        for overrule in self.remote.command_options.overruling_commands:
+            if message.startswith(overrule):
+                return overrule
 
         return None
 
@@ -90,14 +129,6 @@ class RustWsClient(WebSocketClient):
 
     def is_team_broadcast(self, app_message) -> bool:
         return str(app_message.broadcast.teamChanged) != ""
-
-    async def send_message(self, request : AppRequest) -> None:
-        """
-        Send the Protobuf to the server
-        """
-        raw_data = request.SerializeToString()
-
-        self.send(raw_data, binary=True)
 
     async def _retry_failed_request(self, app_request : AppRequest):
         """
@@ -121,41 +152,3 @@ class RustWsClient(WebSocketClient):
         Checks message for error
         """
         return message != ""
-
-    def once(self):
-
-        if self.terminated:
-            logging.getLogger("ws4py").debug("WebSocket is already terminated")
-            return False
-        try:
-            b = b''
-            if self._is_secure:
-                b = self._get_from_pending()
-            if not b and not self.buf:
-                try:
-                    b = self.sock.recv(self.reading_buffer_size)
-                except OSError:
-                    self.close()
-                    self.terminate()
-                    self.remote.connect()
-                    return True
-            if not b and not self.buf:
-                return False
-            self.buf += b
-        except (socket.error, OSError, pyOpenSSLError) as e:
-            if hasattr(e, "errno") and e.errno == errno.EINTR:
-                pass
-            else:
-                self.unhandled_error(e)
-                return False
-        else:
-            # process as much as we can
-            # the process will stop either if there is no buffer left
-            # or if the stream is closed
-            # only pass the requested number of bytes, leave the rest in the buffer
-            requested = self.reading_buffer_size
-            if not self.process(self.buf[:requested]):
-                return False
-            self.buf = self.buf[requested:]
-
-        return True

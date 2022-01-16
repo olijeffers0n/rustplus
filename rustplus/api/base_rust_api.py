@@ -71,9 +71,10 @@ class BaseRustSocket:
         Opens the connection to the Rust Server
         """
         try:
-            self.remote.connect()
-            await self._send_wakeup_request()
-            await self.heartbeat.start_beat()
+            if self.remote.ws is None:
+                self.remote.connect()
+                await self._send_wakeup_request()
+                await self.heartbeat.start_beat()
         except ConnectionRefusedError:
             raise ServerNotResponsiveError("Cannot Connect")
 
