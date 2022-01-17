@@ -8,7 +8,7 @@ with open("./rustplus/__init__.py") as input_file:
       break
 
 readme = ""
-with open("README.md") as input_file:
+with open("README.md", errors='ignore') as input_file:
   readme = input_file.read()
 
 setup(

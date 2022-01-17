@@ -97,7 +97,7 @@ class BaseRustSocket:
         await self._handle_ratelimit()
 
         app_request = self._generate_protobuf()
-        app_request.checkSubscription.CopyFrom(AppEmpty())
+        app_request.getTime.CopyFrom(AppEmpty())
 
         self.remote.ignored_responses.append(app_request.seq)
 

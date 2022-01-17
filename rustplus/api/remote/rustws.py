@@ -36,19 +36,18 @@ class RustWebsocket(websocket.WebSocket):
                     super().connect(f"ws://{self.ip}:{self.port}")
                     self.connected_time = time.time()
                     break
-                except:
+                except Exception:
                     self.logger.warn(f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} Cannot Connect to server. Retrying in 20 seconds")
                     time.sleep(20)
 
             self.remote.is_pending = False
 
+            self.open = True
+
             if run:
 
-                self.thread = Thread(target=self.run, name="[RustPlus.py] WebsocketThread")
-                self.thread.daemon = True
+                self.thread = Thread(target=self.run, name="[RustPlus.py] WebsocketThread", daemon=True)
                 self.thread.start()
-
-            self.open = True
 
     def close(self) -> None:
 
@@ -80,6 +79,7 @@ class RustWebsocket(websocket.WebSocket):
                 self.handle_message(app_message)
             except:
                 if self.open:
+                    self.logger.warn("[RustPlus.py] Connection interrupted, Retrying")
                     self.connect(run=False)
                     continue
                 return

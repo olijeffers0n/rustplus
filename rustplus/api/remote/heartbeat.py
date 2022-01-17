@@ -15,26 +15,20 @@ class HeartBeat:
         if self.running:
             return 
 
-        def wrapper(self, loop) -> None:
-
-            async def heart_beat(self) -> None:
-
-                while True:
-
-                    if time.time() >= self.next_run:
-
-                        await self.beat()
-
-                    else:
-                        await asyncio.sleep(1)
-
-            asyncio.run_coroutine_threadsafe(heart_beat(self), loop)
-
-        thread = threading.Thread(target=wrapper, args=[self, asyncio.get_event_loop()])
-        thread.daemon = True
-        thread.start()
-
         self.running = True
+
+        asyncio.create_task(self._heart_beat())
+
+    async def _heart_beat(self) -> None:
+
+        while True:
+
+            if time.time() >= self.next_run:
+
+                await self.beat()
+
+            else:
+                await asyncio.sleep(1)
 
     async def beat(self) -> None:
 
@@ -44,4 +38,4 @@ class HeartBeat:
 
     def reset_rythm(self) -> None:
 
-        self.next_run = time.time() + 300
+        self.next_run = time.time() + 5
