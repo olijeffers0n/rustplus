@@ -16,7 +16,7 @@ class HeartBeat:
 
         self.running = True
 
-        #asyncio.create_task(self._heart_beat())
+        asyncio.create_task(self._heart_beat())
 
     async def _heart_beat(self) -> None:
 
@@ -37,4 +37,4 @@ class HeartBeat:
 
     def reset_rythm(self) -> None:
 
-        self.next_run = time.time() + 5
+        self.next_run = time.time() + 240
