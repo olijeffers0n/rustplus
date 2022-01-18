@@ -1,6 +1,5 @@
 import asyncio
 import time
-import threading
 
 class HeartBeat:
 
@@ -17,7 +16,7 @@ class HeartBeat:
 
         self.running = True
 
-        asyncio.create_task(self._heart_beat())
+        #asyncio.create_task(self._heart_beat())
 
     async def _heart_beat(self) -> None:
 
@@ -32,7 +31,7 @@ class HeartBeat:
 
     async def beat(self) -> None:
 
-        if self.rust_api.remote.ws is not None:
+        if self.rust_api.remote.ws is not None and self.rust_api.remote.ws.open:
 
             await self.rust_api._send_wakeup_request()
 

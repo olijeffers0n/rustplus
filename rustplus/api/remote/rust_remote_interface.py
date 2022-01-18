@@ -24,6 +24,7 @@ class RustRemote:
         self.websocket_length = websocket_length
         self.responses = {}
         self.ignored_responses = []
+        self.pending_requests = {}
 
         if command_options is None:
             self.use_commands = False
@@ -50,24 +51,20 @@ class RustRemote:
 
         self.ws.send_message(request)
 
-    async def get_response(self, seq : int, app_request : AppRequest, retry_depth : int = 10) -> AppMessage:
+    async def get_response(self, seq : int, app_request : AppRequest) -> AppMessage:
         """
         Returns a given response from the server. After 2 seconds throws Exception as response is assumed to not be coming
         """
 
-        attempts = 0
-        while seq not in self.responses:
+        while seq in self.pending_requests:
 
-            if attempts == 100:
-                if retry_depth != 0:
+            await self.send_message(app_request)
 
-                    await self.send_message(app_request)
-                    return await self.get_response(seq, app_request, retry_depth=retry_depth-1)
+            await asyncio.sleep(1)
 
-                raise ResponseNotRecievedError("Not Recieved")
+        if seq not in self.responses:
 
-            attempts += 1
-            await asyncio.sleep(0.1)
+            raise ResponseNotRecievedError("Not Recieved")
 
         response = self.responses.pop(seq)
 
