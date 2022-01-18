@@ -54,7 +54,7 @@ class RustRemote:
 
     async def get_response(self, seq : int, app_request : AppRequest) -> AppMessage:
         """
-        Returns a given response from the server. After 2 seconds throws Exception as response is assumed to not be coming
+        Returns a given response from the server.
         """
 
         count = 0
@@ -64,13 +64,18 @@ class RustRemote:
             if seq in self.sent_requests:
                 if count >= 40:
                     await self.send_message(app_request)
+                    count = 0
                     await asyncio.sleep(1)
                 else:
                     count += 1
                     await asyncio.sleep(0.1)
 
+            elif count <= 10:
+                await asyncio.sleep(0.1)
+
             else:
                 await self.send_message(app_request)
+                count = 0
                 await asyncio.sleep(1)
 
         if seq not in self.responses:
