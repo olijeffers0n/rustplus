@@ -25,6 +25,7 @@ class RustRemote:
         self.responses = {}
         self.ignored_responses = []
         self.pending_requests = {}
+        self.sent_requests = []
 
         if command_options is None:
             self.use_commands = False
@@ -56,11 +57,21 @@ class RustRemote:
         Returns a given response from the server. After 2 seconds throws Exception as response is assumed to not be coming
         """
 
+        count = 0
+
         while seq in self.pending_requests:
 
-            await self.send_message(app_request)
+            if seq in self.sent_requests:
+                if count >= 40:
+                    await self.send_message(app_request)
+                    await asyncio.sleep(1)
+                else:
+                    count += 1
+                    await asyncio.sleep(0.1)
 
-            await asyncio.sleep(1)
+            else:
+                await self.send_message(app_request)
+                await asyncio.sleep(1)
 
         if seq not in self.responses:
 

@@ -58,8 +58,8 @@ class RustWebsocket(websocket.WebSocket):
         Send the Protobuf to the server
         """
         try:
-            self.send_binary(message.SerializeToString())
             self.remote.pending_requests[message.seq] = message
+            self.send_binary(message.SerializeToString())
         except:
             if not self.open:
                 raise ClientNotConnectedError("Not Connected")
