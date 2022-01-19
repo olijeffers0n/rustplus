@@ -34,7 +34,7 @@ class RustWebsocket(websocket.WebSocket):
                 self.remote.is_pending = True
 
                 try:
-                    super().connect(f"ws://{self.ip}:{self.port}", timeout=7.5)
+                    super().connect(f"ws://{self.ip}:{self.port}")
                     self.connected_time = time.time()
                     break
                 except Exception:
