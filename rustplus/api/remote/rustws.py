@@ -2,7 +2,6 @@ import logging
 from threading import Thread
 import logging
 import websocket
-import traceback
 from typing import Optional
 from datetime import datetime
 import time
@@ -10,6 +9,7 @@ import time
 from .rustplus_pb2 import AppMessage, AppRequest
 from ..structures import RustChatMessage
 from ...exceptions import ClientNotConnectedError
+
 
 class RustWebsocket(websocket.WebSocket):
 
@@ -34,11 +34,11 @@ class RustWebsocket(websocket.WebSocket):
                 self.remote.is_pending = True
 
                 try:
-                    super().connect(f"ws://{self.ip}:{self.port}")
+                    super().connect(f"ws://{self.ip}:{self.port}", timeout=7.5)
                     self.connected_time = time.time()
                     break
                 except Exception:
-                    self.logger.warn(f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} [RustPlus.py] Cannot Connect to server. Retrying in 20 seconds")
+                    self.logger.warning(f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} [RustPlus.py] Cannot Connect to server. Retrying in 20 seconds")
                     time.sleep(20)
 
             self.remote.is_pending = False
@@ -60,7 +60,7 @@ class RustWebsocket(websocket.WebSocket):
         try:
             self.remote.pending_requests[message.seq] = message
             self.send_binary(message.SerializeToString())
-        except:
+        except Exception:
             if not self.open:
                 raise ClientNotConnectedError("Not Connected")
 
@@ -72,15 +72,16 @@ class RustWebsocket(websocket.WebSocket):
                 app_message = AppMessage()
                 app_message.ParseFromString(data)
 
-                self.handle_message(app_message)
-
                 try:
                     del self.remote.pending_requests[app_message.response.seq]
                 except KeyError:
                     pass
-            except:
+
+                self.handle_message(app_message)
+
+            except Exception:
                 if self.open:
-                    self.logger.warn(f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} [RustPlus.py] Connection interrupted, Retrying")
+                    self.logger.warning(f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} [RustPlus.py] Connection interrupted, Retrying")
                     self.connect(ignore=True)
                     return
                 return
@@ -106,7 +107,7 @@ class RustWebsocket(websocket.WebSocket):
             self.remote.event_handler.run_team_event(app_message)
 
         elif self.is_message(app_message):
-            self.remote.event_handler.run_chat_event(app_message) 
+            self.remote.event_handler.run_chat_event(app_message)
 
         else:
             self.remote.responses[app_message.response.seq] = app_message
@@ -148,7 +149,7 @@ class RustWebsocket(websocket.WebSocket):
 
         raise ValueError()
 
-    def _error_present(self, message) -> bool:
+    def error_present(self, message) -> bool:
         """
         Checks message for error
         """

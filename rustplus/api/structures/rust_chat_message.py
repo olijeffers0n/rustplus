@@ -1,4 +1,4 @@
-class RustChatMessage():
+class RustChatMessage:
 
     def __init__(self, data):
         

@@ -9,12 +9,13 @@ from .token_bucket import RateLimiter
 from ...commands import CommandHandler
 from ...exceptions import ClientNotConnectedError, ResponseNotRecievedError, RequestError
 
+
 class RustRemote:
 
-    def __init__(self, ip, port, command_options, ratelimit_limit, ratelimit_refill, websocket_length = 600) -> None:
+    def __init__(self, ip, port, command_options, ratelimit_limit, ratelimit_refill, websocket_length=600) -> None:
 
         self.ip = ip
-        self.port = port 
+        self.port = port
         self.command_options = command_options
         self.ratelimit_limit = ratelimit_limit
         self.ratelimit_refill = ratelimit_refill
@@ -48,44 +49,49 @@ class RustRemote:
             del self.ws
             self.ws = None
 
-    async def send_message(self, request : AppRequest) -> None:
+    async def send_message(self, request: AppRequest) -> None:
 
         self.ws.send_message(request)
 
-    async def get_response(self, seq : int, app_request : AppRequest) -> AppMessage:
+    async def get_response(self, seq: int, app_request: AppRequest) -> AppMessage:
         """
         Returns a given response from the server.
         """
 
-        count = 0
+        attempts = 0
 
         while seq in self.pending_requests:
 
             if seq in self.sent_requests:
-                if count >= 40:
-                    await self.send_message(app_request)
-                    count = 0
-                    await asyncio.sleep(1)
-                else:
-                    count += 1
+
+                if attempts <= 40:
+
+                    attempts += 1
                     await asyncio.sleep(0.1)
 
-            elif count <= 10:
+                else:
+
+                    await self.send_message(app_request)
+                    await asyncio.sleep(1)
+                    attempts = 0
+
+            if attempts <= 10:
                 await asyncio.sleep(0.1)
+                attempts += 1
 
             else:
                 await self.send_message(app_request)
-                count = 0
                 await asyncio.sleep(1)
+                attempts = 0
 
         if seq not in self.responses:
-
             raise ResponseNotRecievedError("Not Recieved")
 
         response = self.responses.pop(seq)
 
         if response.response.error.error == "rate_limit":
-            logging.getLogger("rustplus.py").warn("[Rustplus.py] RateLimit Exception Occurred. Retrying after bucket is full")
+            logging.getLogger("rustplus.py").warning(
+                "[Rustplus.py] RateLimit Exception Occurred. Retrying after bucket is full")
 
             # Fully Refill the bucket
 
@@ -108,9 +114,9 @@ class RustRemote:
                 await asyncio.sleep(self.ratelimiter.get_estimated_delay_time(cost))
 
             await self.send_message(app_request)
-            response = await self.get_response(seq, app_request, False)
-        
-        elif self.ws._error_present(response.response.error.error):
+            response = await self.get_response(seq, app_request)
+
+        elif self.ws.error_present(response.response.error.error):
             raise RequestError(response.response.error.error)
 
         return response

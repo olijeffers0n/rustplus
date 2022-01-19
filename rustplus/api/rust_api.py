@@ -8,7 +8,7 @@ from datetime import datetime
 from collections import defaultdict
 
 from .base_rust_api import BaseRustSocket
-from .structures import RustTime, RustInfo, RustMap, RustMarker, RustChatMessage, RustTeamInfo, RustTeamMember, RustTeamNote, RustEntityInfo, RustContents, RustItem
+from .structures import RustInfo, RustMap, RustMarker, RustChatMessage, RustTeamInfo, RustEntityInfo, RustContents, RustItem
 from .remote.rustplus_pb2 import *
 from .remote import HeartBeat
 from ..commands import CommandOptions
@@ -132,7 +132,10 @@ class RustSocket(BaseRustSocket):
 
         return RustMap(app_message.response.map)
 
-    async def get_map(self, add_icons: bool = False, add_events: bool = False, add_vending_machines: bool = False, override_images: dict = {}) -> Image:
+    async def get_map(self, add_icons: bool = False, add_events: bool = False, add_vending_machines: bool = False, override_images: dict = None) -> Image:
+
+        if override_images is None:
+            override_images = {}
 
         MAPSIZE = int((await self.get_info()).size)
         
