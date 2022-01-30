@@ -15,6 +15,7 @@ from ..commands import CommandOptions
 from ..exceptions import *
 from ..utils import *
 
+
 class RustSocket(BaseRustSocket):
 
     def __init__(self, ip: str = None, port: str = None, steamid: int = None, playertoken: int = None, command_options : CommandOptions = None, raise_ratelimit_exception : bool = True, ratelimit_limit : int = 25, ratelimit_refill : int = 3) -> None:
@@ -264,7 +265,7 @@ class RustSocket(BaseRustSocket):
 
     async def get_current_events(self) -> List[RustMarker]:
         
-        return [marker for marker in (await self.get_markers()) if marker.type == 2 or marker.type == 4 or marker.type == 5 or marker.type == 6]
+        return [marker for marker in (await self.get_markers()) if marker.type == 2 or marker.type == 4 or marker.type == 5 or marker.type == 6 or marker.type == 8]
 
     async def get_tc_storage_contents(self, eid: int = None, combine_stacks: bool = False) -> RustContents:
         

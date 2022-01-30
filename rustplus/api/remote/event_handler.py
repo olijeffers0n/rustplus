@@ -4,6 +4,7 @@ from typing import List
 
 from ..structures import EntityEvent, TeamEvent, ChatEvent
 
+
 class EventHandler:
 
     def __init__(self) -> None:

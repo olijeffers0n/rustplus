@@ -8,6 +8,7 @@ from .remote import RustRemote, HeartBeat
 from ..commands import CommandOptions
 from ..exceptions import *
 
+
 class BaseRustSocket:
 
     def __init__(self, ip : str = None, port : str = None, steamid : int = None, playertoken : int = None, command_options : CommandOptions = None, raise_ratelimit_exception : bool = True, ratelimit_limit : int = 25, ratelimit_refill : int = 3, heartbeat : HeartBeat = None) -> None:
@@ -128,7 +129,9 @@ class BaseRustSocket:
         self.remote.event_handler.register_event("chat_message", (coro, asyncio.get_event_loop()))
 
     async def hang(self) -> None:
-        """This Will permanently put your script into a state of 'hanging' Cannot be Undone. Only do this in scripts using commands"""
+        """
+        This Will permanently put your script into a state of 'hanging' Cannot be Undone. Only do this in scripts using commands
+        """
 
         while True:
             await asyncio.sleep(1)
@@ -137,73 +140,73 @@ class BaseRustSocket:
         """
         Gets the current in-game time from the server. Returns a RustTime object
         """
-        pass
+        raise NotImplementedError("Not Implemented")
 
     async def send_team_message(self, message : str) -> None:
         """
         Sends a message to the in-game team chat
         """
-        pass
+        raise NotImplementedError("Not Implemented")
 
     async def get_info(self) -> RustInfo:
         """
         Gets information on the Rust Server
         """
-        pass
+        raise NotImplementedError("Not Implemented")
 
     async def get_team_chat(self) -> List[RustChatMessage]:
         """
         Gets the team chat from the server
         """
-        pass
+        raise NotImplementedError("Not Implemented")
 
     async def get_team_info(self):
         """
         Gets Information on the members of your team
         """
-        pass
+        raise NotImplementedError("Not Implemented")
 
     async def get_markers(self) -> List[RustMarker]:
         """
         Gets all the map markers from the server
         """
-        pass
+        raise NotImplementedError("Not Implemented")
 
-    async def get_map(self, add_icons : bool = False, add_events : bool = False, add_vending_machines : bool = False, override_images : dict = {}) -> Image:
+    async def get_map(self, add_icons : bool = False, add_events : bool = False, add_vending_machines : bool = False, override_images : dict = None) -> Image:
         """
         Gets an image of the map from the server with the specified additions
         """
-        pass
+        raise NotImplementedError("Not Implemented")
 
     async def get_raw_map_data(self) -> RustMap:
         """
         Gets the raw map data from the server
         """
-        pass
+        raise NotImplementedError("Not Implemented")
 
     async def get_entity_info(self, eid : int = None) -> RustEntityInfo:
         """
         Gets entity info from the server
         """
-        pass
+        raise NotImplementedError("Not Implemented")
 
     async def turn_on_smart_switch(self, eid : int = None) -> None:
         """
         Turns on a given smart switch by entity ID
         """
-        pass
+        raise NotImplementedError("Not Implemented")
 
     async def turn_off_smart_switch(self, eid : int = None) -> None:
         """
         Turns off a given smart switch by entity ID
         """
-        pass
+        raise NotImplementedError("Not Implemented")
 
     async def promote_to_team_leader(self, steamid : int = None) -> None:
         """
         Promotes a given user to the team leader by their 64-bit Steam ID
         """
-        pass
+        raise NotImplementedError("Not Implemented")
 
     async def get_current_events(self) -> List[RustMarker]:
         """
@@ -213,12 +216,13 @@ class BaseRustSocket:
             - CH47 (Chinook)
             - Cargo Ship
             - Locked Crate
+            - Attack Helicopter
         """
-        pass
+        raise NotImplementedError("Not Implemented")
 
     async def get_tc_storage_contents(self, eid : int = None, combine_stacks : bool = False) -> RustContents:
         """
         Gets the Information about TC Upkeep and Contents.
         Do not use this for any other storage monitor than a TC
         """
-        pass
+        raise NotImplementedError("Not Implemented")
