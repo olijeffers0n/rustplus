@@ -116,6 +116,8 @@ class RustWebsocket(websocket.WebSocket):
         if self.remote.use_commands:
             if message.startswith(self.remote.command_options.prefix):
                 return self.remote.command_options.prefix
+        else:
+            return None
 
         for overrule in self.remote.command_options.overruling_commands:
             if message.startswith(overrule):
