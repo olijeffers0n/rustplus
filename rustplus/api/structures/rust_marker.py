@@ -42,6 +42,7 @@ class RustSellOrder:
         self.costPerItem : int = data.costPerItem
         self.itemIsBlueprint : bool = data.itemIsBlueprint
         self.currencyIsBlueprint : bool = data.currencyIsBlueprint
+        self.amountInStock: int = data.amountInStock
 
     def __str__(self) -> str:
         return "RustSellOrder[itemId={}, quantity={}, currencyId={}, costPerItem={}, itemIsBlueprint={}, currencyIsBlueprint={}]".format(self.itemId, self.quantity, self.currencyId, self.costPerItem, self.itemIsBlueprint, self.currencyIsBlueprint)
