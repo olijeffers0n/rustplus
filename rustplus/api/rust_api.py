@@ -1,5 +1,3 @@
-import asyncio
-from asyncio.futures import Future
 from typing import List
 from PIL import Image
 from io import BytesIO
@@ -20,26 +18,6 @@ class RustSocket(BaseRustSocket):
 
     def __init__(self, ip: str = None, port: str = None, steamid: int = None, playertoken: int = None, command_options : CommandOptions = None, raise_ratelimit_exception : bool = True, ratelimit_limit : int = 25, ratelimit_refill : int = 3) -> None:
         super().__init__(ip=ip, port=port, steamid=steamid, playertoken=playertoken, command_options=command_options, raise_ratelimit_exception=raise_ratelimit_exception, ratelimit_limit=ratelimit_limit, ratelimit_refill=ratelimit_refill, heartbeat=HeartBeat(self))
-
-    def entity_event(self, eid):
-        """
-        Decorator to register a smart device listener
-        """
-
-        def wrap_func(coro): 
-
-            def entity_event_callback(future : Future):
-                try:
-                    entity_info : RustEntityInfo = future.result()
-                    self.remote.event_handler.register_event(eid, (coro, loop, entity_info.type))
-                except:
-                    raise SmartDeviceRegistrationError("Not Found")
-
-            loop = asyncio.get_event_loop()
-            future = asyncio.run_coroutine_threadsafe(self.get_entity_info(eid), loop)
-            future.add_done_callback(entity_event_callback)
-
-        return wrap_func
 
     async def get_time(self) -> RustTime:
         

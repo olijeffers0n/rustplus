@@ -3,6 +3,7 @@ from asyncio.futures import Future
 from typing import List
 
 from ..structures import EntityEvent, TeamEvent, ChatEvent
+from ...utils import RegisteredListener
 
 
 class EventHandler:
@@ -10,13 +11,13 @@ class EventHandler:
     def __init__(self) -> None:
         pass
 
-    def register_event(self, name, data : tuple) -> None:
+    def register_event(self, name, data: tuple) -> None:
 
         if not asyncio.iscoroutinefunction(data[0]):
             raise TypeError("The event registered must be a coroutine")
 
         if hasattr(self, str(name)):
-            events : List[tuple] = getattr(self, str(name))
+            events: List[tuple] = getattr(self, str(name))
             events.append(data)
             setattr(self, str(name), events)
         else:
@@ -24,7 +25,7 @@ class EventHandler:
 
     def _schedule_event(self, loop, coro, arg) -> None:
 
-        def callback(future : Future):
+        def callback(future: Future):
             future.result()
 
         future : Future = asyncio.run_coroutine_threadsafe(coro(arg), loop)
@@ -53,3 +54,18 @@ class EventHandler:
                 coro, loop = event
 
                 self._schedule_event(loop, coro, ChatEvent(app_message))
+
+    def has_event(self, listener: RegisteredListener) -> bool:
+        if hasattr(self, listener.listener_id):
+            return listener.data in list(getattr(self, listener.listener_id))
+        return False
+
+    def remove_event(self, listener: RegisteredListener) -> None:
+        if hasattr(self, listener.listener_id):
+            events = list(getattr(self, listener.listener_id))
+            try:
+                while True:
+                    events.remove(listener.data)
+            except ValueError:
+                pass
+            setattr(self, listener.listener_id, events)

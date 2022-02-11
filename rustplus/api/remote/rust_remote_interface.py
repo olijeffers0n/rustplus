@@ -8,6 +8,7 @@ from .event_handler import EventHandler
 from .token_bucket import RateLimiter
 from ...commands import CommandHandler
 from ...exceptions import ClientNotConnectedError, ResponseNotRecievedError, RequestError
+from ...utils import RegisteredListener
 
 
 class RustRemote:
@@ -134,3 +135,16 @@ class RustRemote:
             self.connect()
 
         return self.ws
+
+    def remove_listener(self, listener: RegisteredListener) -> bool:
+
+        if self.event_handler.has_event(listener):
+            self.event_handler.remove_event(listener)
+            return True
+
+        elif self.use_commands:
+            if self.command_handler.has_command(listener):
+                self.command_handler.remove_command(listener)
+                return True
+
+        return False

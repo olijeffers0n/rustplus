@@ -103,7 +103,7 @@ def convert_monument(name: str, override_images: dict) -> Image:
         file_name = name_to_file[name]
         with resources.path("rustplus.api.icons", file_name) as path:
             icon = Image.open(path).convert("RGBA")
-    elif "mining_quarry" in name or "harbor" in name or "stables" in name or "swamp" in name:
+    elif "mining_quarry" in name or "harbor" in name or "stables" in name or "swamp" in name or "arctic_base" in name:
         if "mining_quarry" in name:
             file_name = "quarry.png"
         elif "harbor" in name:
@@ -112,6 +112,8 @@ def convert_monument(name: str, override_images: dict) -> Image:
             file_name = "stable.png"
         elif "swamp" in name:
             file_name = "swamp.png"
+        elif "arctic_base" in name:
+            file_name = "arctic_base.png"
         with resources.path("rustplus.api.icons", file_name) as path:
             icon = Image.open(path).convert("RGBA")
     else:
