@@ -8,18 +8,18 @@ from ..api.structures import RustTime
 
 def format_time(protobuf) -> RustTime:
     def convert_time(time) -> str:
-        HOURS, MINUTES = divmod(time * 60, 60)
+        hours, minutes = divmod(time * 60, 60)
 
-        return f"{int(HOURS)}:0{int(MINUTES)}" if MINUTES <= 9 else f"{int(HOURS)}:{int(MINUTES)}"
+        return f"{int(hours)}:0{int(minutes)}" if minutes <= 9 else f"{int(hours)}:{int(minutes)}"
 
-    SUNRISE = convert_time(protobuf.response.time.sunrise)
-    SUNSET = convert_time(protobuf.response.time.sunset)
-    PARSED_TIME = convert_time(protobuf.response.time.time)
+    sunrise = convert_time(protobuf.response.time.sunrise)
+    sunset = convert_time(protobuf.response.time.sunset)
+    parsed_time = convert_time(protobuf.response.time.time)
 
-    return RustTime(protobuf.response.time.dayLengthMinutes, SUNRISE, SUNSET, PARSED_TIME, protobuf.response.time.time)
+    return RustTime(protobuf.response.time.dayLengthMinutes, sunrise, sunset, parsed_time, protobuf.response.time.time)
 
 
-def format_cood(x, y, map_size) -> tuple:
+def format_coord(x, y, map_size) -> tuple:
     y = map_size - y - 75
     x -= 75
 
@@ -174,11 +174,11 @@ def entity_type_to_string(id) -> str:
 
 
 def convert_xy_to_grid(coords: tuple, map_size: float, catch_out_of_bounds: bool = True) -> tuple:
-    GRIDSIZE = 146.25
+    grid_size = 146.25
     grids = list(string.ascii_uppercase) + [f"A{letter}" for letter in list(string.ascii_uppercase)]
 
     if coords[0] > map_size or coords[0] < 0 or coords[1] > map_size or coords[1] < 0:
         if catch_out_of_bounds:
             raise ValueError("Out of bounds")
 
-    return grids[int(coords[0] // GRIDSIZE)], int((map_size - coords[1]) // GRIDSIZE)
+    return grids[int(coords[0] // grid_size)], int((map_size - coords[1]) // grid_size)

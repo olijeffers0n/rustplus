@@ -1,10 +1,10 @@
-import time
 import asyncio
 import logging
+import time
 
-from .rustws import RustWebsocket
-from .rustplus_pb2 import *
 from .event_handler import EventHandler
+from .rustplus_pb2 import *
+from .rustws import RustWebsocket
 from .token_bucket import RateLimiter
 from ...commands import CommandHandler
 from ...exceptions import ClientNotConnectedError, ResponseNotRecievedError, RequestError

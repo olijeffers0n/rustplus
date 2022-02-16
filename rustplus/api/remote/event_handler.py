@@ -25,19 +25,20 @@ class EventHandler:
 
     def _schedule_event(self, loop, coro, arg) -> None:
 
-        def callback(future: Future):
-            future.result()
+        def callback(inner_future: Future):
+            inner_future.result()
 
-        future : Future = asyncio.run_coroutine_threadsafe(coro(arg), loop)
+        future: Future = asyncio.run_coroutine_threadsafe(coro(arg), loop)
         future.add_done_callback(callback)
 
     def run_entity_event(self, name, app_message) -> None:
 
         if hasattr(self, str(name)):
             for event in getattr(self, str(name)):
-                coro, loop, type = event
+                coro, loop, event_type = event
 
-                self._schedule_event(loop, coro, EntityEvent(app_message, type)) # I reconstruct the Event Object for each of these each time as i dont want the object to be mitakenly changed by one event, messing up subsequent events
+                self._schedule_event(loop, coro, EntityEvent(app_message,
+                                                             event_type))
 
     def run_team_event(self, app_message) -> None:
 

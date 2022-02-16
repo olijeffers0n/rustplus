@@ -29,7 +29,7 @@ class BaseRustSocket:
         self.ip = ip
         self.port = port
         self.steamid = steamid
-        self.playertoken = playertoken
+        self.player_token = playertoken
         self.seq = 1
         self.command_options = command_options
         self.raise_ratelimit_exception = raise_ratelimit_exception
@@ -51,7 +51,7 @@ class BaseRustSocket:
 
             if self.remote.ratelimiter.can_consume(amount):
                 self.remote.ratelimiter.consume(amount)
-                self.heartbeat.reset_rythm()
+                self.heartbeat.reset_rhythm()
                 return
 
             if self.raise_ratelimit_exception:
@@ -67,7 +67,7 @@ class BaseRustSocket:
         app_request = AppRequest()
         app_request.seq = self.seq
         app_request.playerId = self.steamid
-        app_request.playerToken = self.playertoken
+        app_request.playerToken = self.player_token
 
         self.seq += 1
 
@@ -80,7 +80,7 @@ class BaseRustSocket:
         try:
             if self.remote.ws is None:
                 self.remote.connect()
-                await self._send_wakeup_request()
+                await self.send_wakeup_request()
                 await self.heartbeat.start_beat()
         except ConnectionRefusedError:
             raise ServerNotResponsiveError("Cannot Connect")
@@ -97,7 +97,7 @@ class BaseRustSocket:
         """
         await self.close_connection()
 
-    async def _send_wakeup_request(self) -> None:
+    async def send_wakeup_request(self) -> None:
         """
         Sends a request to the server to wake up broadcast responses
         """
@@ -122,7 +122,7 @@ class BaseRustSocket:
             coro = coro.get_coro()
 
         data = (coro, asyncio.get_event_loop())
-        self.remote.command_handler.registerCommand(coro.__name__, data)
+        self.remote.command_handler.register_command(coro.__name__, data)
         return RegisteredListener(coro.__name__, data)
 
     def team_event(self, coro) -> RegisteredListener:
@@ -159,18 +159,18 @@ class BaseRustSocket:
             if isinstance(coro, RegisteredListener):
                 coro = coro.get_coro()
 
-            def entity_event_callback(future: Future):
+            def entity_event_callback(future_inner: Future):
                 try:
-                    entity_info: RustEntityInfo = future.result()
+                    entity_info: RustEntityInfo = future_inner.result()
                     self.remote.event_handler.register_event(eid, (coro, loop, entity_info.type))
-                except:
+                except Exception:
                     raise SmartDeviceRegistrationError("Not Found")
 
             loop = asyncio.get_event_loop()
             future = asyncio.run_coroutine_threadsafe(self.get_entity_info(eid), loop)
             future.add_done_callback(entity_event_callback)
 
-            return RegisteredListener(eid, (coro))
+            return RegisteredListener(eid, coro)
 
         return wrap_func
 
@@ -184,7 +184,8 @@ class BaseRustSocket:
             return self.remote.remove_listener(listener)
         return False
 
-    async def hang(self) -> None:
+    @staticmethod
+    async def hang() -> None:
         """
         This Will permanently put your script into a state of 'hanging' Cannot be Undone. Only do this in scripts using commands
         """

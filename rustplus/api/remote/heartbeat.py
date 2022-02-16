@@ -1,6 +1,7 @@
 import asyncio
 import time
 
+
 class HeartBeat:
 
     def __init__(self, rust_api) -> None:
@@ -12,7 +13,7 @@ class HeartBeat:
     async def start_beat(self) -> None:
 
         if self.running:
-            return 
+            return
 
         self.running = True
 
@@ -32,9 +33,8 @@ class HeartBeat:
     async def beat(self) -> None:
 
         if self.rust_api.remote.ws is not None and self.rust_api.remote.ws.open:
+            await self.rust_api.send_wakeup_request()
 
-            await self.rust_api._send_wakeup_request()
-
-    def reset_rythm(self) -> None:
+    def reset_rhythm(self) -> None:
 
         self.next_run = time.time() + 240
