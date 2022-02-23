@@ -161,7 +161,7 @@ def translate_id_to_stack(id: int) -> str:
         "-151838493": "Wood",
         "1525520776": "Building Plan",
         "200773292": "Hammer",
-        "21587658l": "Wire Tool"
+        "-144417939	": "Wire Tool"
     }[str(id)]
 
 
