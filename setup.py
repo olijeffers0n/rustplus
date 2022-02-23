@@ -28,7 +28,7 @@ setup(
     install_requires=[
         "websocket_client",
         "Pillow",
-        "protobuf",
+        "protobuf>=3.18.1",
         "asyncio"
     ],
     python_requires='>=3.7.0',
