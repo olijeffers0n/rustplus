@@ -158,8 +158,12 @@ def translate_id_to_stack(id: int) -> str:
         "1523195708": "Targeting Computer",
         "-1779180711": "Water",
         "2048317869": "Wolf Skull",
-        "-151838493": "Wood"
+        "-151838493": "Wood",
+        "1525520776": "Building Plan",
+        "200773292": "Hammer",
+        "21587658l": "Wire Tool"
     }[str(id)]
+
 
 
 def entity_type_to_string(id) -> str:
