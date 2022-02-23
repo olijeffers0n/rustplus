@@ -8,7 +8,9 @@
 		<img src = "https://img.shields.io/discord/872406750639321088?label=Discord">
 	</a>
     <div>
-        <img src= "https://ko-fi.com/img/githubbutton_sm.svg" href = "https://ko-fi.com/O5O3ALGLJ" width="190" alt="Kofi">
+        <a href = "https://ko-fi.com/O5O3ALGLJ">
+            <img src= "https://ko-fi.com/img/githubbutton_sm.svg" width="190">
+        </a>
     </div>
 </div>
 
