@@ -7,7 +7,9 @@
 	<a href = "https://discord.gg/nQqJe8qvP8">
 		<img src = "https://img.shields.io/discord/872406750639321088?label=Discord">
 	</a>
-    <img src= "https://ko-fi.com/img/githubbutton_sm.svg" href = "https://ko-fi.com/O5O3ALGLJ" width="190">
+    <div>
+        <img src= "https://ko-fi.com/img/githubbutton_sm.svg" href = "https://ko-fi.com/O5O3ALGLJ" width="190" alt="Kofi">
+    </div>
 </div>
 
 A lot of code and ideas have come from the JavaScript version of a wrapper, so I will credit it now:
