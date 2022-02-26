@@ -167,8 +167,6 @@ class RustSocket(BaseRustSocket):
                 if add_events:
                     if marker.type == 2 or marker.type == 4 or marker.type == 5 or marker.type == 6 or marker.type == 8:
                         icon = convert_marker(str(marker.type), marker.rotation)
-                        if marker.type == 8:
-                            icon.show()
                         if marker.type == 6:
                             x = marker.x
                             y = marker.y
