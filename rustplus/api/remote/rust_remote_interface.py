@@ -13,13 +13,15 @@ from ...utils import RegisteredListener
 
 class RustRemote:
 
-    def __init__(self, ip, port, command_options, ratelimit_limit, ratelimit_refill, websocket_length=600) -> None:
+    def __init__(self, ip, port, command_options, ratelimit_limit, ratelimit_refill, websocket_length=600,
+                 use_proxy: bool = False) -> None:
 
         self.ip = ip
         self.port = port
         self.command_options = command_options
         self.ratelimit_limit = ratelimit_limit
         self.ratelimit_refill = ratelimit_refill
+        self.use_proxy = use_proxy
         self.ratelimiter = RateLimiter(ratelimit_limit, ratelimit_limit, 1, ratelimit_refill)
         self.ws = None
         self.is_pending = False
@@ -40,7 +42,7 @@ class RustRemote:
 
     def connect(self) -> None:
 
-        self.ws = RustWebsocket(ip=self.ip, port=self.port, remote=self)
+        self.ws = RustWebsocket(ip=self.ip, port=self.port, remote=self, use_proxy=self.use_proxy)
         self.ws.connect()
 
     def close(self) -> None:

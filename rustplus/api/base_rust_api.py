@@ -15,7 +15,7 @@ class BaseRustSocket:
 
     def __init__(self, ip: str = None, port: str = None, steamid: int = None, playertoken: int = None,
                  command_options: CommandOptions = None, raise_ratelimit_exception: bool = True,
-                 ratelimit_limit: int = 25, ratelimit_refill: int = 3, heartbeat: HeartBeat = None) -> None:
+                 ratelimit_limit: int = 25, ratelimit_refill: int = 3, heartbeat: HeartBeat = None, use_proxy: bool = False) -> None:
 
         if ip is None:
             raise ValueError("Ip cannot be None")
@@ -36,7 +36,7 @@ class BaseRustSocket:
         self.listener_seq = 0
 
         self.remote = RustRemote(ip=self.ip, port=self.port, command_options=command_options,
-                                 ratelimit_limit=ratelimit_limit, ratelimit_refill=ratelimit_refill)
+                                 ratelimit_limit=ratelimit_limit, ratelimit_refill=ratelimit_refill, use_proxy=use_proxy)
 
         if heartbeat is None:
             raise ValueError("Heartbeat cannot be None")

@@ -12,12 +12,13 @@ from ...exceptions import ClientNotConnectedError
 
 class RustWebsocket(websocket.WebSocket):
 
-    def __init__(self, ip, port, remote):
+    def __init__(self, ip, port, remote, use_proxy):
 
         self.ip = ip
         self.port = port
         self.thread = None
         self.open = False
+        self.use_proxy = use_proxy
         self.remote = remote
         self.logger = logging.getLogger("rustplus.py")
         self.connected_time = time.time()
@@ -33,12 +34,15 @@ class RustWebsocket(websocket.WebSocket):
                 self.remote.is_pending = True
 
                 try:
-                    super().connect(f"ws://{self.ip}:{self.port}")
+                    address = f"wss://companion-rust.facepunch.com/game/{self.ip}/{self.port}" if self.use_proxy else \
+                        f"ws://{self.ip}:{self.port} "
+                    super().connect(address)
                     self.connected_time = time.time()
                     break
                 except Exception:
                     self.logger.warning(
-                        f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} [RustPlus.py] Cannot Connect to server. Retrying in 20 seconds")
+                        f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} "
+                        "[RustPlus.py] Cannot Connect to server. Retrying in 20 seconds")
                     time.sleep(20)
 
             self.remote.is_pending = False
