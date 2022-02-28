@@ -8,7 +8,7 @@ from .remote.rustplus_pb2 import *
 from .remote import RustRemote, HeartBeat
 from ..commands import CommandOptions
 from ..exceptions import *
-from ..utils import RegisteredListener
+from ..utils import RegisteredListener, deprecated
 
 
 class BaseRustSocket:
@@ -278,6 +278,13 @@ class BaseRustSocket:
         """
         raise NotImplementedError("Not Implemented")
 
+    async def get_contents(self, eid: int = None, combine_stacks: bool = False) -> RustContents:
+        """
+        Gets the contents of a storage monitor-attached container
+        """
+        raise NotImplementedError("Not Implemented")
+
+    @deprecated("Use RustSocket#get_contents")
     async def get_tc_storage_contents(self, eid: int = None, combine_stacks: bool = False) -> RustContents:
         """
         Gets the Information about TC Upkeep and Contents.

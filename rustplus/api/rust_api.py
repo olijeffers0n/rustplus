@@ -3,6 +3,7 @@ from PIL import Image
 from io import BytesIO
 from datetime import datetime
 from collections import defaultdict
+from importlib import resources
 
 from .base_rust_api import BaseRustSocket
 from .structures import RustInfo, RustMap, RustMarker, RustChatMessage, RustTeamInfo, RustEntityInfo, RustContents, \
@@ -11,7 +12,7 @@ from .remote.rustplus_pb2 import *
 from .remote import HeartBeat
 from ..commands import CommandOptions
 from ..exceptions import *
-from ..utils import *
+from ..utils import RustTime, format_time, format_coord, convert_marker, convert_monument, translate_id_to_stack, deprecated
 
 
 class RustSocket(BaseRustSocket):
@@ -252,7 +253,7 @@ class RustSocket(BaseRustSocket):
         return [marker for marker in (await self.get_markers()) if
                 marker.type == 2 or marker.type == 4 or marker.type == 5 or marker.type == 6 or marker.type == 8]
 
-    async def get_tc_storage_contents(self, eid: int = None, combine_stacks: bool = False) -> RustContents:
+    async def get_contents(self, eid: int = None, combine_stacks: bool = False) -> RustContents:
 
         if eid is None:
             raise ValueError("EID cannot be None")
@@ -284,3 +285,7 @@ class RustSocket(BaseRustSocket):
                     RustItem(translate_id_to_stack(key), key, int(merged_map[key][0]), bool(merged_map[key][1])))
 
         return RustContents(difference, bool(returned_data.hasProtection), items)
+
+    @deprecated("Use RustSocket#get_contents")
+    async def get_tc_storage_contents(self, eid: int = None, combine_stacks: bool = False) -> RustContents:
+        return await self.get_contents(eid=eid, combine_stacks=combine_stacks)
