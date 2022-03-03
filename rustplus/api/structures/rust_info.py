@@ -1,5 +1,4 @@
 class RustInfo:
-
     def __init__(self, data) -> None:
         self.url: str = data.url
         self.name: str = data.name
@@ -12,4 +11,12 @@ class RustInfo:
 
     def __str__(self) -> str:
         return "RustInfo[url={}, name={}, map={}, size={}, players={}, max_players={}, queued_players={}, seed={}]".format(
-            self.url, self.name, self.map, self.size, self.players, self.max_players, self.queued_players, self.seed)
+            self.url,
+            self.name,
+            self.map,
+            self.size,
+            self.players,
+            self.max_players,
+            self.queued_players,
+            self.seed,
+        )

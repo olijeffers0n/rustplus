@@ -11,7 +11,6 @@ from ...exceptions import ClientNotConnectedError
 
 
 class RustWebsocket(websocket.WebSocket):
-
     def __init__(self, ip, port, remote, use_proxy):
 
         self.ip = ip
@@ -34,22 +33,28 @@ class RustWebsocket(websocket.WebSocket):
                 self.remote.is_pending = True
 
                 try:
-                    address = f"wss://companion-rust.facepunch.com/game/{self.ip}/{self.port}" if self.use_proxy else \
-                        f"ws://{self.ip}:{self.port} "
+                    address = (
+                        f"wss://companion-rust.facepunch.com/game/{self.ip}/{self.port}"
+                        if self.use_proxy
+                        else f"ws://{self.ip}:{self.port} "
+                    )
                     super().connect(address)
                     self.connected_time = time.time()
                     break
                 except Exception:
                     self.logger.warning(
                         f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} "
-                        "[RustPlus.py] Cannot Connect to server. Retrying in 20 seconds")
+                        "[RustPlus.py] Cannot Connect to server. Retrying in 20 seconds"
+                    )
                     time.sleep(20)
 
             self.remote.is_pending = False
 
             self.open = True
 
-            self.thread = Thread(target=self.run, name="[RustPlus.py] WebsocketThread", daemon=True)
+            self.thread = Thread(
+                target=self.run, name="[RustPlus.py] WebsocketThread", daemon=True
+            )
             self.thread.start()
 
     def close(self) -> None:
@@ -86,7 +91,8 @@ class RustWebsocket(websocket.WebSocket):
             except Exception:
                 if self.open:
                     self.logger.warning(
-                        f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} [RustPlus.py] Connection interrupted, Retrying")
+                        f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} [RustPlus.py] Connection interrupted, Retrying"
+                    )
                     self.connect(ignore=True)
                     return
                 return
@@ -106,7 +112,9 @@ class RustWebsocket(websocket.WebSocket):
             self.remote.command_handler.run_command(message, prefix)
 
         elif self.is_entity_broadcast(app_message):
-            self.remote.event_handler.run_entity_event(app_message.broadcast.entityChanged.entityId, app_message)
+            self.remote.event_handler.run_entity_event(
+                app_message.broadcast.entityChanged.entityId, app_message
+            )
 
         elif self.is_team_broadcast(app_message):
             self.remote.event_handler.run_team_event(app_message)
@@ -153,8 +161,18 @@ class RustWebsocket(websocket.WebSocket):
         """
         Gets the cost of an AppRequest
         """
-        costs = {"getTime": 1, "sendTeamMessage": 2, "getInfo": 1, "getTeamChat": 1, "getTeamInfo": 1,
-                 "getMapMarkers": 1, "getMap": 5, "setEntityValue": 1, "getEntityInfo": 1, "promoteToLeader": 1}
+        costs = {
+            "getTime": 1,
+            "sendTeamMessage": 2,
+            "getInfo": 1,
+            "getTeamChat": 1,
+            "getTeamInfo": 1,
+            "getMapMarkers": 1,
+            "getMap": 5,
+            "setEntityValue": 1,
+            "getEntityInfo": 1,
+            "promoteToLeader": 1,
+        }
         for request, cost in costs.items():
             if app_request.HasField(request):
                 return cost

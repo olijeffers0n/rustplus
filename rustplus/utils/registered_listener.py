@@ -1,5 +1,4 @@
 class RegisteredListener:
-
     def __init__(self, name: str, data) -> None:
         self.listener_id = name
         self.data = data

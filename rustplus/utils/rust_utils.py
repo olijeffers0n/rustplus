@@ -10,13 +10,23 @@ def format_time(protobuf) -> RustTime:
     def convert_time(time) -> str:
         hours, minutes = divmod(time * 60, 60)
 
-        return f"{int(hours)}:0{int(minutes)}" if minutes <= 9 else f"{int(hours)}:{int(minutes)}"
+        return (
+            f"{int(hours)}:0{int(minutes)}"
+            if minutes <= 9
+            else f"{int(hours)}:{int(minutes)}"
+        )
 
     sunrise = convert_time(protobuf.response.time.sunrise)
     sunset = convert_time(protobuf.response.time.sunset)
     parsed_time = convert_time(protobuf.response.time.time)
 
-    return RustTime(protobuf.response.time.dayLengthMinutes, sunrise, sunset, parsed_time, protobuf.response.time.time)
+    return RustTime(
+        protobuf.response.time.dayLengthMinutes,
+        sunrise,
+        sunset,
+        parsed_time,
+        protobuf.response.time.time,
+    )
 
 
 def format_coord(x, y, map_size) -> tuple:
@@ -91,7 +101,7 @@ def convert_monument(name: str, override_images: dict) -> Image:
         "oil_rig_small": "small_oil_rig.png",
         "large_oil_rig": "large_oil_rig.png",
         "underwater_lab": "underwater_lab.png",
-        "AbandonedMilitaryBase": "desert_base.png"
+        "AbandonedMilitaryBase": "desert_base.png",
     }
 
     try:
@@ -103,7 +113,13 @@ def convert_monument(name: str, override_images: dict) -> Image:
         file_name = name_to_file[name]
         with resources.path("rustplus.api.icons", file_name) as path:
             icon = Image.open(path).convert("RGBA")
-    elif "mining_quarry" in name or "harbor" in name or "stables" in name or "swamp" in name or "arctic_base" in name:
+    elif (
+        "mining_quarry" in name
+        or "harbor" in name
+        or "stables" in name
+        or "swamp" in name
+        or "arctic_base" in name
+    ):
         if "mining_quarry" in name:
             file_name = "quarry.png"
         elif "harbor" in name:
@@ -117,7 +133,9 @@ def convert_monument(name: str, override_images: dict) -> Image:
         with resources.path("rustplus.api.icons", file_name) as path:
             icon = Image.open(path).convert("RGBA")
     else:
-        logging.getLogger("rustplus.py").info(f"{name} - Has no icon, report this as an issue")
+        logging.getLogger("rustplus.py").info(
+            f"{name} - Has no icon, report this as an issue"
+        )
         with resources.path("rustplus.api.icons", "icon.png") as path:
             icon = Image.open(path).convert("RGBA")
     return icon
@@ -134,9 +152,13 @@ def entity_type_to_string(id) -> str:
         raise ValueError("Not Valid type")
 
 
-def convert_xy_to_grid(coords: tuple, map_size: float, catch_out_of_bounds: bool = True) -> tuple:
+def convert_xy_to_grid(
+    coords: tuple, map_size: float, catch_out_of_bounds: bool = True
+) -> tuple:
     grid_size = 146.25
-    grids = list(string.ascii_uppercase) + [f"A{letter}" for letter in list(string.ascii_uppercase)]
+    grids = list(string.ascii_uppercase) + [
+        f"A{letter}" for letter in list(string.ascii_uppercase)
+    ]
 
     if coords[0] > map_size or coords[0] < 0 or coords[1] > map_size or coords[1] < 0:
         if catch_out_of_bounds:

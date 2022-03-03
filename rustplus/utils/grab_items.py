@@ -719,15 +719,20 @@ item_ids = {
     "2106561762": "Decorative Tinsel",
     "2114754781": "Water Purifier",
     "2126889441": "Santa Beard",
-    "2133269020": "Red Berry Clone"
+    "2133269020": "Red Berry Clone",
 }
 
 
 def grab_items() -> None:
     data = {}
 
-    for line in requests.get("https://raw.githubusercontent.com/OrangeWulf/Rust-Docs/master/Items.md") \
-                        .content.decode().splitlines(False)[4:]:
+    for line in (
+        requests.get(
+            "https://raw.githubusercontent.com/OrangeWulf/Rust-Docs/master/Items.md"
+        )
+        .content.decode()
+        .splitlines(False)[4:]
+    ):
         if len(line) == 0:
             continue
 
@@ -750,5 +755,5 @@ def translate_id_to_stack(id: int) -> str:
         return "Not Found"
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     grab_items()

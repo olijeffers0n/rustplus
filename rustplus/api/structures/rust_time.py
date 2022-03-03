@@ -1,5 +1,4 @@
 class RustTime:
-
     def __init__(self, day_length, sunrise, sunset, time, raw_time) -> None:
         self.day_length: float = day_length
         self.sunrise: str = sunrise

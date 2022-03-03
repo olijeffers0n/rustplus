@@ -3,7 +3,6 @@ import time
 
 
 class HeartBeat:
-
     def __init__(self, rust_api) -> None:
 
         self.rust_api = rust_api

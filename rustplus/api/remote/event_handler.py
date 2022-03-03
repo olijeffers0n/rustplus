@@ -7,7 +7,6 @@ from ...utils import RegisteredListener
 
 
 class EventHandler:
-
     def __init__(self) -> None:
         pass
 
@@ -24,7 +23,6 @@ class EventHandler:
             setattr(self, str(name), [data])
 
     def _schedule_event(self, loop, coro, arg) -> None:
-
         def callback(inner_future: Future):
             inner_future.result()
 
@@ -37,8 +35,7 @@ class EventHandler:
             for event in getattr(self, str(name)):
                 coro, loop, event_type = event
 
-                self._schedule_event(loop, coro, EntityEvent(app_message,
-                                                             event_type))
+                self._schedule_event(loop, coro, EntityEvent(app_message, event_type))
 
     def run_team_event(self, app_message) -> None:
 

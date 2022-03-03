@@ -12,10 +12,19 @@ from ..utils import RegisteredListener, deprecated
 
 
 class BaseRustSocket:
-
-    def __init__(self, ip: str = None, port: str = None, steamid: int = None, playertoken: int = None,
-                 command_options: CommandOptions = None, raise_ratelimit_exception: bool = True,
-                 ratelimit_limit: int = 25, ratelimit_refill: int = 3, heartbeat: HeartBeat = None, use_proxy: bool = False) -> None:
+    def __init__(
+        self,
+        ip: str = None,
+        port: str = None,
+        steamid: int = None,
+        playertoken: int = None,
+        command_options: CommandOptions = None,
+        raise_ratelimit_exception: bool = True,
+        ratelimit_limit: int = 25,
+        ratelimit_refill: int = 3,
+        heartbeat: HeartBeat = None,
+        use_proxy: bool = False,
+    ) -> None:
 
         if ip is None:
             raise ValueError("Ip cannot be None")
@@ -35,8 +44,14 @@ class BaseRustSocket:
         self.raise_ratelimit_exception = raise_ratelimit_exception
         self.listener_seq = 0
 
-        self.remote = RustRemote(ip=self.ip, port=self.port, command_options=command_options,
-                                 ratelimit_limit=ratelimit_limit, ratelimit_refill=ratelimit_refill, use_proxy=use_proxy)
+        self.remote = RustRemote(
+            ip=self.ip,
+            port=self.port,
+            command_options=command_options,
+            ratelimit_limit=ratelimit_limit,
+            ratelimit_refill=ratelimit_refill,
+            use_proxy=use_proxy,
+        )
 
         if heartbeat is None:
             raise ValueError("Heartbeat cannot be None")
@@ -57,7 +72,9 @@ class BaseRustSocket:
             if self.raise_ratelimit_exception:
                 raise RateLimitError("Out of tokens")
 
-            await asyncio.sleep(self.remote.ratelimiter.get_estimated_delay_time(amount))
+            await asyncio.sleep(
+                self.remote.ratelimiter.get_estimated_delay_time(amount)
+            )
 
     def _generate_protobuf(self) -> AppRequest:
         """
@@ -162,7 +179,9 @@ class BaseRustSocket:
             def entity_event_callback(future_inner: Future):
                 try:
                     entity_info: RustEntityInfo = future_inner.result()
-                    self.remote.event_handler.register_event(eid, (coro, loop, entity_info.type))
+                    self.remote.event_handler.register_event(
+                        eid, (coro, loop, entity_info.type)
+                    )
                 except Exception:
                     raise SmartDeviceRegistrationError("Not Found")
 
@@ -229,8 +248,13 @@ class BaseRustSocket:
         """
         raise NotImplementedError("Not Implemented")
 
-    async def get_map(self, add_icons: bool = False, add_events: bool = False, add_vending_machines: bool = False,
-                      override_images: dict = None) -> Image:
+    async def get_map(
+        self,
+        add_icons: bool = False,
+        add_events: bool = False,
+        add_vending_machines: bool = False,
+        override_images: dict = None,
+    ) -> Image:
         """
         Gets an image of the map from the server with the specified additions
         """
@@ -278,14 +302,18 @@ class BaseRustSocket:
         """
         raise NotImplementedError("Not Implemented")
 
-    async def get_contents(self, eid: int = None, combine_stacks: bool = False) -> RustContents:
+    async def get_contents(
+        self, eid: int = None, combine_stacks: bool = False
+    ) -> RustContents:
         """
         Gets the contents of a storage monitor-attached container
         """
         raise NotImplementedError("Not Implemented")
 
     @deprecated("Use RustSocket#get_contents")
-    async def get_tc_storage_contents(self, eid: int = None, combine_stacks: bool = False) -> RustContents:
+    async def get_tc_storage_contents(
+        self, eid: int = None, combine_stacks: bool = False
+    ) -> RustContents:
         """
         Gets the Information about TC Upkeep and Contents.
         Do not use this for any other storage monitor than a TC

@@ -12,10 +12,10 @@ from flask import Flask, render_template, request
 from push_receiver.push_receiver import listen, gcm_register, fcm_register
 
 # Dealing with hiding the messages :)
-cli = sys.modules['flask.cli']
+cli = sys.modules["flask.cli"]
 cli.show_server_banner = lambda *x: None
 
-flask_logger = logging.getLogger('werkzeug')
+flask_logger = logging.getLogger("werkzeug")
 flask_logger.setLevel(logging.ERROR)
 
 push_receiver_logger = logging.getLogger("push_receiver")
@@ -23,11 +23,12 @@ push_receiver_logger.setLevel(logging.ERROR)
 
 
 def get_config_file():
-    return str(os.path.dirname(os.path.realpath(__file__))) + "\\rustplus.py.config.json"
+    return (
+        str(os.path.dirname(os.path.realpath(__file__))) + "\\rustplus.py.config.json"
+    )
 
 
 class RustCli:
-
     def __init__(self) -> None:
         self.token = ""
         self.uuid = uuid4()
@@ -52,29 +53,37 @@ class RustCli:
 
     def get_expo_push_token(self, credentials):
 
-        response = requests.post("https://exp.host/--/api/v2/push/getExpoPushToken", data={
-            "deviceId": self.uuid,
-            "experienceId": '@facepunch/RustCompanion',
-            "appId": 'com.facepunch.rust.companion',
-            "deviceToken": credentials["fcm"]["token"],
-            "type": 'fcm',
-            "development": False
-        })
+        response = requests.post(
+            "https://exp.host/--/api/v2/push/getExpoPushToken",
+            data={
+                "deviceId": self.uuid,
+                "experienceId": "@facepunch/RustCompanion",
+                "appId": "com.facepunch.rust.companion",
+                "deviceToken": credentials["fcm"]["token"],
+                "type": "fcm",
+                "development": False,
+            },
+        )
 
         return response.json()["data"]["expoPushToken"]
 
     def register_with_rust_plus(self, auth_token, expo_push_token):
 
-        encoded_body = json.dumps({
-            "AuthToken": auth_token,
-            "DeviceId": 'rustplus.py',
-            "PushKind": 0,
-            "PushToken": expo_push_token,
-        }).encode('utf-8')
+        encoded_body = json.dumps(
+            {
+                "AuthToken": auth_token,
+                "DeviceId": "rustplus.py",
+                "PushKind": 0,
+                "PushToken": expo_push_token,
+            }
+        ).encode("utf-8")
 
-        return urllib3.PoolManager().request('POST', 'https://companion-rust.facepunch.com:443/api/push/register',
-                                             headers={'Content-Type': 'application/json'},
-                                             body=encoded_body)
+        return urllib3.PoolManager().request(
+            "POST",
+            "https://companion-rust.facepunch.com:443/api/push/register",
+            headers={"Content-Type": "application/json"},
+            body=encoded_body,
+        )
 
     def client_view(self):
 
@@ -83,8 +92,10 @@ class RustCli:
 
         os.system(
             '"{}" -incognito http://localhost:3000 --disable-web-security --disable-popup-blocking '
-            '--disable-site-isolation-trials --user-data-dir={}'.format(
-                self.chrome_path, self.get_user_data_directory()))
+            "--disable-site-isolation-trials --user-data-dir={}".format(
+                self.chrome_path, self.get_user_data_directory()
+            )
+        )
 
     def link_steam_with_rust_plus(self):
 
@@ -93,15 +104,15 @@ class RustCli:
 
         app = Flask(__name__)
 
-        @app.route('/')
+        @app.route("/")
         def main():
             return render_template("pair.html")
 
-        @app.route('/callback')
+        @app.route("/callback")
         def callback():
             self.token = request.args["token"]
             try:
-                request.environ.get('werkzeug.server.shutdown')()
+                request.environ.get("werkzeug.server.shutdown")()
             except:
                 pass
 
@@ -148,7 +159,9 @@ class RustCli:
         print("Expo Push Token: " + expo_push_token)
 
         # tell user to link steam with rust+ through Google Chrome
-        print("Google Chrome is launching so you can link your Steam account with Rust+")
+        print(
+            "Google Chrome is launching so you can link your Steam account with Rust+"
+        )
         rustplus_auth_token = self.link_steam_with_rust_plus()
 
         # show rust+ auth token to user
@@ -165,18 +178,25 @@ class RustCli:
 
         # save to config
         config_file = get_config_file()
-        self.update_config(config_file, {
-            "fcm_credentials": fcm_credentials,
-            "expo_push_token": expo_push_token,
-            "rustplus_auth_token": rustplus_auth_token,
-            "chrome_path": self.chrome_path,
-        })
+        self.update_config(
+            config_file,
+            {
+                "fcm_credentials": fcm_credentials,
+                "expo_push_token": expo_push_token,
+                "rustplus_auth_token": rustplus_auth_token,
+                "chrome_path": self.chrome_path,
+            },
+        )
 
         print("FCM, Expo and Rust+ auth tokens have been saved to " + config_file)
 
     def on_notification(self, obj, notification, data_message):
 
-        print(json.dumps(json.loads(notification["data"]["body"]), indent=4, sort_keys=True))
+        print(
+            json.dumps(
+                json.loads(notification["data"]["body"]), indent=4, sort_keys=True
+            )
+        )
 
     def fcm_listen(self):
 
@@ -189,7 +209,9 @@ class RustCli:
 
         print("Listening...")
 
-        listen(credentials=credentials["fcm_credentials"], callback=self.on_notification)
+        listen(
+            credentials=credentials["fcm_credentials"], callback=self.on_notification
+        )
 
 
 if __name__ == "__main__":

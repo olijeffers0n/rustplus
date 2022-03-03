@@ -7,14 +7,25 @@ from .rustplus_pb2 import *
 from .rustws import RustWebsocket
 from .token_bucket import RateLimiter
 from ...commands import CommandHandler
-from ...exceptions import ClientNotConnectedError, ResponseNotRecievedError, RequestError
+from ...exceptions import (
+    ClientNotConnectedError,
+    ResponseNotRecievedError,
+    RequestError,
+)
 from ...utils import RegisteredListener
 
 
 class RustRemote:
-
-    def __init__(self, ip, port, command_options, ratelimit_limit, ratelimit_refill, websocket_length=600,
-                 use_proxy: bool = False) -> None:
+    def __init__(
+        self,
+        ip,
+        port,
+        command_options,
+        ratelimit_limit,
+        ratelimit_refill,
+        websocket_length=600,
+        use_proxy: bool = False,
+    ) -> None:
 
         self.ip = ip
         self.port = port
@@ -22,7 +33,9 @@ class RustRemote:
         self.ratelimit_limit = ratelimit_limit
         self.ratelimit_refill = ratelimit_refill
         self.use_proxy = use_proxy
-        self.ratelimiter = RateLimiter(ratelimit_limit, ratelimit_limit, 1, ratelimit_refill)
+        self.ratelimiter = RateLimiter(
+            ratelimit_limit, ratelimit_limit, 1, ratelimit_refill
+        )
         self.ws = None
         self.is_pending = False
         self.websocket_length = websocket_length
@@ -42,7 +55,9 @@ class RustRemote:
 
     def connect(self) -> None:
 
-        self.ws = RustWebsocket(ip=self.ip, port=self.port, remote=self, use_proxy=self.use_proxy)
+        self.ws = RustWebsocket(
+            ip=self.ip, port=self.port, remote=self, use_proxy=self.use_proxy
+        )
         self.ws.connect()
 
     def close(self) -> None:
@@ -94,7 +109,8 @@ class RustRemote:
 
         if response.response.error.error == "rate_limit":
             logging.getLogger("rustplus.py").warning(
-                "[Rustplus.py] RateLimit Exception Occurred. Retrying after bucket is full")
+                "[Rustplus.py] RateLimit Exception Occurred. Retrying after bucket is full"
+            )
 
             # Fully Refill the bucket
 

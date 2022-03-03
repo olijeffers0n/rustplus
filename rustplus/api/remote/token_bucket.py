@@ -5,8 +5,9 @@ from ...exceptions.exceptions import RateLimitError
 
 
 class TokenBucket:
-
-    def __init__(self, current: int, maximum: int, refresh_rate, refresh_amount) -> None:
+    def __init__(
+        self, current: int, maximum: int, refresh_rate, refresh_amount
+    ) -> None:
         self.current = current
         self.max = maximum
         self.refresh_rate = refresh_rate
@@ -32,10 +33,15 @@ class TokenBucket:
 
 
 class RateLimiter:
-
-    def __init__(self, current: int, maximum: int, refresh_rate, refresh_amount) -> None:
-        self.bucket = TokenBucket(current=current, maximum=maximum, refresh_rate=refresh_rate,
-                                  refresh_amount=refresh_amount)
+    def __init__(
+        self, current: int, maximum: int, refresh_rate, refresh_amount
+    ) -> None:
+        self.bucket = TokenBucket(
+            current=current,
+            maximum=maximum,
+            refresh_rate=refresh_rate,
+            refresh_amount=refresh_amount,
+        )
         self.last_consumed = 0
         self.refresh_per_second = self.bucket.refresh_amount / self.bucket.refresh_rate
 
@@ -59,4 +65,10 @@ class RateLimiter:
         """
         Returns how long until the amount of tokens needed will be available
         """
-        return math.ceil((0.1 + ((target_cost - self.bucket.current) / self.refresh_per_second)) * 10) / 10
+        return (
+            math.ceil(
+                (0.1 + ((target_cost - self.bucket.current) / self.refresh_per_second))
+                * 10
+            )
+            / 10
+        )

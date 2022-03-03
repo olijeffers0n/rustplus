@@ -9,7 +9,6 @@ from ..utils import RegisteredListener
 
 
 class CommandHandler:
-
     def __init__(self, command_options: CommandOptions) -> None:
         self.command_options = command_options
 
@@ -21,7 +20,6 @@ class CommandHandler:
         setattr(self, command, data)
 
     def _schedule_event(self, loop, coro, arg) -> None:
-
         def callback(inner_future: Future):
             inner_future.result()
 
@@ -31,7 +29,7 @@ class CommandHandler:
     def run_command(self, message: RustChatMessage, prefix) -> None:
 
         if prefix == self.command_options.prefix:
-            command = message.message.split(" ")[0][len(prefix):]
+            command = message.message.split(" ")[0][len(prefix) :]
         else:
             command = prefix
 
@@ -40,8 +38,17 @@ class CommandHandler:
 
             time = CommandTime(datetime.utcfromtimestamp(message.time), message.time)
 
-            self._schedule_event(loop, coro,
-                                 Command(message.name, message.steamId, time, command, message.message.split(" ")[1:]))
+            self._schedule_event(
+                loop,
+                coro,
+                Command(
+                    message.name,
+                    message.steamId,
+                    time,
+                    command,
+                    message.message.split(" ")[1:],
+                ),
+            )
 
     def has_command(self, listener: RegisteredListener) -> bool:
         return hasattr(self, listener.listener_id)
