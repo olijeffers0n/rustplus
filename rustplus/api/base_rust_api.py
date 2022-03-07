@@ -17,7 +17,7 @@ class BaseRustSocket:
         ip: str = None,
         port: str = None,
         steamid: int = None,
-        playertoken: int = None,
+        playerToken: int = None,
         command_options: CommandOptions = None,
         raise_ratelimit_exception: bool = True,
         ratelimit_limit: int = 25,
@@ -32,13 +32,13 @@ class BaseRustSocket:
             raise ValueError("Port cannot be None")
         if steamid is None:
             raise ValueError("SteamID cannot be None")
-        if playertoken is None:
+        if playerToken is None:
             raise ValueError("PlayerToken cannot be None")
 
         self.ip = ip
         self.port = port
         self.steamid = steamid
-        self.player_token = playertoken
+        self.player_token = playerToken
         self.seq = 1
         self.command_options = command_options
         self.raise_ratelimit_exception = raise_ratelimit_exception
@@ -59,9 +59,11 @@ class BaseRustSocket:
 
     async def _handle_ratelimit(self, amount=1) -> None:
         """
-        Handles the ratelimit for a specific request
+        Handles the ratelimit for a specific request. Will sleep if tokens are not currently available and is set to wait
+        :param amount: The amount to consume
+        :raises RateLimitError - If the tokens are not available and is not set to wait
+        :return: None
         """
-
         while True:
 
             if self.remote.ratelimiter.can_consume(amount):
@@ -78,9 +80,10 @@ class BaseRustSocket:
 
     def _generate_protobuf(self) -> AppRequest:
         """
-        Generates the empty AppRequest Message
-        """
+        Generates the default protobuf for a request
 
+        :return: AppRequest - The default request object
+        """
         app_request = AppRequest()
         app_request.seq = self.seq
         app_request.playerId = self.steamid
@@ -92,7 +95,9 @@ class BaseRustSocket:
 
     async def connect(self) -> None:
         """
-        Opens the connection to the Rust Server
+        Attempts to open a connection to the rust game server specified in the constructor
+
+        :return: None
         """
         try:
             if self.remote.ws is None:
@@ -105,18 +110,24 @@ class BaseRustSocket:
     async def close_connection(self) -> None:
         """
         Disconnects from the Rust Server
+
+        :return: None
         """
         self.remote.close()
 
     async def disconnect(self) -> None:
         """
         Disconnects from the Rust Server
+
+        :return: None
         """
         await self.close_connection()
 
     async def send_wakeup_request(self) -> None:
         """
         Sends a request to the server to wake up broadcast responses
+
+        :return: None
         """
         await self._handle_ratelimit()
 
@@ -129,9 +140,11 @@ class BaseRustSocket:
 
     def command(self, coro) -> RegisteredListener:
         """
-        A Decorator to register a command listener
-        """
+        A coroutine decorator used to register a command executor
 
+        :param coro: The coroutine to call when the command is called
+        :return: RegisteredListener - The listener object
+        """
         if self.command_options is None:
             raise CommandsNotEnabledError("Not enabled")
 
@@ -145,6 +158,9 @@ class BaseRustSocket:
     def team_event(self, coro) -> RegisteredListener:
         """
         A Decorator to register an event listener for team changes
+
+        :param coro: The coroutine to call when the command is called
+        :return: RegisteredListener - The listener object
         """
 
         if isinstance(coro, RegisteredListener):
@@ -157,6 +173,9 @@ class BaseRustSocket:
     def chat_event(self, coro) -> RegisteredListener:
         """
         A Decorator to register an event listener for chat messages
+
+        :param coro: The coroutine to call when the command is called
+        :return: RegisteredListener - The listener object
         """
 
         if isinstance(coro, RegisteredListener):
@@ -169,6 +188,10 @@ class BaseRustSocket:
     def entity_event(self, eid):
         """
         Decorator to register a smart device listener
+
+        :param eid: The entity id of the entity
+        :return: RegisteredListener - The listener object
+        :raises SmartDeviceRegistrationError
         """
 
         def wrap_func(coro) -> RegisteredListener:
@@ -196,6 +219,7 @@ class BaseRustSocket:
     def remove_listener(self, listener) -> bool:
         """
         This will remove a listener, command or event. Takes a RegisteredListener instance
+
         :returns Success of removal. True = Removed. False = Not Removed
         """
 
@@ -206,7 +230,10 @@ class BaseRustSocket:
     @staticmethod
     async def hang() -> None:
         """
-        This Will permanently put your script into a state of 'hanging' Cannot be Undone. Only do this in scripts using commands
+        This Will permanently put your script into a state of 'hanging' Cannot be Undone. Only do this in scripts
+        using commands
+
+        :returns Nothing, This will never return
         """
 
         while True:
@@ -214,37 +241,48 @@ class BaseRustSocket:
 
     async def get_time(self) -> RustTime:
         """
-        Gets the current in-game time from the server. Returns a RustTime object
+        Gets the current in-game time from the server.
+
+        :returns RustTime: The Time
         """
         raise NotImplementedError("Not Implemented")
 
     async def send_team_message(self, message: str) -> None:
         """
         Sends a message to the in-game team chat
+
+        :param message: The string message to send
         """
         raise NotImplementedError("Not Implemented")
 
     async def get_info(self) -> RustInfo:
         """
         Gets information on the Rust Server
+        :return: RustInfo - The info of the server
         """
         raise NotImplementedError("Not Implemented")
 
     async def get_team_chat(self) -> List[RustChatMessage]:
         """
         Gets the team chat from the server
+
+        :return List[RustChatMessage]: The chat messages in the team chat
         """
         raise NotImplementedError("Not Implemented")
 
-    async def get_team_info(self):
+    async def get_team_info(self) -> RustTeamInfo:
         """
         Gets Information on the members of your team
+
+        :return RustTeamInfo: The info of your team
         """
         raise NotImplementedError("Not Implemented")
 
     async def get_markers(self) -> List[RustMarker]:
         """
         Gets all the map markers from the server
+
+        :return List[RustMarker]: All the markers on the map
         """
         raise NotImplementedError("Not Implemented")
 
@@ -257,36 +295,56 @@ class BaseRustSocket:
     ) -> Image:
         """
         Gets an image of the map from the server with the specified additions
+
+        :param add_icons: To add the monument icons
+        :param add_events: To add the Event icons
+        :param add_vending_machines: To add the vending icons
+        :param override_images: To override the images pre-supplied with RustPlus.py
+        :return Image: PIL Image
         """
         raise NotImplementedError("Not Implemented")
 
     async def get_raw_map_data(self) -> RustMap:
         """
         Gets the raw map data from the server
+
+        :return RustMap: The raw map of the server
         """
         raise NotImplementedError("Not Implemented")
 
     async def get_entity_info(self, eid: int = None) -> RustEntityInfo:
         """
         Gets entity info from the server
+
+        :param eid: The Entities ID
+        :return RustEntityInfo: The entity Info
         """
         raise NotImplementedError("Not Implemented")
 
     async def turn_on_smart_switch(self, eid: int = None) -> None:
         """
         Turns on a given smart switch by entity ID
+
+        :param eid: The Entities ID
+        :return None:
         """
         raise NotImplementedError("Not Implemented")
 
     async def turn_off_smart_switch(self, eid: int = None) -> None:
         """
         Turns off a given smart switch by entity ID
+
+        :param eid: The Entities ID
+        :return None:
         """
         raise NotImplementedError("Not Implemented")
 
     async def promote_to_team_leader(self, steamid: int = None) -> None:
         """
         Promotes a given user to the team leader by their 64-bit Steam ID
+
+        :param steamid: The SteamID of the player to promote
+        :return None:
         """
         raise NotImplementedError("Not Implemented")
 
@@ -299,6 +357,8 @@ class BaseRustSocket:
             - Cargo Ship
             - Locked Crate
             - Attack Helicopter
+
+        :return List[RustMarker]: All current events
         """
         raise NotImplementedError("Not Implemented")
 
@@ -307,6 +367,10 @@ class BaseRustSocket:
     ) -> RustContents:
         """
         Gets the contents of a storage monitor-attached container
+
+        :param eid: The EntityID Of the storage Monitor
+        :param combine_stacks: Whether to combine alike stacks together
+        :return RustContents: The contents on the monitor
         """
         raise NotImplementedError("Not Implemented")
 

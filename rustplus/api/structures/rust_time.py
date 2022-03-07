@@ -7,4 +7,4 @@ class RustTime:
         self.raw_time: float = raw_time
 
     def __str__(self) -> str:
-        return f"RustTime[day_length={self.day_length}, sunrise={self.sunrise}, sunset={self.sunset}, time={self.time}, raw_time={self.raw_time}]"
+        return f"RustTime[day_length={self.day_length}, sunrise={self.sunrise}, sunset={self.sunset}, time={self.time}, raw_time={self.raw_time}] "

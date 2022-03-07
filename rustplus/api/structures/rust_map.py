@@ -1,31 +1,78 @@
-class RustMap:
-    def __init__(self, data) -> None:
-        self.width: int = data.width
-        self.height: int = data.height
-        self.jpgImage: bytes = data.jpgImage
-        self.margin: int = data.oceanMargin
-        self.monuments = [
-            RustMonument(monument.token, monument.x, monument.y)
-            for monument in data.monuments
-        ]
-        self.background: str = None if data.background == "" else data.background
-
-    def __str__(self) -> str:
-        return "RustMap[width={}, height={}, jpgImage={}, margin={}, monuments={}, background={}]".format(
-            self.width,
-            self.height,
-            len(self.jpgImage),
-            self.margin,
-            self.monuments,
-            self.background,
-        )
+from typing import List
 
 
 class RustMonument:
     def __init__(self, token, x, y) -> None:
-        self.token: str = token
-        self.x: float = x
-        self.y: float = y
+        self._token: str = token
+        self._x: float = x
+        self._y: float = y
+
+    @property
+    def token(self) -> str:
+        return self._token
+
+    @property
+    def x(self) -> float:
+        return self._x
+
+    @property
+    def y(self) -> float:
+        return self._y
+
+    def __setattr__(self, key, value):
+        if hasattr(self, key):
+            raise Exception("Cannot Re-Set Values")
 
     def __str__(self) -> str:
-        return "RustMonument[token={}, x={}, y={}]"
+        return "RustMonument[token={}, x={}, y={}]".format(self._token, self._x, self._y)
+
+
+class RustMap:
+    def __init__(self, data) -> None:
+        self._width: int = data.width
+        self._height: int = data.height
+        self._jpgImage: bytes = data.jpgImage
+        self._margin: int = data.oceanMargin
+        self._monuments = [
+            RustMonument(monument.token, monument.x, monument.y)
+            for monument in data.monuments
+        ]
+        self._background: str = None if data.background == "" else data.background
+
+    @property
+    def width(self) -> int:
+        return self._width
+
+    @property
+    def height(self) -> int:
+        return self._height
+
+    @property
+    def jpg_image(self) -> bytes:
+        return self._jpgImage
+
+    @property
+    def margin(self) -> int:
+        return self._margin
+
+    @property
+    def monuments(self) -> List[RustMonument]:
+        return self._monuments
+
+    @property
+    def background(self) -> str:
+        return self._background
+
+    def __setattr__(self, key, value):
+        if hasattr(self, key):
+            raise Exception("Cannot Re-Set Values")
+
+    def __str__(self) -> str:
+        return "RustMap[width={}, height={}, jpgImage={}, margin={}, monuments={}, background={}]".format(
+            self._width,
+            self._height,
+            len(self._jpgImage),
+            self._margin,
+            self._monuments,
+            self._background,
+        )
