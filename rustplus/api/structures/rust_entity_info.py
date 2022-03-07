@@ -3,13 +3,13 @@ from typing import List
 
 class RustEntityInfoItem:
     def __init__(self, data) -> None:
-        self._itemId: int = data.itemId
+        self._item_id: int = data.itemId
         self._quantity: int = data.quantity
-        self._itemIsBlueprint: bool = data.itemIsBlueprint
+        self._item_is_blueprint: bool = data.itemIsBlueprint
 
     @property
     def item_id(self) -> int:
-        return self._itemId
+        return self._item_id
 
     @property
     def quantity(self) -> int:
@@ -17,15 +17,11 @@ class RustEntityInfoItem:
 
     @property
     def item_is_blueprint(self) -> bool:
-        return self._itemIsBlueprint
-
-    def __setattr__(self, key, value):
-        if hasattr(self, key):
-            raise Exception("Cannot Re-Set Values")
+        return self._item_is_blueprint
 
     def __str__(self) -> str:
         return "RustEntityInfoItem[itemId={}, quantity={}, itemIsBlueprint={}]".format(
-            self._itemId, self._quantity, self._itemIsBlueprint
+            self._item_id, self._quantity, self._item_is_blueprint
         )
 
 
@@ -35,8 +31,8 @@ class RustEntityInfo:
         self._value: bool = data.payload.value
         self._items = [RustEntityInfoItem(item) for item in data.payload.items]
         self._capacity: int = data.payload.capacity
-        self._hasProtection: bool = data.payload.hasProtection
-        self._protectionExpiry: int = data.payload.protectionExpiry
+        self._has_protection: bool = data.payload.hasProtection
+        self._protection_expiry: int = data.payload.protectionExpiry
 
     @property
     def type(self) -> int:
@@ -56,15 +52,11 @@ class RustEntityInfo:
 
     @property
     def has_protection(self) -> bool:
-        return self._hasProtection
+        return self._has_protection
 
     @property
     def protection_expiry(self) -> int:
-        return self._protectionExpiry
-
-    def __setattr__(self, key, value):
-        if hasattr(self, key):
-            raise Exception("Cannot Re-Set Values")
+        return self._protection_expiry
 
     def __str__(self) -> str:
         return "RustEntityInfo[type={}, value={}, items={}, capacity={}, hasProtection={}, protectionExpiry={}]".format(
@@ -72,6 +64,6 @@ class RustEntityInfo:
             self._value,
             self._items,
             self._capacity,
-            self._hasProtection,
-            self._protectionExpiry,
+            self._has_protection,
+            self._protection_expiry,
         )

@@ -19,19 +19,17 @@ class RustMonument:
     def y(self) -> float:
         return self._y
 
-    def __setattr__(self, key, value):
-        if hasattr(self, key):
-            raise Exception("Cannot Re-Set Values")
-
     def __str__(self) -> str:
-        return "RustMonument[token={}, x={}, y={}]".format(self._token, self._x, self._y)
+        return "RustMonument[token={}, x={}, y={}]".format(
+            self._token, self._x, self._y
+        )
 
 
 class RustMap:
     def __init__(self, data) -> None:
         self._width: int = data.width
         self._height: int = data.height
-        self._jpgImage: bytes = data.jpgImage
+        self._jpg_image: bytes = data.jpgImage
         self._margin: int = data.oceanMargin
         self._monuments = [
             RustMonument(monument.token, monument.x, monument.y)
@@ -49,7 +47,7 @@ class RustMap:
 
     @property
     def jpg_image(self) -> bytes:
-        return self._jpgImage
+        return self._jpg_image
 
     @property
     def margin(self) -> int:
@@ -63,15 +61,11 @@ class RustMap:
     def background(self) -> str:
         return self._background
 
-    def __setattr__(self, key, value):
-        if hasattr(self, key):
-            raise Exception("Cannot Re-Set Values")
-
     def __str__(self) -> str:
         return "RustMap[width={}, height={}, jpgImage={}, margin={}, monuments={}, background={}]".format(
             self._width,
             self._height,
-            len(self._jpgImage),
+            len(self._jpg_image),
             self._margin,
             self._monuments,
             self._background,

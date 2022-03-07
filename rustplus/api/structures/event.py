@@ -6,13 +6,13 @@ from .rust_team_info import RustTeamInfo
 
 class Item:
     def __init__(self, app_message) -> None:
-        self._itemId: int = app_message.itemId
+        self._item_id: int = app_message.itemId
         self._quantity: int = app_message.quantity
-        self._itemIsBlueprint: bool = app_message.itemIsBlueprint
+        self._item_is_blueprint: bool = app_message.itemIsBlueprint
 
     @property
     def item_id(self) -> int:
-        return self._itemId
+        return self._item_id
 
     @property
     def quantity(self) -> int:
@@ -20,29 +20,21 @@ class Item:
 
     @property
     def item_is_blueprint(self) -> bool:
-        return self._itemIsBlueprint
-
-    def __setattr__(self, key, value):
-        if hasattr(self, key):
-            raise Exception("Cannot Re-Set Values")
+        return self._item_is_blueprint
 
 
 class TeamEvent:
     def __init__(self, app_message) -> None:
-        self._playerId: int = app_message.broadcast.teamChanged.playerId
-        self._teamInfo = RustTeamInfo(app_message.broadcast.teamChanged.teamInfo)
+        self._player_id: int = app_message.broadcast.teamChanged.playerId
+        self._team_info = RustTeamInfo(app_message.broadcast.teamChanged.teamInfo)
 
     @property
     def player_id(self) -> int:
-        return self._playerId
+        return self._player_id
 
     @property
     def team_info(self) -> RustTeamInfo:
-        return self._teamInfo
-
-    def __setattr__(self, key, value):
-        if hasattr(self, key):
-            raise Exception("Cannot Re-Set Values")
+        return self._team_info
 
 
 class ChatEvent:
@@ -53,10 +45,6 @@ class ChatEvent:
     def message(self) -> RustChatMessage:
         return self._message
 
-    def __setattr__(self, key, value):
-        if hasattr(self, key):
-            raise Exception("Cannot Re-Set Values")
-
 
 class EntityEvent:
     def __init__(self, app_message, entity_type) -> None:
@@ -64,7 +52,7 @@ class EntityEvent:
         self._entity_id: int = app_message.broadcast.entityChanged.entityId
         self._value: bool = app_message.broadcast.entityChanged.payload.value
         self._capacity: int = app_message.broadcast.entityChanged.payload.capacity
-        self._hasProtection: bool = (
+        self._has_protection: bool = (
             app_message.broadcast.entityChanged.payload.hasProtection
         )
         self._protectionExpiry: int = (
@@ -93,7 +81,7 @@ class EntityEvent:
 
     @property
     def has_protection(self) -> bool:
-        return self._hasProtection
+        return self._has_protection
 
     @property
     def protection_expiry(self) -> int:
@@ -102,7 +90,3 @@ class EntityEvent:
     @property
     def items(self) -> List[Item]:
         return self._items
-
-    def __setattr__(self, key, value):
-        if hasattr(self, key):
-            raise Exception("Cannot Re-Set Values")

@@ -41,10 +41,6 @@ class RustInfo:
     def seed(self) -> int:
         return self._seed
 
-    def __setattr__(self, key, value):
-        if hasattr(self, key):
-            raise Exception("Cannot Re-Set Values")
-
     def __str__(self) -> str:
         return "RustInfo[url={}, name={}, map={}, size={}, players={}, max_players={}, queued_players={}, seed={}]".format(
             self._url,
