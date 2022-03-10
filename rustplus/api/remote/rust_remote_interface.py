@@ -53,12 +53,12 @@ class RustRemote:
 
         self.event_handler = EventHandler()
 
-    def connect(self) -> None:
+    def connect(self, retries=float("inf")) -> None:
 
         self.ws = RustWebsocket(
             ip=self.ip, port=self.port, remote=self, use_proxy=self.use_proxy
         )
-        self.ws.connect()
+        self.ws.connect(retries=retries)
 
     def close(self) -> None:
 

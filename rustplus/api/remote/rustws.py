@@ -24,11 +24,16 @@ class RustWebsocket(websocket.WebSocket):
 
         super().__init__(enable_multithread=True)
 
-    def connect(self, ignore=False) -> None:
+    def connect(self, retries, ignore=False) -> None:
 
         if ((not self.open) or ignore) and not self.remote.is_pending:
 
+            attempts = 0
+
             while True:
+
+                if attempts >= retries:
+                    raise ConnectionAbortedError("Reached Retry Limit")
 
                 self.remote.is_pending = True
 
@@ -46,6 +51,7 @@ class RustWebsocket(websocket.WebSocket):
                         f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} "
                         "[RustPlus.py] Cannot Connect to server. Retrying in 20 seconds"
                     )
+                    attempts += 1
                     time.sleep(20)
 
             self.remote.is_pending = False

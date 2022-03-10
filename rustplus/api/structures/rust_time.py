@@ -28,9 +28,5 @@ class RustTime:
 
     def __str__(self) -> str:
         return "RustTime[day_length={}, sunrise={}, sunset={}, time={}, raw_time={}]".format(
-            self._day_length,
-            self._sunrise,
-            self._sunset,
-            self._time,
-            self._raw_time
+            self._day_length, self._sunrise, self._sunset, self._time, self._raw_time
         )
