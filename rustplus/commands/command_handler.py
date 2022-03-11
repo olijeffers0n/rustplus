@@ -43,7 +43,7 @@ class CommandHandler:
                 coro,
                 Command(
                     message.name,
-                    message.steamId,
+                    message.steam_id,
                     time,
                     command,
                     message.message.split(" ")[1:],
