@@ -35,7 +35,7 @@ class RustInfo:
 
     @property
     def queued_players(self) -> int:
-        return self.queued_players
+        return self._queued_players
 
     @property
     def seed(self) -> int:
