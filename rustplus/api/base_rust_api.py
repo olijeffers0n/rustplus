@@ -93,7 +93,7 @@ class BaseRustSocket:
 
         return app_request
 
-    async def connect(self) -> None:
+    async def connect(self, retries: int = float("inf")) -> None:
         """
         Attempts to open a connection to the rust game server specified in the constructor
 
@@ -101,7 +101,7 @@ class BaseRustSocket:
         """
         try:
             if self.remote.ws is None:
-                self.remote.connect()
+                self.remote.connect(retries=retries)
                 await self.send_wakeup_request()
                 await self.heartbeat.start_beat()
         except ConnectionRefusedError:
