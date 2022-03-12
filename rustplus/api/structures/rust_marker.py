@@ -88,7 +88,7 @@ class RustMarker:
         self._type: int = data.type
         self._x: float = data.x
         self._y: float = data.y
-        self._steam_id: int = data._steam_id
+        self._steam_id: int = data.steamId
         self._rotation: float = data.rotation
         self._radius: float = data.radius
         self._colour1 = RustColour(data.color1)
