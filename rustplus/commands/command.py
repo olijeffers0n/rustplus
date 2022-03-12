@@ -17,7 +17,7 @@ class Command:
         args: List[str],
     ) -> None:
         self.sender_name = sender_name
-        self.sender_steamid = sender_steamid
+        self.sender_steam_id = sender_steamid
         self.time = time
         self.command = command
         self.args = args
