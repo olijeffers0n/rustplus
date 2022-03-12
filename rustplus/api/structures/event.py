@@ -55,7 +55,7 @@ class EntityEvent:
         self._has_protection: bool = (
             app_message.broadcast.entityChanged.payload.hasProtection
         )
-        self._protectionExpiry: int = (
+        self._protection_expiry: int = (
             app_message.broadcast.entityChanged.payload.protectionExpiry
         )
 
@@ -85,7 +85,7 @@ class EntityEvent:
 
     @property
     def protection_expiry(self) -> int:
-        return self._protectionExpiry
+        return self._protection_expiry
 
     @property
     def items(self) -> List[Item]:

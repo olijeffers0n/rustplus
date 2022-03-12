@@ -1,6 +1,6 @@
 class RustChatMessage:
     def __init__(self, data):
-        self._steam_id: int = data.steamId
+        self._steam_id: int = data._steam_id
         self._name: str = data.name
         self._message: str = data.message
         self._colour: str = data.color
