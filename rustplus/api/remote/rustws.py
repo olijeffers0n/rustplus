@@ -24,7 +24,7 @@ class RustWebsocket(websocket.WebSocket):
 
         super().__init__(enable_multithread=True)
 
-    def connect(self, retries, ignore=False) -> None:
+    def connect(self, retries = float("inf"), ignore=False) -> None:
 
         if ((not self.open) or ignore) and not self.remote.is_pending:
 
