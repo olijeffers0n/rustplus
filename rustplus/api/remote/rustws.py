@@ -87,13 +87,6 @@ class RustWebsocket(websocket.WebSocket):
                 app_message = AppMessage()
                 app_message.ParseFromString(data)
 
-                try:
-                    del self.remote.pending_requests[app_message.response.seq]
-                except KeyError:
-                    pass
-
-                self.handle_message(app_message)
-
             except Exception:
                 if self.open:
                     self.logger.warning(
@@ -102,6 +95,13 @@ class RustWebsocket(websocket.WebSocket):
                     self.connect(ignore=True)
                     return
                 return
+
+            try:
+                del self.remote.pending_requests[app_message.response.seq]
+            except KeyError:
+                pass
+
+            self.handle_message(app_message)
 
     def handle_message(self, app_message: AppMessage) -> None:
 
