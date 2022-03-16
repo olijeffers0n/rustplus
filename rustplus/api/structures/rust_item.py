@@ -24,6 +24,6 @@ class RustItem:
         return self._is_blueprint
 
     def __str__(self) -> str:
-        return "RustItem[name={}, itemId={}, quantity={}, isBlueprint={}]".format(
+        return "RustItem[name={}, item_id={}, quantity={}, is_blueprint={}]".format(
             self._name, self._item_id, self._quantity, self._is_blueprint
         )

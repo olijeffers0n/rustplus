@@ -70,8 +70,8 @@ class RustSellOrder:
 
     def __str__(self) -> str:
         return (
-            "RustSellOrder[itemId={}, quantity={}, currencyId={}, costPerItem={}, itemIsBlueprint={}, "
-            "currencyIsBlueprint={}]".format(
+            "RustSellOrder[item_id={}, quantity={}, currency_id={}, cost_per_item={}, item_is_blueprint={}, "
+            "currency_is_blueprint={}]".format(
                 self._item_id,
                 self._quantity,
                 self._currency_id,
@@ -147,8 +147,8 @@ class RustMarker:
 
     def __str__(self) -> str:
         return (
-            "RustMarker[id={}, type={}, x={}, y={}, steamId={}, rotation={}, radius={}, colour1={}, colour2={}, "
-            "alpha={}, name={}, sellOrders={}]".format(
+            "RustMarker[id={}, type={}, x={}, y={}, steam_id={}, rotation={}, radius={}, colour1={}, colour2={}, "
+            "alpha={}, name={}, sell_orders={}]".format(
                 self._id,
                 self._type,
                 self._x,

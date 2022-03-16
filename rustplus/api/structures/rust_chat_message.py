@@ -27,6 +27,6 @@ class RustChatMessage:
         return self._time
 
     def __repr__(self):
-        return "RustChatMessage[steamId={}, senderName={}, message={}, colour={}, time={}]".format(
-            self.steam_id, self._name, self._message, self._colour, self._time
+        return "RustChatMessage[steam_id={}, sender_name={}, message={}, colour={}, time={}]".format(
+            self._steam_id, self._name, self._message, self._colour, self._time
         )

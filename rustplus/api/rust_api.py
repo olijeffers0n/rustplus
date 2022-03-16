@@ -36,7 +36,7 @@ class RustSocket(BaseRustSocket):
         self,
         ip: str = None,
         port: str = None,
-        steamid: int = None,
+        steam_id: int = None,
         playerToken: int = None,
         command_options: CommandOptions = None,
         raise_ratelimit_exception: bool = True,
@@ -47,7 +47,7 @@ class RustSocket(BaseRustSocket):
         super().__init__(
             ip=ip,
             port=port,
-            steamid=steamid,
+            steam_id=steam_id,
             playerToken=playerToken,
             command_options=command_options,
             raise_ratelimit_exception=raise_ratelimit_exception,
@@ -300,15 +300,15 @@ class RustSocket(BaseRustSocket):
 
         await self._update_smart_device(eid, False)
 
-    async def promote_to_team_leader(self, steamid: int = None) -> None:
+    async def promote_to_team_leader(self, steam_id: int = None) -> None:
 
-        if steamid is None:
+        if steam_id is None:
             raise ValueError("SteamID cannot be None")
 
         await self._handle_ratelimit()
 
         leader_packet = AppPromoteToLeader()
-        leader_packet.steamId = steamid
+        leader_packet.steamId = steam_id
 
         app_request = self._generate_protobuf()
         app_request.promoteToLeader.CopyFrom(leader_packet)
@@ -338,7 +338,7 @@ class RustSocket(BaseRustSocket):
 
         returned_data = await self.get_entity_info(eid)
 
-        target_time = datetime.utcfromtimestamp(int(returned_data.protectionExpiry))
+        target_time = datetime.utcfromtimestamp(int(returned_data.protection_expiry))
         difference = target_time - datetime.utcnow()
 
         items = []
@@ -346,10 +346,10 @@ class RustSocket(BaseRustSocket):
         for item in returned_data.items:
             items.append(
                 RustItem(
-                    translate_id_to_stack(item.itemId),
-                    item.itemId,
+                    translate_id_to_stack(item.item_id),
+                    item.item_id,
                     item.quantity,
-                    item.itemIsBlueprint,
+                    item.item_is_blueprint,
                 )
             )
 
@@ -357,14 +357,14 @@ class RustSocket(BaseRustSocket):
             merged_map = defaultdict(tuple)
 
             for item in items:
-                data = merged_map[str(item.itemId)]
+                data = merged_map[str(item.item_id)]
                 if data:
                     count = int(data[0]) + int(item.quantity)
-                    merged_map[str(item.itemId)] = (count, bool(item.isBlueprint))
+                    merged_map[str(item.item_id)] = (count, bool(item.is_blueprint))
                 else:
-                    merged_map[str(item.itemId)] = (
+                    merged_map[str(item.item_id)] = (
                         int(item.quantity),
-                        bool(item.isBlueprint),
+                        bool(item.is_blueprint),
                     )
 
             items = []
@@ -378,7 +378,7 @@ class RustSocket(BaseRustSocket):
                     )
                 )
 
-        return RustContents(difference, bool(returned_data.hasProtection), items)
+        return RustContents(difference, bool(returned_data.has_protection), items)
 
     @deprecated("Use RustSocket#get_contents")
     async def get_tc_storage_contents(

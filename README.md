@@ -93,7 +93,7 @@ async def alarm(event : EntityEvent):
 
 @rust_socket.team_event
 async def team(event : TeamEvent):
-  print(f"The team leader's steamId is: {event.teamInfo.leaderSteamId}")
+  print(f"The team leader's steamId is: {event.teamInfo.leader_steam_id}")
 
 #Used to just stop a script from ending. Use this if you are using commands or events in a script
 await rust_socket.hang()
