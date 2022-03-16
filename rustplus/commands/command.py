@@ -11,13 +11,13 @@ class Command:
     def __init__(
         self,
         sender_name: str,
-        sender_steamid: int,
+        sender_steam_id: int,
         time: CommandTime,
         command: str,
         args: List[str],
     ) -> None:
         self.sender_name = sender_name
-        self.sender_steam_id = sender_steamid
+        self.sender_steam_id = sender_steam_id
         self.time = time
         self.command = command
         self.args = args

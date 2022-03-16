@@ -140,7 +140,7 @@ class RustRemote:
 
         return response
 
-    def _sock(self) -> RustWebsocket:
+    def _sock(self, retries) -> RustWebsocket:
 
         if self.ws is None:
             raise ClientNotConnectedError("No Current Websocket Connection")
@@ -150,7 +150,7 @@ class RustRemote:
 
         if time.time() - self.ws.connected_time >= self.websocket_length:
             self.close()
-            self.connect()
+            self.connect(retries=retries)
 
         return self.ws
 

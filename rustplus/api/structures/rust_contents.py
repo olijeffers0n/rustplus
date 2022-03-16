@@ -23,6 +23,6 @@ class RustContents:
         return self._contents
 
     def __str__(self) -> str:
-        return "RustContents[protectionTime={}, hasProtection={}, contents={}]".format(
+        return "RustContents[protection_time={}, has_protection={}, contents={}]".format(
             self._protection_time, self._has_protection, self.contents
         )
