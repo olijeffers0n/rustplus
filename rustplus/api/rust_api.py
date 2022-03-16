@@ -308,7 +308,7 @@ class RustSocket(BaseRustSocket):
         await self._handle_ratelimit()
 
         leader_packet = AppPromoteToLeader()
-        leader_packet._steam_id = steamid
+        leader_packet.steamId = steamid
 
         app_request = self._generate_protobuf()
         app_request.promoteToLeader.CopyFrom(leader_packet)
