@@ -62,7 +62,7 @@ class RustMap:
         return self._background
 
     def __str__(self) -> str:
-        return "RustMap[width={}, height={}, jpgImage={}, margin={}, monuments={}, background={}]".format(
+        return "RustMap[width={}, height={}, jpg_image={}, margin={}, monuments={}, background={}]".format(
             self._width,
             self._height,
             len(self._jpg_image),

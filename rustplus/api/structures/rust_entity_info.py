@@ -20,7 +20,7 @@ class RustEntityInfoItem:
         return self._item_is_blueprint
 
     def __str__(self) -> str:
-        return "RustEntityInfoItem[itemId={}, quantity={}, itemIsBlueprint={}]".format(
+        return "RustEntityInfoItem[item_id={}, quantity={}, item_is_blueprint={}]".format(
             self._item_id, self._quantity, self._item_is_blueprint
         )
 
@@ -59,7 +59,7 @@ class RustEntityInfo:
         return self._protection_expiry
 
     def __str__(self) -> str:
-        return "RustEntityInfo[type={}, value={}, items={}, capacity={}, hasProtection={}, protectionExpiry={}]".format(
+        return "RustEntityInfo[type={}, value={}, items={}, capacity={}, has_protection={}, protection_expiry={}]".format(
             self._type,
             self._value,
             self._items,

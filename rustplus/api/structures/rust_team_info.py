@@ -45,7 +45,7 @@ class RustTeamMember:
         return self._death_time
 
     def __str__(self) -> str:
-        return "RustTeamMember[steamId={}, name={}, x={}, y={}, isOnline={}, spawnTime={}, isAlive={}, deathTime={}]".format(
+        return "RustTeamMember[steam_id={}, name={}, x={}, y={}, is_online={}, spawn_time={}, is_alive={}, death_time={}]".format(
             self._steam_id,
             self._name,
             self._x,
@@ -103,6 +103,6 @@ class RustTeamInfo:
         return self._leader_map_notes
 
     def __str__(self) -> str:
-        return "RustTeamInfo[leaderSteamId={}, members={}, mapNotes={}, leaderMapNotes={}]".format(
+        return "RustTeamInfo[leader_steam_id={}, members={}, map_notes={}, leader_map_notes={}]".format(
             self._leader_steam_id, self._members, self._map_notes, self._leader_map_notes
         )
