@@ -29,7 +29,9 @@ setup(
         "websocket_client",
         "Pillow",
         "protobuf>=3.18.1",
-        "asyncio"
+        "asyncio",
+        "push_receiver",
+        "http-ece"
     ],
     python_requires='>=3.7.0',
 )
