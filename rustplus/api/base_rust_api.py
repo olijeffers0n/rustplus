@@ -167,8 +167,9 @@ class BaseRustSocket:
             coro = coro.get_coro()
 
         data = (coro, asyncio.get_event_loop())
-        self.remote.event_handler.register_event("team_changed", data)
-        return RegisteredListener("team_changed", data)
+        listener = RegisteredListener("team_changed", data)
+        self.remote.event_handler.register_event(listener)
+        return listener
 
     def chat_event(self, coro) -> RegisteredListener:
         """
@@ -182,8 +183,11 @@ class BaseRustSocket:
             coro = coro.get_coro()
 
         data = (coro, asyncio.get_event_loop())
-        self.remote.event_handler.register_event("chat_message", data)
-        return RegisteredListener("chat_message", data)
+        listener = RegisteredListener("chat_message", data)
+
+        self.remote.event_handler.register_event(listener)
+
+        return listener
 
     def entity_event(self, eid):
         """
@@ -203,7 +207,7 @@ class BaseRustSocket:
                 try:
                     entity_info: RustEntityInfo = future_inner.result()
                     self.remote.event_handler.register_event(
-                        eid, (coro, loop, entity_info.type)
+                        RegisteredListener(eid, (coro, loop, entity_info.type))
                     )
                 except Exception:
                     raise SmartDeviceRegistrationError("Not Found")
@@ -212,7 +216,7 @@ class BaseRustSocket:
             future = asyncio.run_coroutine_threadsafe(self.get_entity_info(eid), loop)
             future.add_done_callback(entity_event_callback)
 
-            return RegisteredListener(eid, coro)
+            return RegisteredListener(eid, (coro))
 
         return wrap_func
 
@@ -220,7 +224,7 @@ class BaseRustSocket:
         """
         This will remove a listener, command or event. Takes a RegisteredListener instance
 
-        :returns Success of removal. True = Removed. False = Not Removed
+        :return: Success of removal. True = Removed. False = Not Removed
         """
 
         if isinstance(listener, RegisteredListener):

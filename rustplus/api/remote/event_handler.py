@@ -10,17 +10,17 @@ class EventHandler:
     def __init__(self) -> None:
         pass
 
-    def register_event(self, name, data: tuple) -> None:
+    def register_event(self, listener: RegisteredListener) -> None:
 
-        if not asyncio.iscoroutinefunction(data[0]):
+        if not asyncio.iscoroutinefunction(listener.data[0]):
             raise TypeError("The event registered must be a coroutine")
 
-        if hasattr(self, str(name)):
-            events: List[tuple] = getattr(self, str(name))
-            events.append(data)
-            setattr(self, str(name), events)
+        if hasattr(self, str(listener.listener_id)):
+            events: List[RegisteredListener] = getattr(self, str(listener.listener_id))
+            events.append(listener)
+            setattr(self, str(listener.listener_id), events)
         else:
-            setattr(self, str(name), [data])
+            setattr(self, str(listener.listener_id), [listener])
 
     def _schedule_event(self, loop, coro, arg) -> None:
         def callback(inner_future: Future):
@@ -33,7 +33,7 @@ class EventHandler:
 
         if hasattr(self, str(name)):
             for event in getattr(self, str(name)):
-                coro, loop, event_type = event
+                coro, loop, event_type = event.data
 
                 self._schedule_event(loop, coro, EntityEvent(app_message, event_type))
 
@@ -41,7 +41,7 @@ class EventHandler:
 
         if hasattr(self, "team_changed"):
             for event in getattr(self, "team_changed"):
-                coro, loop = event
+                coro, loop = event.data
 
                 self._schedule_event(loop, coro, TeamEvent(app_message))
 
@@ -49,13 +49,13 @@ class EventHandler:
 
         if hasattr(self, "chat_message"):
             for event in getattr(self, "chat_message"):
-                coro, loop = event
+                coro, loop = event.data
 
                 self._schedule_event(loop, coro, ChatEvent(app_message))
 
     def has_event(self, listener: RegisteredListener) -> bool:
         if hasattr(self, listener.listener_id):
-            return listener.data in list(getattr(self, listener.listener_id))
+            return listener in list(getattr(self, listener.listener_id))
         return False
 
     def remove_event(self, listener: RegisteredListener) -> None:
@@ -63,7 +63,7 @@ class EventHandler:
             events = list(getattr(self, listener.listener_id))
             try:
                 while True:
-                    events.remove(listener.data)
+                    events.remove(listener)
             except ValueError:
                 pass
             setattr(self, listener.listener_id, events)
