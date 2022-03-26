@@ -84,6 +84,9 @@ class RustWebsocket(websocket.WebSocket):
         while self.open:
             try:
                 data = self.recv()
+
+                self.remote.event_handler.run_proto_event(data)
+
                 app_message = AppMessage()
                 app_message.ParseFromString(data)
 

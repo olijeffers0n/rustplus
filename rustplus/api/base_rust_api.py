@@ -159,7 +159,7 @@ class BaseRustSocket:
         """
         A Decorator to register an event listener for team changes
 
-        :param coro: The coroutine to call when the command is called
+        :param coro: The coroutine to call when a change happens
         :return: RegisteredListener - The listener object
         """
 
@@ -175,7 +175,7 @@ class BaseRustSocket:
         """
         A Decorator to register an event listener for chat messages
 
-        :param coro: The coroutine to call when the command is called
+        :param coro: The coroutine to call when a message is sent
         :return: RegisteredListener - The listener object
         """
 
@@ -219,6 +219,22 @@ class BaseRustSocket:
             return RegisteredListener(eid, (coro))
 
         return wrap_func
+
+    def protobuf_received(self, coro) -> RegisteredListener:
+        """
+        A Decorator to register an event listener for protobuf being received on the websocket
+
+        :param coro: The coroutine to call when the command is called
+        :return: RegisteredListener - The listener object
+        """
+
+        if isinstance(coro, RegisteredListener):
+            coro = coro.get_coro()
+
+        data = (coro, asyncio.get_event_loop())
+        listener = RegisteredListener("protobuf_received", data)
+        self.remote.event_handler.register_event(listener)
+        return listener
 
     def remove_listener(self, listener) -> bool:
         """

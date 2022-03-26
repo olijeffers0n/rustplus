@@ -53,6 +53,14 @@ class EventHandler:
 
                 self._schedule_event(loop, coro, ChatEvent(app_message))
 
+    def run_proto_event(self, byte_data: bytes) -> None:
+
+        if hasattr(self, "protobuf_received"):
+            for event in getattr(self, "protobuf_received"):
+                coro, loop = event.data
+
+                self._schedule_event(loop, coro, byte_data)
+
     def has_event(self, listener: RegisteredListener) -> bool:
         if hasattr(self, listener.listener_id):
             return listener in list(getattr(self, listener.listener_id))
