@@ -15,7 +15,7 @@ class RustWebsocket(websocket.WebSocket):
 
         self.ip = ip
         self.port = port
-        self.thread = None
+        self.thread: Thread = None
         self.open = False
         self.use_proxy = use_proxy
         self.remote = remote
@@ -93,7 +93,7 @@ class RustWebsocket(websocket.WebSocket):
                         f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} [RustPlus.py] Connection interrupted, Retrying"
                     )
                     self.connect(ignore=True)
-                    return
+                    continue
                 return
 
             try:
