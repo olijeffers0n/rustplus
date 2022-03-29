@@ -3,7 +3,7 @@ import logging
 import time
 
 from .event_handler import EventHandler
-from .rustplus_pb2 import *
+from .rustplus_proto import *
 from .rustws import RustWebsocket
 from .token_bucket import RateLimiter
 from ...commands import CommandHandler

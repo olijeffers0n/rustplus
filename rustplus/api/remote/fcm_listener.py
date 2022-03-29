@@ -3,7 +3,6 @@ from threading import Thread
 
 
 class FCMListener:
-
     def __init__(self, data: dict = None):
         self.thread = None
         self.data = data

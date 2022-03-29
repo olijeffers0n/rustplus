@@ -47,15 +47,17 @@ class RustInfo:
         return self._wipe_time
 
     def __str__(self) -> str:
-        return "RustInfo[url={}, name={}, map={}, size={}, players={}, max_players={}, queued_players={}, seed={}, " \
-               "wipe_time{}]".format(
-                    self._url,
-                    self._name,
-                    self._map,
-                    self._size,
-                    self._players,
-                    self._max_players,
-                    self._queued_players,
-                    self._seed,
-                    self._wipe_time
-                )
+        return (
+            "RustInfo[url={}, name={}, map={}, size={}, players={}, max_players={}, queued_players={}, seed={}, "
+            "wipe_time{}]".format(
+                self._url,
+                self._name,
+                self._map,
+                self._size,
+                self._players,
+                self._max_players,
+                self._queued_players,
+                self._seed,
+                self._wipe_time,
+            )
+        )

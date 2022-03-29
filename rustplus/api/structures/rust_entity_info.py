@@ -20,8 +20,10 @@ class RustEntityInfoItem:
         return self._item_is_blueprint
 
     def __str__(self) -> str:
-        return "RustEntityInfoItem[item_id={}, quantity={}, item_is_blueprint={}]".format(
-            self._item_id, self._quantity, self._item_is_blueprint
+        return (
+            "RustEntityInfoItem[item_id={}, quantity={}, item_is_blueprint={}]".format(
+                self._item_id, self._quantity, self._item_is_blueprint
+            )
         )
 
 

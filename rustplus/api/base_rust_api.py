@@ -4,7 +4,7 @@ from typing import List
 from PIL import Image
 
 from .structures import *
-from .remote.rustplus_pb2 import *
+from .remote.rustplus_proto import *
 from .remote import RustRemote, HeartBeat
 from ..commands import CommandOptions
 from ..exceptions import *

@@ -5,7 +5,7 @@ from threading import Thread
 from typing import Optional
 import websocket
 
-from .rustplus_pb2 import AppMessage, AppRequest
+from .rustplus_proto import AppMessage, AppRequest
 from ..structures import RustChatMessage
 from ...exceptions import ClientNotConnectedError
 
@@ -24,7 +24,7 @@ class RustWebsocket(websocket.WebSocket):
 
         super().__init__(enable_multithread=True)
 
-    def connect(self, retries = float("inf"), ignore=False) -> None:
+    def connect(self, retries=float("inf"), ignore=False) -> None:
 
         if ((not self.open) or ignore) and not self.remote.is_pending:
 

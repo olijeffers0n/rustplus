@@ -70,7 +70,7 @@ AppMessage = _reflection.GeneratedProtocolMessageType(
     (_message.Message,),
     {
         "DESCRIPTOR": _APPMESSAGE,
-        "__module__": "rustplus_pb2"
+        "__module__": "rustplus_proto"
         # @@protoc_insertion_point(class_scope:rustplus.AppMessage)
     },
 )
@@ -252,7 +252,7 @@ AppTeamInfo = _reflection.GeneratedProtocolMessageType(
             },
         ),
         "DESCRIPTOR": _APPTEAMINFO,
-        "__module__": "rustplus_pb2"
+        "__module__": "rustplus_proto"
         # @@protoc_insertion_point(class_scope:rustplus.AppTeamInfo)
     },
 )
@@ -265,7 +265,7 @@ AppTeamChat = _reflection.GeneratedProtocolMessageType(
     (_message.Message,),
     {
         "DESCRIPTOR": _APPTEAMCHAT,
-        "__module__": "rustplus_pb2"
+        "__module__": "rustplus_proto"
         # @@protoc_insertion_point(class_scope:rustplus.AppTeamChat)
     },
 )
@@ -276,7 +276,7 @@ AppChatMessage = _reflection.GeneratedProtocolMessageType(
     (_message.Message,),
     {
         "DESCRIPTOR": _APPCHATMESSAGE,
-        "__module__": "rustplus_pb2"
+        "__module__": "rustplus_proto"
         # @@protoc_insertion_point(class_scope:rustplus.AppChatMessage)
     },
 )
@@ -287,7 +287,7 @@ AppEntityInfo = _reflection.GeneratedProtocolMessageType(
     (_message.Message,),
     {
         "DESCRIPTOR": _APPENTITYINFO,
-        "__module__": "rustplus_pb2"
+        "__module__": "rustplus_proto"
         # @@protoc_insertion_point(class_scope:rustplus.AppEntityInfo)
     },
 )
@@ -302,12 +302,12 @@ AppEntityPayload = _reflection.GeneratedProtocolMessageType(
             (_message.Message,),
             {
                 "DESCRIPTOR": _APPENTITYPAYLOAD_ITEM,
-                "__module__": "rustplus_pb2"
+                "__module__": "rustplus_proto"
                 # @@protoc_insertion_point(class_scope:rustplus.AppEntityPayload.Item)
             },
         ),
         "DESCRIPTOR": _APPENTITYPAYLOAD,
-        "__module__": "rustplus_pb2"
+        "__module__": "rustplus_proto"
         # @@protoc_insertion_point(class_scope:rustplus.AppEntityPayload)
     },
 )
@@ -319,7 +319,7 @@ AppFlag = _reflection.GeneratedProtocolMessageType(
     (_message.Message,),
     {
         "DESCRIPTOR": _APPFLAG,
-        "__module__": "rustplus_pb2"
+        "__module__": "rustplus_proto"
         # @@protoc_insertion_point(class_scope:rustplus.AppFlag)
     },
 )
@@ -330,7 +330,7 @@ AppMapMarkers = _reflection.GeneratedProtocolMessageType(
     (_message.Message,),
     {
         "DESCRIPTOR": _APPMAPMARKERS,
-        "__module__": "rustplus_pb2"
+        "__module__": "rustplus_proto"
         # @@protoc_insertion_point(class_scope:rustplus.AppMapMarkers)
     },
 )
@@ -341,7 +341,7 @@ Vector4 = _reflection.GeneratedProtocolMessageType(
     (_message.Message,),
     {
         "DESCRIPTOR": _VECTOR4,
-        "__module__": "rustplus_pb2"
+        "__module__": "rustplus_proto"
         # @@protoc_insertion_point(class_scope:rustplus.Vector4)
     },
 )
@@ -356,12 +356,12 @@ AppMarker = _reflection.GeneratedProtocolMessageType(
             (_message.Message,),
             {
                 "DESCRIPTOR": _APPMARKER_SELLORDER,
-                "__module__": "rustplus_pb2"
+                "__module__": "rustplus_proto"
                 # @@protoc_insertion_point(class_scope:rustplus.AppMarker.SellOrder)
             },
         ),
         "DESCRIPTOR": _APPMARKER,
-        "__module__": "rustplus_pb2"
+        "__module__": "rustplus_proto"
         # @@protoc_insertion_point(class_scope:rustplus.AppMarker)
     },
 )
@@ -373,7 +373,7 @@ AppCameraFrame = _reflection.GeneratedProtocolMessageType(
     (_message.Message,),
     {
         "DESCRIPTOR": _APPCAMERAFRAME,
-        "__module__": "rustplus_pb2"
+        "__module__": "rustplus_proto"
         # @@protoc_insertion_point(class_scope:rustplus.AppCameraFrame)
     },
 )
@@ -384,7 +384,7 @@ AppTeamChanged = _reflection.GeneratedProtocolMessageType(
     (_message.Message,),
     {
         "DESCRIPTOR": _APPTEAMCHANGED,
-        "__module__": "rustplus_pb2"
+        "__module__": "rustplus_proto"
         # @@protoc_insertion_point(class_scope:rustplus.AppTeamChanged)
     },
 )
@@ -395,7 +395,7 @@ AppTeamMessage = _reflection.GeneratedProtocolMessageType(
     (_message.Message,),
     {
         "DESCRIPTOR": _APPTEAMMESSAGE,
-        "__module__": "rustplus_pb2"
+        "__module__": "rustplus_proto"
         # @@protoc_insertion_point(class_scope:rustplus.AppTeamMessage)
     },
 )
@@ -406,7 +406,7 @@ AppEntityChanged = _reflection.GeneratedProtocolMessageType(
     (_message.Message,),
     {
         "DESCRIPTOR": _APPENTITYCHANGED,
-        "__module__": "rustplus_pb2"
+        "__module__": "rustplus_proto"
         # @@protoc_insertion_point(class_scope:rustplus.AppEntityChanged)
     },
 )

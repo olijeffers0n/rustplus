@@ -104,5 +104,8 @@ class RustTeamInfo:
 
     def __str__(self) -> str:
         return "RustTeamInfo[leader_steam_id={}, members={}, map_notes={}, leader_map_notes={}]".format(
-            self._leader_steam_id, self._members, self._map_notes, self._leader_map_notes
+            self._leader_steam_id,
+            self._members,
+            self._map_notes,
+            self._leader_map_notes,
         )

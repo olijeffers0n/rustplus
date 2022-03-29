@@ -16,7 +16,7 @@ from .structures import (
     RustContents,
     RustItem,
 )
-from .remote.rustplus_pb2 import *
+from .remote.rustplus_proto import *
 from .remote import HeartBeat
 from ..commands import CommandOptions
 from ..exceptions import *

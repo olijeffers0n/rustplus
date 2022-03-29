@@ -22,7 +22,8 @@ class EventHandler:
         else:
             setattr(self, str(listener.listener_id), [listener])
 
-    def _schedule_event(self, loop, coro, arg) -> None:
+    @staticmethod
+    def _schedule_event(loop, coro, arg) -> None:
         def callback(inner_future: Future):
             inner_future.result()
 
