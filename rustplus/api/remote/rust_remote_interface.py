@@ -71,7 +71,7 @@ class RustRemote:
 
         self.ws.send_message(request)
 
-    async def get_response(self, seq: int, app_request: AppRequest) -> AppMessage:
+    async def get_response(self, seq: int, app_request: AppRequest, error_check: bool = True) -> AppMessage:
         """
         Returns a given response from the server.
         """
@@ -103,7 +103,7 @@ class RustRemote:
                 attempts = 0
 
         if seq not in self.responses:
-            raise ResponseNotRecievedError("Not Recieved")
+            raise ResponseNotRecievedError("Not Received")
 
         response = self.responses.pop(seq)
 
@@ -135,7 +135,7 @@ class RustRemote:
             await self.send_message(app_request)
             response = await self.get_response(seq, app_request)
 
-        elif self.ws.error_present(response.response.error.error):
+        elif self.ws.error_present(response.response.error.error) and error_check:
             raise RequestError(response.response.error.error)
 
         return response

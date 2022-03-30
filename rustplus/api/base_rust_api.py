@@ -203,17 +203,31 @@ class BaseRustSocket:
             if isinstance(coro, RegisteredListener):
                 coro = coro.get_coro()
 
+            async def get_entity(self, eid) -> RustEntityInfo:
+
+                await self._handle_ratelimit()
+
+                app_request = self._generate_protobuf()
+                app_request.entityId = eid
+                app_request.getEntityInfo.CopyFrom(AppEmpty())
+
+                await self.remote.send_message(app_request)
+
+                return await self.remote.get_response(app_request.seq, app_request, False)
+
             def entity_event_callback(future_inner: Future):
-                try:
-                    entity_info: RustEntityInfo = future_inner.result()
-                    self.remote.event_handler.register_event(
-                        RegisteredListener(eid, (coro, loop, entity_info.type))
-                    )
-                except Exception:
+
+                entity_info = future_inner.result()
+
+                if entity_info.response.HasField("error"):
                     raise SmartDeviceRegistrationError("Not Found")
 
+                self.remote.event_handler.register_event(
+                    RegisteredListener(eid, (coro, loop, entity_info.response.entityInfo.type))
+                )
+
             loop = asyncio.get_event_loop()
-            future = asyncio.run_coroutine_threadsafe(self.get_entity_info(eid), loop)
+            future = asyncio.run_coroutine_threadsafe(get_entity(self, eid), loop)
             future.add_done_callback(entity_event_callback)
 
             return RegisteredListener(eid, (coro))
