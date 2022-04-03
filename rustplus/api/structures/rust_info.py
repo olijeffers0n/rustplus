@@ -49,7 +49,7 @@ class RustInfo:
     def __str__(self) -> str:
         return (
             "RustInfo[url={}, name={}, map={}, size={}, players={}, max_players={}, queued_players={}, seed={}, "
-            "wipe_time{}]".format(
+            "wipe_time={}]".format(
                 self._url,
                 self._name,
                 self._map,
