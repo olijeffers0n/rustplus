@@ -31,7 +31,7 @@ class HeartBeat:
 
     async def beat(self) -> None:
 
-        if self.rust_api.remote.ws is not None and self.rust_api.remote.ws.open:
+        if self.rust_api.remote.ws is not None and self.rust_api.remote.ws.connection_status:
             await self.rust_api.send_wakeup_request()
 
     def reset_rhythm(self) -> None:

@@ -4,12 +4,12 @@ import time
 
 from .event_handler import EventHandler
 from .rustplus_proto import *
-from .rustws import RustWebsocket
+from .rustws import RustWebsocket, PENDING_CONNECTION
 from .token_bucket import RateLimiter
 from ...commands import CommandHandler
 from ...exceptions import (
     ClientNotConnectedError,
-    ResponseNotRecievedError,
+    ResponseNotReceivedError,
     RequestError,
 )
 from ...utils import RegisteredListener
@@ -17,14 +17,14 @@ from ...utils import RegisteredListener
 
 class RustRemote:
     def __init__(
-        self,
-        ip,
-        port,
-        command_options,
-        ratelimit_limit,
-        ratelimit_refill,
-        websocket_length=600,
-        use_proxy: bool = False,
+            self,
+            ip,
+            port,
+            command_options,
+            ratelimit_limit,
+            ratelimit_refill,
+            websocket_length=600,
+            use_proxy: bool = False,
     ) -> None:
 
         self.ip = ip
@@ -37,11 +37,10 @@ class RustRemote:
             ratelimit_limit, ratelimit_limit, 1, ratelimit_refill
         )
         self.ws = None
-        self.is_pending = False
         self.websocket_length = websocket_length
         self.responses = {}
         self.ignored_responses = []
-        self.pending_requests = {}
+        self.pending_for_response = {}
         self.sent_requests = []
 
         if command_options is None:
@@ -53,12 +52,12 @@ class RustRemote:
 
         self.event_handler = EventHandler()
 
-    def connect(self, retries) -> None:
+    def connect(self, retries, delay) -> None:
 
         self.ws = RustWebsocket(
             ip=self.ip, port=self.port, remote=self, use_proxy=self.use_proxy
         )
-        self.ws.connect(retries=retries)
+        self.ws.connect(retries=retries, delay=delay)
 
     def close(self) -> None:
 
@@ -67,9 +66,14 @@ class RustRemote:
             del self.ws
             self.ws = None
 
+    def is_pending(self) -> bool:
+        if self.ws is not None:
+            return self.ws.connection_status == PENDING_CONNECTION
+        return False
+
     async def send_message(self, request: AppRequest) -> None:
 
-        self.ws.send_message(request)
+        await self.ws.send_message(request)
 
     async def get_response(self, seq: int, app_request: AppRequest, error_check: bool = True) -> AppMessage:
         """
@@ -78,7 +82,7 @@ class RustRemote:
 
         attempts = 0
 
-        while seq in self.pending_requests:
+        while seq in self.pending_for_response and seq not in self.responses:
 
             if seq in self.sent_requests:
 
@@ -90,7 +94,7 @@ class RustRemote:
                 else:
 
                     await self.send_message(app_request)
-                    await asyncio.sleep(1)
+                    await asyncio.sleep(0.1)
                     attempts = 0
 
             if attempts <= 10:
@@ -103,7 +107,7 @@ class RustRemote:
                 attempts = 0
 
         if seq not in self.responses:
-            raise ResponseNotRecievedError("Not Received")
+            raise ResponseNotReceivedError("Not Received")
 
         response = self.responses.pop(seq)
 
@@ -122,7 +126,7 @@ class RustRemote:
                 self.ratelimiter.bucket.refresh()
 
             # Reattempt the sending with a full bucket
-            cost = self.ws._get_proto_cost(app_request)
+            cost = self.ws.get_proto_cost(app_request)
 
             while True:
 
@@ -145,7 +149,7 @@ class RustRemote:
         if self.ws is None:
             raise ClientNotConnectedError("No Current Websocket Connection")
 
-        while self.is_pending:
+        while self.is_pending():
             time.sleep(1)
 
         if time.time() - self.ws.connected_time >= self.websocket_length:

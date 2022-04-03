@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import time
 from datetime import datetime
@@ -7,7 +8,11 @@ import websocket
 
 from .rustplus_proto import AppMessage, AppRequest
 from ..structures import RustChatMessage
-from ...exceptions import ClientNotConnectedError
+from ...exceptions import ClientNotConnectedError, RequestError
+
+CONNECTED = 1
+PENDING_CONNECTION = 2
+CLOSED = 3
 
 
 class RustWebsocket(websocket.WebSocket):
@@ -16,7 +21,7 @@ class RustWebsocket(websocket.WebSocket):
         self.ip = ip
         self.port = port
         self.thread: Thread = None
-        self.open = False
+        self.connection_status = CLOSED
         self.use_proxy = use_proxy
         self.remote = remote
         self.logger = logging.getLogger("rustplus.py")
@@ -24,9 +29,9 @@ class RustWebsocket(websocket.WebSocket):
 
         super().__init__(enable_multithread=True)
 
-    def connect(self, retries=float("inf"), ignore=False) -> None:
+    def connect(self, retries=float("inf"), ignore_open_value: bool = False, delay: int = 20) -> None:
 
-        if ((not self.open) or ignore) and not self.remote.is_pending:
+        if (not self.connection_status == CONNECTED or ignore_open_value) and not self.remote.is_pending():
 
             attempts = 0
 
@@ -35,7 +40,7 @@ class RustWebsocket(websocket.WebSocket):
                 if attempts >= retries:
                     raise ConnectionAbortedError("Reached Retry Limit")
 
-                self.remote.is_pending = True
+                self.connection_status = PENDING_CONNECTION
 
                 try:
                     address = (
@@ -49,39 +54,42 @@ class RustWebsocket(websocket.WebSocket):
                 except Exception:
                     self.logger.warning(
                         f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} "
-                        "[RustPlus.py] Cannot Connect to server. Retrying in 20 seconds"
+                        f"[RustPlus.py] Cannot Connect to server. Retrying in {str(delay)} seconds"
                     )
                     attempts += 1
-                    time.sleep(20)
+                    time.sleep(delay)
 
-            self.remote.is_pending = False
+            self.connection_status = CONNECTED
 
-            self.open = True
+        if not ignore_open_value:
 
-            self.thread = Thread(
-                target=self.run, name="[RustPlus.py] WebsocketThread", daemon=True
-            )
+            self.thread = Thread(target=self.run, name="[RustPlus.py] WebsocketThread", daemon=True)
             self.thread.start()
 
     def close(self) -> None:
 
         super().close()
-        self.open = False
+        self.connection_status = CLOSED
 
-    def send_message(self, message: AppRequest) -> None:
+    async def send_message(self, message: AppRequest) -> None:
         """
         Send the Protobuf to the server
         """
+
+        if self.connection_status == CLOSED:
+            raise ClientNotConnectedError("Not Connected")
+
         try:
-            self.remote.pending_requests[message.seq] = message
             self.send_binary(message.SerializeToString())
+            self.remote.pending_for_response[message.seq] = message
         except Exception:
-            if not self.open:
-                raise ClientNotConnectedError("Not Connected")
+            while self.remote.is_pending():
+                await asyncio.sleep(0.5)
+            return await self.remote.send_message(message)
 
     def run(self) -> None:
 
-        while self.open:
+        while self.connection_status == CONNECTED:
             try:
                 data = self.recv()
 
@@ -91,16 +99,16 @@ class RustWebsocket(websocket.WebSocket):
                 app_message.ParseFromString(data)
 
             except Exception:
-                if self.open:
+                if self.connection_status == CONNECTED:
                     self.logger.warning(
                         f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} [RustPlus.py] Connection interrupted, Retrying"
                     )
-                    self.connect(ignore=True)
+                    self.connect(ignore_open_value=True)
                     continue
                 return
 
             try:
-                del self.remote.pending_requests[app_message.response.seq]
+                del self.remote.pending_for_response[app_message.response.seq]
             except KeyError:
                 pass
 
@@ -166,7 +174,7 @@ class RustWebsocket(websocket.WebSocket):
         await self.send_message(app_request)
 
     @staticmethod
-    def _get_proto_cost(app_request) -> int:
+    def get_proto_cost(app_request) -> int:
         """
         Gets the cost of an AppRequest
         """
