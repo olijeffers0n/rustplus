@@ -22,8 +22,8 @@ class CommandsNotEnabledError(Error):
     pass
 
 
-class ResponseNotRecievedError(Error):
-    """Raised when a response has not been recieved from the server"""
+class ResponseNotReceivedError(Error):
+    """Raised when a response has not been received from the server"""
 
     pass
 
@@ -47,7 +47,7 @@ class ClientNotConnectedError(Error):
 
 
 class RequestError(Error):
-    """Raised when an error is recieved from the server"""
+    """Raised when an error is received from the server"""
 
     pass
 

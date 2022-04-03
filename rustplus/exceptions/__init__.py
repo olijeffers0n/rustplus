@@ -2,7 +2,7 @@ from .exceptions import (
     RateLimitError,
     ServerNotResponsiveError,
     CommandsNotEnabledError,
-    ResponseNotRecievedError,
+    ResponseNotReceivedError,
     PrefixNotDefinedError,
     ImageError,
     ClientNotConnectedError,
