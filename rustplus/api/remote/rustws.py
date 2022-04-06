@@ -12,6 +12,7 @@ from ...exceptions import ClientNotConnectedError, RequestError
 
 CONNECTED = 1
 PENDING_CONNECTION = 2
+CLOSING = 4
 CLOSED = 3
 
 
@@ -44,9 +45,9 @@ class RustWebsocket(websocket.WebSocket):
 
                 try:
                     address = (
-                        f"wss://companion-rust.facepunch.com/game/{self.ip}/{self.port}"
+                        f"wss://companion-rust.facepunch.com/game/{self.ip}/{self.port}?v=1641359159846"
                         if self.use_proxy
-                        else f"ws://{self.ip}:{self.port} "
+                        else f"ws://{self.ip}:{self.port}"
                     )
                     super().connect(address)
                     self.connected_time = time.time()
@@ -68,6 +69,7 @@ class RustWebsocket(websocket.WebSocket):
 
     def close(self) -> None:
 
+        self.connection_status = CLOSING
         super().close()
         self.connection_status = CLOSED
 
