@@ -27,6 +27,7 @@ class RustWebsocket(websocket.WebSocket):
         self.remote = remote
         self.logger = logging.getLogger("rustplus.py")
         self.connected_time = time.time()
+        self.magic_value = 1641359159846
 
         super().__init__(enable_multithread=True)
 
@@ -49,9 +50,9 @@ class RustWebsocket(websocket.WebSocket):
 
                 try:
                     address = (
-                        f"wss://companion-rust.facepunch.com/game/{self.ip}/{self.port}?v=1641359159846"
+                        f"wss://companion-rust.facepunch.com/game/{self.ip}/{self.port}?v={str(self.magic_value)}"
                         if self.use_proxy
-                        else f"ws://{self.ip}:{self.port}"
+                        else f"ws://{self.ip}:{self.port}?v={str(self.magic_value)}"
                     )
                     super().connect(address)
                     self.connected_time = time.time()
