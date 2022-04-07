@@ -67,8 +67,8 @@ class RateLimiter:
         """
         return (
             math.ceil(
-                (0.1 + ((target_cost - self.bucket.current) / self.refresh_per_second))
-                * 10
+                (((target_cost - self.bucket.current) / self.refresh_per_second) + 0.1)
+                * 100
             )
-            / 10
+            / 100
         )

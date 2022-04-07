@@ -4,7 +4,7 @@ import time
 
 from .event_handler import EventHandler
 from .rustplus_proto import *
-from .rustws import RustWebsocket, PENDING_CONNECTION
+from .rustws import RustWebsocket, CONNECTED, PENDING_CONNECTION
 from .token_bucket import RateLimiter
 from ...commands import CommandHandler
 from ...exceptions import (
@@ -17,14 +17,14 @@ from ...utils import RegisteredListener
 
 class RustRemote:
     def __init__(
-            self,
-            ip,
-            port,
-            command_options,
-            ratelimit_limit,
-            ratelimit_refill,
-            websocket_length=600,
-            use_proxy: bool = False,
+        self,
+        ip,
+        port,
+        command_options,
+        ratelimit_limit,
+        ratelimit_refill,
+        websocket_length=600,
+        use_proxy: bool = False,
     ) -> None:
 
         self.ip = ip
@@ -71,11 +71,18 @@ class RustRemote:
             return self.ws.connection_status == PENDING_CONNECTION
         return False
 
+    def is_open(self) -> bool:
+        if self.ws is not None:
+            return self.ws.connection_status == CONNECTED
+        return False
+
     async def send_message(self, request: AppRequest) -> None:
 
         await self.ws.send_message(request)
 
-    async def get_response(self, seq: int, app_request: AppRequest, error_check: bool = True) -> AppMessage:
+    async def get_response(
+        self, seq: int, app_request: AppRequest, error_check: bool = True
+    ) -> AppMessage:
         """
         Returns a given response from the server.
         """

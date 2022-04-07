@@ -8,7 +8,7 @@ import websocket
 
 from .rustplus_proto import AppMessage, AppRequest
 from ..structures import RustChatMessage
-from ...exceptions import ClientNotConnectedError, RequestError
+from ...exceptions import ClientNotConnectedError
 
 CONNECTED = 1
 PENDING_CONNECTION = 2
@@ -30,9 +30,13 @@ class RustWebsocket(websocket.WebSocket):
 
         super().__init__(enable_multithread=True)
 
-    def connect(self, retries=float("inf"), ignore_open_value: bool = False, delay: int = 20) -> None:
+    def connect(
+        self, retries=float("inf"), ignore_open_value: bool = False, delay: int = 20
+    ) -> None:
 
-        if (not self.connection_status == CONNECTED or ignore_open_value) and not self.remote.is_pending():
+        if (
+            not self.connection_status == CONNECTED or ignore_open_value
+        ) and not self.remote.is_pending():
 
             attempts = 0
 
@@ -64,7 +68,9 @@ class RustWebsocket(websocket.WebSocket):
 
         if not ignore_open_value:
 
-            self.thread = Thread(target=self.run, name="[RustPlus.py] WebsocketThread", daemon=True)
+            self.thread = Thread(
+                target=self.run, name="[RustPlus.py] WebsocketThread", daemon=True
+            )
             self.thread.start()
 
     def close(self) -> None:

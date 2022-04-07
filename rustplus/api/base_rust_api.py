@@ -213,7 +213,9 @@ class BaseRustSocket:
 
                 await self.remote.send_message(app_request)
 
-                return await self.remote.get_response(app_request.seq, app_request, False)
+                return await self.remote.get_response(
+                    app_request.seq, app_request, False
+                )
 
             def entity_event_callback(future_inner: Future):
 
@@ -223,7 +225,9 @@ class BaseRustSocket:
                     raise SmartDeviceRegistrationError("Not Found")
 
                 self.remote.event_handler.register_event(
-                    RegisteredListener(eid, (coro, loop, entity_info.response.entityInfo.type))
+                    RegisteredListener(
+                        eid, (coro, loop, entity_info.response.entityInfo.type)
+                    )
                 )
 
             loop = asyncio.get_event_loop()
