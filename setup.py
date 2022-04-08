@@ -31,7 +31,8 @@ setup(
         "protobuf>=3.18.1",
         "asyncio",
         "push_receiver",
-        "http-ece"
+        "http-ece",
+        "requests"
     ],
     python_requires='>=3.7.0',
 )

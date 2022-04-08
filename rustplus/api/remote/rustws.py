@@ -7,6 +7,7 @@ from typing import Optional
 import websocket
 
 from .rustplus_proto import AppMessage, AppRequest
+from .expo_bundle_handler import MagicValueGrabber
 from ..structures import RustChatMessage
 from ...exceptions import ClientNotConnectedError
 
@@ -27,7 +28,7 @@ class RustWebsocket(websocket.WebSocket):
         self.remote = remote
         self.logger = logging.getLogger("rustplus.py")
         self.connected_time = time.time()
-        self.magic_value = 1641359159846
+        self.magic_value = MagicValueGrabber.get_magic_value()
 
         super().__init__(enable_multithread=True)
 
