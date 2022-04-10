@@ -17,7 +17,7 @@ class BaseRustSocket:
         ip: str = None,
         port: str = None,
         steam_id: int = None,
-        playerToken: int = None,
+        player_token: int = None,
         command_options: CommandOptions = None,
         raise_ratelimit_exception: bool = True,
         ratelimit_limit: int = 25,
@@ -32,13 +32,13 @@ class BaseRustSocket:
             raise ValueError("Port cannot be None")
         if steam_id is None:
             raise ValueError("SteamID cannot be None")
-        if playerToken is None:
+        if player_token is None:
             raise ValueError("PlayerToken cannot be None")
 
         self.ip = ip
         self.port = port
         self.steam_id = steam_id
-        self.player_token = playerToken
+        self.player_token = player_token
         self.seq = 1
         self.command_options = command_options
         self.raise_ratelimit_exception = raise_ratelimit_exception
