@@ -72,7 +72,7 @@ class EntityEvent:
         return self._entity_id
 
     @property
-    def value(self) -> int:
+    def value(self) -> bool:
         return self._value
 
     @property
