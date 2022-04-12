@@ -6,6 +6,7 @@ from .event_handler import EventHandler
 from .rustplus_proto import *
 from .rustws import RustWebsocket, CONNECTED, PENDING_CONNECTION
 from .token_bucket import RateLimiter
+from .expo_bundle_handler import MagicValueGrabber
 from ...commands import CommandHandler
 from ...exceptions import (
     ClientNotConnectedError,
@@ -52,10 +53,12 @@ class RustRemote:
 
         self.event_handler = EventHandler()
 
+        self.magic_value = MagicValueGrabber.get_magic_value()
+
     def connect(self, retries, delay) -> None:
 
         self.ws = RustWebsocket(
-            ip=self.ip, port=self.port, remote=self, use_proxy=self.use_proxy
+            ip=self.ip, port=self.port, remote=self, use_proxy=self.use_proxy, magic_value=self.magic_value
         )
         self.ws.connect(retries=retries, delay=delay)
 
@@ -161,7 +164,7 @@ class RustRemote:
 
         if time.time() - self.ws.connected_time >= self.websocket_length:
             self.close()
-            self.connect(retries=retries)
+            self.connect(retries=retries, delay=20)
 
         return self.ws
 
