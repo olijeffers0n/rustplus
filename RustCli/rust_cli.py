@@ -24,7 +24,7 @@ push_receiver_logger.setLevel(logging.ERROR)
 
 def get_config_file():
     return (
-        str(os.path.dirname(os.path.realpath(__file__))) + "\\rustplus.py.config.json"
+        f"{str(os.path.dirname(os.path.realpath(__file__)))}{os.sep}rustplus.py.config.json"
     )
 
 

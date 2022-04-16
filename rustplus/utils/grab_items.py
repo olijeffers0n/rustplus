@@ -723,6 +723,14 @@ item_ids = {
 }
 
 
+def translate_id_to_stack(value_id: int) -> str:
+    global item_ids
+    try:
+        return item_ids[str(value_id)]
+    except KeyError:
+        return "Not Found"
+
+
 def grab_items() -> None:
     data = {}
 
@@ -745,14 +753,6 @@ def grab_items() -> None:
 
     with open("rust_items.json", "w") as output:
         json.dump(data, output, indent=4, sort_keys=True)
-
-
-def translate_id_to_stack(id: int) -> str:
-    global item_ids
-    try:
-        return item_ids[str(id)]
-    except KeyError:
-        return "Not Found"
 
 
 if __name__ == "__main__":
