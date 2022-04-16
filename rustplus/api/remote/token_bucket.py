@@ -47,7 +47,7 @@ class RateLimiter:
 
     def can_consume(self, amount: int = 1) -> bool:
         """
-        Returns whether the user can comsume the amount of tokens provided
+        Returns whether the user can consume the amount of tokens provided
         """
         self.bucket.refresh()
         return self.bucket.can_consume(amount)

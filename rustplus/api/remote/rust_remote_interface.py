@@ -58,7 +58,11 @@ class RustRemote:
     def connect(self, retries, delay) -> None:
 
         self.ws = RustWebsocket(
-            ip=self.ip, port=self.port, remote=self, use_proxy=self.use_proxy, magic_value=self.magic_value
+            ip=self.ip,
+            port=self.port,
+            remote=self,
+            use_proxy=self.use_proxy,
+            magic_value=self.magic_value,
         )
         self.ws.connect(retries=retries, delay=delay)
 
