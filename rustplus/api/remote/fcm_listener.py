@@ -10,8 +10,8 @@ class FCMListener:
     def on_notification(self, obj, notification, data_message):
         pass
 
-    def start(self):
-        self.thread = Thread(target=self.__fcm_listen, daemon=True).start()
+    def start(self, daemon=True):
+        self.thread = Thread(target=self.__fcm_listen, daemon=daemon).start()
 
     def __fcm_listen(self):
 
