@@ -380,7 +380,7 @@ class RustSocket(BaseRustSocket):
 
         return RustContents(difference, bool(returned_data.has_protection), items)
 
-    @deprecated("Use RustSocket#get_contents")
+    @deprecated("Use RustSocket.get_contents")
     async def get_tc_storage_contents(
         self, eid: int = None, combine_stacks: bool = False
     ) -> RustContents:
