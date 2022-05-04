@@ -22,7 +22,7 @@ class ConversationFactory:
 
     def _register_conversation(self, steamid, convo: Conversation) -> None:
         self.conversations[steamid] = convo
-        self.expires[time.time() + 60*5] = steamid
+        self.expires[steamid] = time.time() + 60*5
 
     def has_conversation(self, steamid: int) -> bool:
         return steamid in self.conversations
@@ -33,16 +33,18 @@ class ConversationFactory:
     def abort_conversation(self, steamid: int) -> None:
         try:
             del self.conversations[steamid]
+            del self.expires[steamid]
         except KeyError:
             pass
 
     def garbage_collect(self) -> None:
         while True:
-            for expire_time, steamid in self.expires.items():
+            to_remove = []
+            for steamid, expire_time in self.expires.items():
                 if expire_time < time.time():
-                    try:
-                        self.abort_conversation(steamid)
-                    except Exception:
-                        continue
+                    to_remove.append(steamid)
 
-            time.sleep(1)
+            for steamid in to_remove:
+                self.abort_conversation(steamid)
+
+            time.sleep(5)
