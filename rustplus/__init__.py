@@ -7,6 +7,7 @@ from .api.structures import EntityEvent, TeamEvent, ChatEvent
 from .api.remote.fcm_listener import FCMListener
 from .commands import CommandOptions, Command
 from .exceptions import *
+from .conversation import ConversationFactory, Conversation, ConversationPrompt
 from .utils import entity_type_to_string, convert_xy_to_grid
 
 __name__ = "rustplus"
