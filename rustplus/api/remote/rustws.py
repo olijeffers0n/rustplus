@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import time
+from asyncio.futures import Future
 from datetime import datetime
 from threading import Thread
 from typing import Optional
@@ -9,6 +10,7 @@ import websocket
 from .rustplus_proto import AppMessage, AppRequest
 from ..structures import RustChatMessage
 from ...exceptions import ClientNotConnectedError
+from ...conversation import ConversationFactory, Conversation, ConversationPrompt
 
 CONNECTED = 1
 PENDING_CONNECTION = 2
@@ -28,6 +30,7 @@ class RustWebsocket(websocket.WebSocket):
         self.logger = logging.getLogger("rustplus.py")
         self.connected_time = time.time()
         self.magic_value = magic_value
+        self.outgoing_conversation_messages = []
 
         super().__init__(enable_multithread=True)
 
@@ -146,6 +149,31 @@ class RustWebsocket(websocket.WebSocket):
             self.remote.event_handler.run_team_event(app_message)
 
         elif self.is_message(app_message):
+
+            steam_id = int(app_message.broadcast.teamMessage.message.steamId)
+            message = str(app_message.broadcast.teamMessage.message.message)
+
+            if self.remote.conversation_factory.has_conversation(steam_id):
+                if message not in self.outgoing_conversation_messages:
+                    conversation: Conversation = self.remote.conversation_factory.get_conversation(steam_id)
+
+                    conversation.get_answers().append(message)
+                    conversation.run_coro(conversation.get_current_prompt().on_response, args=[message])
+
+                    if conversation.has_next():
+                        conversation.increment_prompt()
+                        prompt = conversation.get_current_prompt()
+                        prompt_string = conversation.run_coro(prompt.prompt, args=[])
+                        conversation.run_coro(conversation.send_prompt, args=[prompt_string])
+                    else:
+                        prompt = conversation.get_current_prompt()
+                        prompt_string = conversation.run_coro(prompt.on_finish, args=[])
+                        if prompt_string != "":
+                            conversation.run_coro(conversation.send_prompt, args=[prompt_string])
+                        self.remote.conversation_factory.abort_conversation(steam_id)
+                else:
+                    self.outgoing_conversation_messages.remove(message)
+
             self.remote.event_handler.run_chat_event(app_message)
 
         else:

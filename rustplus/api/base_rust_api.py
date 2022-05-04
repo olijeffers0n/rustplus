@@ -9,6 +9,7 @@ from .remote import RustRemote, HeartBeat
 from ..commands import CommandOptions
 from ..exceptions import *
 from ..utils import RegisteredListener, deprecated
+from ..conversation import ConversationFactory
 
 
 class BaseRustSocket:
@@ -51,6 +52,8 @@ class BaseRustSocket:
             ratelimit_limit=ratelimit_limit,
             ratelimit_refill=ratelimit_refill,
             use_proxy=use_proxy,
+            api=self,
+            loop=asyncio.get_event_loop_policy().get_event_loop()
         )
 
         if heartbeat is None:
@@ -276,6 +279,14 @@ class BaseRustSocket:
 
         while True:
             await asyncio.sleep(1)
+
+    def get_conversation_factory(self) -> ConversationFactory:
+        """
+        Gets the current ConversationFactory object
+
+        :returns ConversationFactory: the factory
+        """
+        return self.remote.conversation_factory
 
     async def get_time(self) -> RustTime:
         """

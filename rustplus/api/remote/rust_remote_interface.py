@@ -7,6 +7,7 @@ from .rustplus_proto import *
 from .rustws import RustWebsocket, CONNECTED, PENDING_CONNECTION
 from .token_bucket import RateLimiter
 from .expo_bundle_handler import MagicValueGrabber
+from ...conversation import ConversationFactory
 from ...commands import CommandHandler
 from ...exceptions import (
     ClientNotConnectedError,
@@ -26,6 +27,8 @@ class RustRemote:
         ratelimit_refill,
         websocket_length=600,
         use_proxy: bool = False,
+        api=None,
+        loop=None
     ) -> None:
 
         self.ip = ip
@@ -54,6 +57,8 @@ class RustRemote:
         self.event_handler = EventHandler()
 
         self.magic_value = MagicValueGrabber.get_magic_value()
+        self.conversation_factory = ConversationFactory(api)
+        self.loop = loop
 
     def connect(self, retries, delay) -> None:
 
