@@ -1,11 +1,11 @@
 import asyncio
-from typing import List, Type
+from typing import List
 from .conversation_prompt import ConversationPrompt
 
 
 class Conversation:
 
-    def __init__(self, api, target: int = None, prompts: List[Type[ConversationPrompt]] = None, register=None) -> None:
+    def __init__(self, api, target: int = None, prompts: List[ConversationPrompt] = None, register=None) -> None:
 
         if target is None:
             raise ValueError("target must be specified")
@@ -22,17 +22,20 @@ class Conversation:
         self._loop = None
         self._register = register
 
-    def add_prompt(self, prompt: Type[ConversationPrompt]) -> None:
+    def add_prompt(self, prompt: ConversationPrompt) -> None:
+        super(type(prompt), prompt).__init__(self)
         self._prompts.append(prompt)
 
-    def add_all_prompts(self, prompts: List[Type[ConversationPrompt]]) -> None:
-        self._prompts.extend(prompts)
+    def add_all_prompts(self, prompts: List[ConversationPrompt]) -> None:
+        for prompt in prompts:
+            super(ConversationPrompt, prompt).__init__(self)
+            self.add_prompt(prompt)
 
     def has_next(self) -> bool:
         return self._seq+1 < len(self._prompts)
 
     def get_current_prompt(self) -> ConversationPrompt:
-        return self._prompts[self._seq](self)
+        return self._prompts[self._seq]
 
     def increment_prompt(self) -> None:
         self._seq += 1
@@ -45,12 +48,10 @@ class Conversation:
     async def start(self) -> None:
         self._register(self._target, self)
         self._loop = asyncio.get_event_loop_policy().get_event_loop()
-        await self.send_prompt(await self._prompts[0](self).prompt())
+        await self.send_prompt(await self._prompts[0].prompt())
 
     def run_coro(self, coro, args):
         return asyncio.run_coroutine_threadsafe(coro(*args), self._loop).result()
 
     def get_answers(self) -> List[str]:
         return self._answers
-
-
