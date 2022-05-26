@@ -1,5 +1,4 @@
 class ConversationPrompt:
-
     def __init__(self, conversation) -> None:
         self.conversation = conversation
 

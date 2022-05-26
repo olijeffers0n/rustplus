@@ -5,7 +5,6 @@ from .conversation import Conversation
 
 
 class ConversationFactory:
-
     def __init__(self, api):
         self.api = api
         self.conversations = {}
@@ -18,11 +17,13 @@ class ConversationFactory:
         if steamid in self.conversations:
             raise ValueError("Conversation already exists")
 
-        return Conversation(api=self.api, target=steamid, register=self._register_conversation)
+        return Conversation(
+            api=self.api, target=steamid, register=self._register_conversation
+        )
 
     def _register_conversation(self, steamid, convo: Conversation) -> None:
         self.conversations[steamid] = convo
-        self.expires[steamid] = time.time() + 60*5
+        self.expires[steamid] = time.time() + 60 * 5
 
     def has_conversation(self, steamid: int) -> bool:
         return steamid in self.conversations

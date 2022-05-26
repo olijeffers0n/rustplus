@@ -4,8 +4,13 @@ from .conversation_prompt import ConversationPrompt
 
 
 class Conversation:
-
-    def __init__(self, api, target: int = None, prompts: List[ConversationPrompt] = None, register=None) -> None:
+    def __init__(
+        self,
+        api,
+        target: int = None,
+        prompts: List[ConversationPrompt] = None,
+        register=None,
+    ) -> None:
 
         if target is None:
             raise ValueError("target must be specified")
@@ -32,7 +37,7 @@ class Conversation:
             self.add_prompt(prompt)
 
     def has_next(self) -> bool:
-        return self._seq+1 < len(self._prompts)
+        return self._seq + 1 < len(self._prompts)
 
     def get_current_prompt(self) -> ConversationPrompt:
         return self._prompts[self._seq]

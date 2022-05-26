@@ -28,7 +28,7 @@ class RustRemote:
         websocket_length=600,
         use_proxy: bool = False,
         api=None,
-        loop=None
+        loop=None,
     ) -> None:
 
         self.ip = ip

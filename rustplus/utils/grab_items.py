@@ -721,7 +721,7 @@ item_ids = {
     "2126889441": "Santa Beard",
     "2133269020": "Red Berry Clone",
     "-1843426638": "MLRS Rocket",
-    "343045591": "MLRS Aiming Module"
+    "343045591": "MLRS Aiming Module",
 }
 
 

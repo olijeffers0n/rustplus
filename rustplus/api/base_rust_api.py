@@ -1,12 +1,13 @@
 import asyncio
 from asyncio.futures import Future
-from typing import List
+from typing import List, Callable, Union
 from PIL import Image
 
 from .structures import *
 from .remote.rustplus_proto import *
 from .remote import RustRemote, HeartBeat
 from ..commands import CommandOptions
+from ..commands.command_data import CommandData
 from ..exceptions import *
 from ..utils import RegisteredListener, deprecated
 from ..conversation import ConversationFactory
@@ -53,7 +54,7 @@ class BaseRustSocket:
             ratelimit_refill=ratelimit_refill,
             use_proxy=use_proxy,
             api=self,
-            loop=asyncio.get_event_loop_policy().get_event_loop()
+            loop=asyncio.get_event_loop_policy().get_event_loop(),
         )
 
         if heartbeat is None:
@@ -141,22 +142,42 @@ class BaseRustSocket:
 
         await self.remote.send_message(app_request)
 
-    def command(self, coro) -> RegisteredListener:
+    def command(
+        self,
+        coro: Callable = None,
+        aliases: List[str] = None,
+        alais_func: Callable = None,
+    ) -> Union[Callable, RegisteredListener]:
         """
         A coroutine decorator used to register a command executor
 
+        :param alais_func: The function to test the aliases against
+        :param aliases: The aliases to register the command under
         :param coro: The coroutine to call when the command is called
-        :return: RegisteredListener - The listener object
+        :return: RegisteredListener - The listener object | Callable - The callable func for the decorator
         """
-        if self.command_options is None:
-            raise CommandsNotEnabledError("Not enabled")
 
         if isinstance(coro, RegisteredListener):
             coro = coro.get_coro()
 
-        data = (coro, asyncio.get_event_loop())
-        self.remote.command_handler.register_command(coro.__name__, data)
-        return RegisteredListener(coro.__name__, data)
+        if asyncio.iscoroutinefunction(coro):
+            cmd_data = CommandData(coro, asyncio.get_event_loop(), aliases, alais_func)
+            self.remote.command_handler.register_command(cmd_data)
+            return RegisteredListener(coro.__name__, (cmd_data.coro, cmd_data.loop))
+
+        def wrap_func(coro):
+
+            if self.command_options is None:
+                raise CommandsNotEnabledError("Not enabled")
+
+            if isinstance(coro, RegisteredListener):
+                coro = coro.get_coro()
+
+            cmd_data = CommandData(coro, asyncio.get_event_loop(), aliases, alais_func)
+            self.remote.command_handler.register_command(cmd_data)
+            return RegisteredListener(coro.__name__, (cmd_data.coro, cmd_data.loop))
+
+        return wrap_func
 
     def team_event(self, coro) -> RegisteredListener:
         """

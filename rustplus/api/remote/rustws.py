@@ -1,7 +1,6 @@
 import asyncio
 import logging
 import time
-from asyncio.futures import Future
 from datetime import datetime
 from threading import Thread
 from typing import Optional
@@ -10,7 +9,7 @@ import websocket
 from .rustplus_proto import AppMessage, AppRequest
 from ..structures import RustChatMessage
 from ...exceptions import ClientNotConnectedError
-from ...conversation import ConversationFactory, Conversation, ConversationPrompt
+from ...conversation import Conversation
 
 CONNECTED = 1
 PENDING_CONNECTION = 2
@@ -135,41 +134,54 @@ class RustWebsocket(websocket.WebSocket):
         prefix = self.get_prefix(str(app_message.broadcast.teamMessage.message.message))
 
         if prefix is not None:
+            # This means it is a command
 
             message = RustChatMessage(app_message.broadcast.teamMessage.message)
 
             self.remote.command_handler.run_command(message, prefix)
 
-        elif self.is_entity_broadcast(app_message):
+        if self.is_entity_broadcast(app_message):
+            # This means that an entity has changed state
+
             self.remote.event_handler.run_entity_event(
                 app_message.broadcast.entityChanged.entityId, app_message
             )
 
         elif self.is_team_broadcast(app_message):
+            # This means that the team of the current player has changed
             self.remote.event_handler.run_team_event(app_message)
 
         elif self.is_message(app_message):
+            # This means that a message has been sent to the team chat
 
             steam_id = int(app_message.broadcast.teamMessage.message.steamId)
             message = str(app_message.broadcast.teamMessage.message.message)
 
             if self.remote.conversation_factory.has_conversation(steam_id):
                 if message not in self.outgoing_conversation_messages:
-                    conversation: Conversation = self.remote.conversation_factory.get_conversation(steam_id)
+                    conversation: Conversation = (
+                        self.remote.conversation_factory.get_conversation(steam_id)
+                    )
 
                     conversation.get_answers().append(message)
-                    conversation.run_coro(conversation.get_current_prompt().on_response, args=[message])
+                    conversation.run_coro(
+                        conversation.get_current_prompt().on_response, args=[message]
+                    )
 
                     if conversation.has_next():
                         conversation.increment_prompt()
                         prompt = conversation.get_current_prompt()
                         prompt_string = conversation.run_coro(prompt.prompt, args=[])
-                        conversation.run_coro(conversation.send_prompt, args=[prompt_string])
+                        conversation.run_coro(
+                            conversation.send_prompt, args=[prompt_string]
+                        )
                     else:
                         prompt = conversation.get_current_prompt()
                         prompt_string = conversation.run_coro(prompt.on_finish, args=[])
                         if prompt_string != "":
-                            conversation.run_coro(conversation.send_prompt, args=[prompt_string])
+                            conversation.run_coro(
+                                conversation.send_prompt, args=[prompt_string]
+                            )
                         self.remote.conversation_factory.abort_conversation(steam_id)
                 else:
                     self.outgoing_conversation_messages.remove(message)
@@ -177,6 +189,8 @@ class RustWebsocket(websocket.WebSocket):
             self.remote.event_handler.run_chat_event(app_message)
 
         else:
+            # This means that it wasn't sent by the server and is a message from the server in response to an action
+
             self.remote.responses[app_message.response.seq] = app_message
 
     def get_prefix(self, message: str) -> Optional[str]:
