@@ -28,7 +28,7 @@ setup(
     install_requires=[
         "websocket_client",
         "Pillow",
-        "protobuf>=3.18.1",
+        "protobuf>=3.20.0",
         "asyncio",
         "push_receiver",
         "http-ece",
