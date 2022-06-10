@@ -418,6 +418,7 @@ class BaseRustSocket:
         """
         raise NotImplementedError("Not Implemented")
 
+    @deprecated("Use RustSocket#get_markers")
     async def get_current_events(self) -> List[RustMarker]:
         """
         Returns all the map markers that are for events:
