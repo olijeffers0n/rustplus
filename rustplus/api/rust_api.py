@@ -112,7 +112,7 @@ class RustSocket(BaseRustSocket):
 
         return [RustChatMessage(message) for message in messages]
 
-    async def get_team_info(self):
+    async def get_team_info(self) -> RustTeamInfo:
 
         await self._handle_ratelimit()
 
