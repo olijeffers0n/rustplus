@@ -142,59 +142,60 @@ class BaseRustSocket:
 
         await self.remote.send_message(app_request)
 
-	async def switch_server(
-		self,
-		ip: str = None,
-		port: str = None,
-		steam_id: int = None,
-		player_token: int = None,
-		command_options: CommandOptions = None,
-		raise_ratelimit_exception: bool = True,
-		heartbeat: HeartBeat = None,
-		use_proxy: bool = False,
-		connect: bool = False
-	) -> None:
-		"""
-		Disconnects and replaces server params, allowing the socket to connect to a new server.
-		
-		:param connect: bool indicating if socket should automaticly self.connect().
-		:return: None
-		"""
-		if ip is None:
-			raise ValueError("Ip cannot be None")
-		if port is None:
-			raise ValueError("Port cannot be None")
-		if steam_id is None:
-			raise ValueError("SteamID cannot be None")
-		if player_token is None:
-			raise ValueError("PlayerToken cannot be None")
-		if heartbeat is None:
-			heartbeat = HeartBeat(self)
+async def switch_server(
+	self,
+	ip: str = None,
+	port: str = None,
+	steam_id: int = None,
+	player_token: int = None,
+	command_options: CommandOptions = None,
+	raise_ratelimit_exception: bool = True,
+	heartbeat: HeartBeat = None,
+	use_proxy: bool = False,
+	connect: bool = False
+) -> None:
+	"""
+	Disconnects and replaces server params, allowing the socket to connect to a new server.
 
-		# disconnect before redefining
-		await self.disconnect()
+	:param connect: bool indicating if socket should automaticly self.connect().
+	:return: None
+	"""
+	if ip is None:
+		raise ValueError("Ip cannot be None")
+	if port is None:
+		raise ValueError("Port cannot be None")
+	if steam_id is None:
+		raise ValueError("SteamID cannot be None")
+	if player_token is None:
+		raise ValueError("PlayerToken cannot be None")
+	if heartbeat is None:
+		heartbeat = HeartBeat(self)
 
-		self.ip = ip
-		self.port = port
-		self.steam_id = steam_id
-		self.player_token = player_token
-		self.seq = 1
-		self.command_options = command_options
-		self.raise_ratelimit_exception = raise_ratelimit_exception
-		self.listener_seq = 0
+	# disconnect before redefining
+	await self.disconnect()
 
-		self.remote.ip = ip
-		self.remote.port = port
-		# reset ratelimiter
-		self.remote.ratelimiter.reset()
-		self.remote.conversation_factory = ConversationFactory(self)
-		self.heartbeat = heartbeat
+	self.ip = ip
+	self.port = port
+	self.steam_id = steam_id
+	self.player_token = player_token
+	self.seq = 1
+	self.command_options = command_options
+	self.raise_ratelimit_exception = raise_ratelimit_exception
+	self.listener_seq = 0
 
-		# TODO: remove all the entity Listeners
-		# not sure how to approach this
-		if connect:
-			# is this right? or should it be await self.connect()
-			asyncio.get_event_loop().create_task(self.connect())
+	self.remote.ip = ip
+	self.remote.port = port
+
+	# reset ratelimiter
+	self.remote.ratelimiter.reset()
+	self.remote.conversation_factory = ConversationFactory(self)
+	self.heartbeat = heartbeat
+
+	# TODO: remove all the entity Listeners
+	# not sure how to approach this
+	if connect:
+		# is this right? or should it be await self.connect()
+		asyncio.get_event_loop().create_task(self.connect())
 
     def command(
         self,
