@@ -76,3 +76,9 @@ class EventHandler:
             except ValueError:
                 pass
             setattr(self, listener.listener_id, events)
+            
+	def clear_entity_events(self) -> None:
+		for name in var(self).keys():
+			# only remove entity events
+			if name not in ["team_changed", "chat_message", "protobuf_received"]:
+				delattr(self, name)
