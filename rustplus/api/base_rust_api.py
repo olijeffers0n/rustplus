@@ -5,7 +5,7 @@ from PIL import Image
 
 from .structures import *
 from .remote.rustplus_proto import *
-from .remote import RustRemote, HeartBeat, RateLimiter
+from .remote import RustRemote, HeartBeat
 from ..commands import CommandOptions
 from ..commands.command_data import CommandData
 from ..exceptions import *
@@ -180,9 +180,8 @@ class BaseRustSocket:
 
 		self.remote.ip = ip
 		self.remote.port = port
-		self.remote.ratelimiter = RateLimiter(
-			ratelimit_limit, ratelimit_limit, 1, ratelimit_refill
-		)
+		# reset ratelimiter
+		self.remote.ratelimiter.reset()
 		self.remote.conversation_factory = ConversationFactory(self)
 		self.heartbeat = heartbeat
 
