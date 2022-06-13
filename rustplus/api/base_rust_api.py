@@ -209,8 +209,8 @@ class BaseRustSocket:
         # reset ratelimiter
         self.remote.ratelimiter.reset()
         self.remote.conversation_factory = ConversationFactory(self)
-
-        # TODO: remove all the entity Listeners
+        # remove entity events
+        self.remote.event_handler.clear_entity_events()
 
         if connect:
             await self.connect()
