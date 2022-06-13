@@ -152,7 +152,14 @@ class BaseRustSocket:
 		raise_ratelimit_exception: bool = True,
 		heartbeat: HeartBeat = None,
 		use_proxy: bool = False,
-	):
+		connect: bool = False
+	) -> None:
+		"""
+		Disconnects and replaces server params, allowing the socket to connect to a new server.
+		
+		:param connect: bool indicating if socket should automaticly self.connect().
+		:return: None
+		"""
 		if ip is None:
 			raise ValueError("Ip cannot be None")
 		if port is None:
@@ -185,9 +192,9 @@ class BaseRustSocket:
 
 		# TODO: remove all the entity Listeners
 		# not sure how to approach this
-
-		# is this right? or should it be await self.connect()
-		asyncio.get_event_loop().create_task(self.connect())
+		if connect:
+			# is this right? or should it be await self.connect()
+			asyncio.get_event_loop().create_task(self.connect())
 
     def command(
         self,
