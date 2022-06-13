@@ -72,3 +72,9 @@ class RateLimiter:
             )
             / 100
         )
+    def reset(self) -> None:
+        """
+        Resets the limiter, filling the bucket to max.
+        """
+        self.bucket.last_update = time.time()
+        self.bucket.current = self.bucket.max
