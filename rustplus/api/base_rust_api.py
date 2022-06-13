@@ -142,71 +142,71 @@ class BaseRustSocket:
 
         await self.remote.send_message(app_request)
 
-	async def switch_server(
-		self,
-		ip: str = None,
-		port: str = None,
-		steam_id: int = None,
-		player_token: int = None,
-		command_options: CommandOptions = None,
-		raise_ratelimit_exception: bool = True,
-		heartbeat: HeartBeat = None,
-		use_proxy: bool = False,
-		connect: bool = False
-	) -> None:
-		"""
-		Disconnects and replaces server params, allowing the socket to connect to a new server.
+    async def switch_server(
+        self,
+        ip: str = None,
+        port: str = None,
+        steam_id: int = None,
+        player_token: int = None,
+        command_options: CommandOptions = None,
+        raise_ratelimit_exception: bool = True,
+        connect: bool = False,
+    ) -> None:
+        """
+        Disconnects and replaces server params, allowing the socket to connect to a new server.
 
-		:param connect: bool indicating if socket should automaticly self.connect().
-		:return: None
-		"""
-		if ip is None:
-			raise ValueError("Ip cannot be None")
-		if port is None:
-			raise ValueError("Port cannot be None")
-		if steam_id is None:
-			raise ValueError("SteamID cannot be None")
-		if player_token is None:
-			raise ValueError("PlayerToken cannot be None")
-		if heartbeat is None:
-			heartbeat = HeartBeat(self)
+        :param raise_ratelimit_exception: Whether to raise an exception or wait
+        :param command_options: The command options
+        :param ip: IP of the server
+        :param port: Port of the server
+        :param player_token: The player Token
+        :param steam_id: Steam id of the player
+        :param connect: bool indicating if socket should automatically self.connect().
+        :return: None
+        """
+        if ip is None:
+            raise ValueError("Ip cannot be None")
+        if port is None:
+            raise ValueError("Port cannot be None")
+        if steam_id is None:
+            raise ValueError("SteamID cannot be None")
+        if player_token is None:
+            raise ValueError("PlayerToken cannot be None")
 
-		# disconnect before redefining
-		await self.disconnect()
+        # disconnect before redefining
+        await self.disconnect()
 
-		self.ip = ip
-		self.port = port
-		self.steam_id = steam_id
-		self.player_token = player_token
-		self.seq = 1
-		self.command_options = command_options
-		self.raise_ratelimit_exception = raise_ratelimit_exception
-		self.listener_seq = 0
+        self.ip = ip
+        self.port = port
+        self.steam_id = steam_id
+        self.player_token = player_token
+        self.seq = 1
+        self.command_options = command_options
+        self.raise_ratelimit_exception = raise_ratelimit_exception
+        self.listener_seq = 0
 
-		self.remote.ip = ip
-		self.remote.port = port
+        self.remote.ip = ip
+        self.remote.port = port
 
-		# reset ratelimiter
-		self.remote.ratelimiter.reset()
-		self.remote.conversation_factory = ConversationFactory(self)
-		self.heartbeat = heartbeat
+        # reset ratelimiter
+        self.remote.ratelimiter.reset()
+        self.remote.conversation_factory = ConversationFactory(self)
 
-		# TODO: remove all the entity Listeners
-		# not sure how to approach this
-		if connect:
-			# is this right? or should it be await self.connect()
-			asyncio.get_event_loop().create_task(self.connect())
+        # TODO: remove all the entity Listeners
+        # not sure how to approach this
+        if connect:
+            await self.connect()
 
     def command(
         self,
         coro: Callable = None,
         aliases: List[str] = None,
-        alais_func: Callable = None,
+        alias_func: Callable = None,
     ) -> Union[Callable, RegisteredListener]:
         """
         A coroutine decorator used to register a command executor
 
-        :param alais_func: The function to test the aliases against
+        :param alias_func: The function to test the aliases against
         :param aliases: The aliases to register the command under
         :param coro: The coroutine to call when the command is called
         :return: RegisteredListener - The listener object | Callable - The callable func for the decorator
@@ -216,7 +216,7 @@ class BaseRustSocket:
             coro = coro.get_coro()
 
         if asyncio.iscoroutinefunction(coro):
-            cmd_data = CommandData(coro, asyncio.get_event_loop(), aliases, alais_func)
+            cmd_data = CommandData(coro, asyncio.get_event_loop(), aliases, alias_func)
             self.remote.command_handler.register_command(cmd_data)
             return RegisteredListener(coro.__name__, (cmd_data.coro, cmd_data.loop))
 
@@ -228,7 +228,7 @@ class BaseRustSocket:
             if isinstance(coro, RegisteredListener):
                 coro = coro.get_coro()
 
-            cmd_data = CommandData(coro, asyncio.get_event_loop(), aliases, alais_func)
+            cmd_data = CommandData(coro, asyncio.get_event_loop(), aliases, alias_func)
             self.remote.command_handler.register_command(cmd_data)
             return RegisteredListener(coro.__name__, (cmd_data.coro, cmd_data.loop))
 
