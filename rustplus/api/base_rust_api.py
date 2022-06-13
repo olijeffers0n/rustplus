@@ -6,7 +6,7 @@ from PIL import Image
 from .structures import *
 from .remote.rustplus_proto import *
 from .remote import RustRemote, HeartBeat
-from ..commands import CommandOptions
+from ..commands import CommandOptions, CommandHandler
 from ..commands.command_data import CommandData
 from ..exceptions import *
 from ..utils import RegisteredListener, deprecated
@@ -44,7 +44,6 @@ class BaseRustSocket:
         self.seq = 1
         self.command_options = command_options
         self.raise_ratelimit_exception = raise_ratelimit_exception
-        self.listener_seq = 0
 
         self.remote = RustRemote(
             ip=self.ip,
@@ -151,6 +150,7 @@ class BaseRustSocket:
         command_options: CommandOptions = None,
         raise_ratelimit_exception: bool = True,
         connect: bool = False,
+        use_proxy: bool = False,
     ) -> None:
         """
         Disconnects and replaces server params, allowing the socket to connect to a new server.
@@ -161,7 +161,8 @@ class BaseRustSocket:
         :param port: Port of the server
         :param player_token: The player Token
         :param steam_id: Steam id of the player
-        :param connect: bool indicating if socket should automatically self.connect().
+        :param connect: bool indicating if socket should automatically self.connect()
+        :param use_proxy: Whether to use the facepunch proxy
         :return: None
         """
         if ip is None:
@@ -176,24 +177,41 @@ class BaseRustSocket:
         # disconnect before redefining
         await self.disconnect()
 
+        # Reset basic credentials
         self.ip = ip
         self.port = port
         self.steam_id = steam_id
         self.player_token = player_token
         self.seq = 1
+
+        # Deal with commands
         self.command_options = command_options
+        self.remote.command_options = command_options
+
+        if command_options is not None:
+            if self.remote.use_commands:
+                self.remote.command_handler.command_options = command_options
+            else:
+                self.remote.use_commands = True
+                self.remote.command_handler = CommandHandler(self.command_options)
+        else:
+            if self.remote.use_commands:
+                self.remote.use_commands = False
+                del self.remote.command_handler
+                self.remote.command_handler = None
+
         self.raise_ratelimit_exception = raise_ratelimit_exception
-        self.listener_seq = 0
 
         self.remote.ip = ip
         self.remote.port = port
+        self.remote.use_proxy = use_proxy
 
         # reset ratelimiter
         self.remote.ratelimiter.reset()
         self.remote.conversation_factory = ConversationFactory(self)
 
         # TODO: remove all the entity Listeners
-        # not sure how to approach this
+
         if connect:
             await self.connect()
 

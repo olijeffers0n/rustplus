@@ -46,12 +46,12 @@ class RustRemote:
         self.ignored_responses = []
         self.pending_for_response = {}
         self.sent_requests = []
+        self.command_handler = None
 
         if command_options is None:
             self.use_commands = False
         else:
             self.use_commands = True
-            self.command_options = command_options
             self.command_handler = CommandHandler(self.command_options)
 
         self.event_handler = EventHandler()
