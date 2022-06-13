@@ -5,7 +5,7 @@ from PIL import Image
 
 from .structures import *
 from .remote.rustplus_proto import *
-from .remote import RustRemote, HeartBeat
+from .remote import RustRemote, HeartBeat, RateLimiter
 from ..commands import CommandOptions
 from ..commands.command_data import CommandData
 from ..exceptions import *
@@ -141,6 +141,56 @@ class BaseRustSocket:
         self.remote.ignored_responses.append(app_request.seq)
 
         await self.remote.send_message(app_request)
+
+	async def switch_server(
+		self,
+		ip: str = None,
+		port: str = None,
+		steam_id: int = None,
+		player_token: int = None,
+		command_options: CommandOptions = None,
+		raise_ratelimit_exception: bool = True,
+		ratelimit_limit: int = 25,
+		ratelimit_refill: int = 3,
+		heartbeat: HeartBeat = None,
+		use_proxy: bool = False,
+	):
+		if ip is None:
+			raise ValueError("Ip cannot be None")
+		if port is None:
+			raise ValueError("Port cannot be None")
+		if steam_id is None:
+			raise ValueError("SteamID cannot be None")
+		if player_token is None:
+			raise ValueError("PlayerToken cannot be None")
+		if heartbeat is None:
+			heartbeat = HeartBeat(self)
+
+		# disconnect before redefining
+		await self.disconnect()
+
+		self.ip = ip
+		self.port = port
+		self.steam_id = steam_id
+		self.player_token = player_token
+		self.seq = 1
+		self.command_options = command_options
+		self.raise_ratelimit_exception = raise_ratelimit_exception
+		self.listener_seq = 0
+
+		self.remote.ip = ip
+		self.remote.port = port
+		self.remote.ratelimiter = RateLimiter(
+			ratelimit_limit, ratelimit_limit, 1, ratelimit_refill
+		)
+		self.remote.conversation_factory = ConversationFactory(self)
+		self.heartbeat = heartbeat
+
+		# TODO: remove all the entity Listeners
+		# not sure how to approach this
+
+		# is this right? or should it be await self.connect()
+		asyncio.get_event_loop().create_task(self.connect())
 
     def command(
         self,
