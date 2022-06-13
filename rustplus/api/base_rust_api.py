@@ -150,8 +150,6 @@ class BaseRustSocket:
 		player_token: int = None,
 		command_options: CommandOptions = None,
 		raise_ratelimit_exception: bool = True,
-		ratelimit_limit: int = 25,
-		ratelimit_refill: int = 3,
 		heartbeat: HeartBeat = None,
 		use_proxy: bool = False,
 	):
