@@ -185,20 +185,15 @@ class BaseRustSocket:
         self.seq = 1
 
         # Deal with commands
-        self.command_options = command_options
-        self.remote.command_options = command_options
 
         if command_options is not None:
+            self.command_options = command_options
+            self.remote.command_options = command_options
             if self.remote.use_commands:
                 self.remote.command_handler.command_options = command_options
             else:
                 self.remote.use_commands = True
                 self.remote.command_handler = CommandHandler(self.command_options)
-        else:
-            if self.remote.use_commands:
-                self.remote.use_commands = False
-                del self.remote.command_handler
-                self.remote.command_handler = None
 
         self.raise_ratelimit_exception = raise_ratelimit_exception
 
