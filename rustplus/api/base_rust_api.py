@@ -4,7 +4,7 @@ from typing import List, Callable, Union
 from PIL import Image
 
 from .structures import *
-from .remote.rustplus_proto import *
+from .remote.rustplus_proto import AppEmpty, AppRequest
 from .remote import RustRemote, HeartBeat
 from ..commands import CommandOptions, CommandHandler
 from ..commands.command_data import CommandData

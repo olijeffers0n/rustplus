@@ -3,7 +3,7 @@ import logging
 import time
 
 from .event_handler import EventHandler
-from .rustplus_proto import *
+from .rustplus_proto import AppRequest, AppMessage
 from .rustws import RustWebsocket, CONNECTED, PENDING_CONNECTION
 from .token_bucket import RateLimiter
 from .expo_bundle_handler import MagicValueGrabber
