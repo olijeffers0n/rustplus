@@ -78,7 +78,12 @@ class EventHandler:
             setattr(self, listener.listener_id, events)
 
     def clear_entity_events(self) -> None:
+
+        to_remove = []
         for name in vars(self).keys():
             # only remove entity events
             if name not in ["team_changed", "chat_message", "protobuf_received"]:
-                delattr(self, name)
+                to_remove.append(name)
+
+        for name in to_remove:
+            delattr(self, name)
