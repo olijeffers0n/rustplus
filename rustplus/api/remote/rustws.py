@@ -79,7 +79,8 @@ class RustWebsocket(websocket.WebSocket):
     def close(self) -> None:
 
         self.connection_status = CLOSING
-        super().close()
+        self.shutdown()
+        #super().close()
         self.connection_status = CLOSED
 
     async def send_message(self, message: AppRequest) -> None:
