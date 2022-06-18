@@ -1,4 +1,4 @@
-from push_receiver import listen
+from push_receiver import PushReceiver
 from threading import Thread
 
 
@@ -6,6 +6,7 @@ class FCMListener:
     def __init__(self, data: dict = None):
         self.thread = None
         self.data = data
+        self._push_listener = PushReceiver(credentials=self.data["fcm_credentials"])
 
     def on_notification(self, obj, notification, data_message):
         pass
@@ -18,4 +19,4 @@ class FCMListener:
         if self.data is None:
             raise ValueError("Data is None")
 
-        listen(credentials=self.data["fcm_credentials"], callback=self.on_notification)
+        self._push_listener.listen(callback=self.on_notification)
