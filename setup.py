@@ -30,7 +30,7 @@ setup(
         "Pillow",
         "protobuf==4.21.1",
         "asyncio",
-        "push_receiver @ git+https://github.com/olijeffers0n/push_receiver.git",
+        "rustPlusPushReceiver==0.4.0",
         "http-ece",
         "requests"
     ],
