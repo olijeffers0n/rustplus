@@ -16,7 +16,8 @@ shutil.rmtree("src", ignore_errors=True)
 version_string = f"V{version.replace('.', '_').replace('-', '_')}"
 new_dir = f"src{os.sep}rustplus{os.sep}{version_string}"
 
-print(os.listdir(f"rustplus"))
+os.mkdir(f"{os.path.dirname(os.path.realpath(__file__))}/src")
+os.mkdir(f"{os.path.dirname(os.path.realpath(__file__))}/src/rustplus")
 
 # Loop through all the files
 for file in os.listdir(f"rustplus"):
@@ -24,7 +25,7 @@ for file in os.listdir(f"rustplus"):
     print(file_path)
     # If it is a file, it's most likely the __init__.py, therefore just copy it
     if os.path.isfile(file_path):
-        shutil.copy(file_path, f"./src{os.sep}rustplus")
+        shutil.copy(file_path, f"src{os.sep}rustplus", follow_symlinks=True)
     else:
         # This means it's a directory, so copy it as a tree
         copy_tree(file_path, f"{new_dir}{os.sep}{file}")
