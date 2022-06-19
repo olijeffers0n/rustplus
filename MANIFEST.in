@@ -1,1 +1,1 @@
-recursive-include rustplus *.png
+recursive-include src/rustplus *.png
