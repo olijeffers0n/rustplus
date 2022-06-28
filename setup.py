@@ -31,7 +31,7 @@ def main() -> None:
             "Pillow",
             "protobuf==4.21.1",
             "asyncio",
-            "rustPlusPushReceiver==0.4.0",
+            "rustPlusPushReceiver==0.4.1",
             "http-ece",
             "requests"
         ],
