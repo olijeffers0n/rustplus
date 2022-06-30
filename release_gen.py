@@ -2,14 +2,10 @@ import os
 import shutil
 from distutils.dir_util import copy_tree
 import setup
+from rustplus.module_info import ModuleInfo
 
 
-version = ""
-with open(f"rustplus{os.sep}module_info.py") as input_file:
-    for line in input_file.readlines():
-        if "__version__" in line:
-            version = line.strip("__version__ =").strip().strip('"')
-            break
+version = ModuleInfo.__version__
 
 # Wipe and create new link to src dir
 shutil.rmtree("src", ignore_errors=True)
@@ -33,7 +29,7 @@ for file in os.listdir(f"rustplus"):
         copy_tree(file_path, f"{new_dir}{os.sep}{file}")
 
 with open(f"{new_dir}{os.sep}__init__.py", "w") as new_package:
-    new_package.writelines([""])
+    new_package.writelines(["from . import *\n"])
 
 with open(f"src{os.sep}rustplus{os.sep}__init__.py", "r") as input_file:
     data = []
@@ -41,22 +37,29 @@ with open(f"src{os.sep}rustplus{os.sep}__init__.py", "r") as input_file:
         if line.startswith("from"):
             index = line.find(".")
             data.append(f"{line[:index + 1]}{version_string}.{line[index + 1:]}")
+        elif "__name__" in line:
+            data.append(f"__name__ = '{ModuleInfo.__module_name__}'\n")
+        elif "__version__" in line:
+            data.append(f"__version__ = '{ModuleInfo.__version__}'\n")
+        elif "__author__" in line:
+            data.append(f"__author__ = '{ModuleInfo.__author__}'\n")
+        elif "__support__" in line:
+            data.append(f"__support__ = '{ModuleInfo.__support__}'\n")
         else:
             data.append(line)
 
 with open(f"src{os.sep}rustplus{os.sep}__init__.py", "w") as output_file:
     output_file.writelines(data)
 
-for path in [f"src{os.sep}rustplus{os.sep}module_info.py", f"{new_dir}{os.sep}module_info.py"]:
-    with open(path, "r") as input_file:
-        data = []
-        for line in input_file.readlines():
-            if "__dev__" in line:
-                data.append("    __dev__ = False\n")
-            else:
-                data.append(line)
+with open(f"{new_dir}{os.sep}module_info.py", "r") as input_file:
+    data = []
+    for line in input_file.readlines():
+        if "__dev__" in line:
+            data.append("    __dev__ = False\n")
+        else:
+            data.append(line)
 
-    with open(path, "w") as output_file:
-        output_file.writelines(data)
+with open(f"{new_dir}{os.sep}module_info.py", "w") as output_file:
+    output_file.writelines(data)
 
 setup.main()
