@@ -9,8 +9,9 @@ from .commands import CommandOptions, Command
 from .exceptions import *
 from .conversation import ConversationFactory, Conversation, ConversationPrompt
 from .utils import *
+from .module_info import ModuleInfo
 
-__name__ = "rustplus"
-__author__ = "olijeffers0n"
-__version__ = "5.3.24"
-__support__ = "Discord: https://discord.gg/nQqJe8qvP8"
+__name__ = ModuleInfo.__name__
+__author__ = ModuleInfo.__author__
+__version__ = ModuleInfo.__version__
+__support__ = ModuleInfo.__support__

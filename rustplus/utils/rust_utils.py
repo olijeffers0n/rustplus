@@ -4,6 +4,9 @@ import logging
 import string
 
 from ..api.structures import RustTime
+from ..module_info import ModuleInfo
+
+icons_path = f"rustplus{f'.{ModuleInfo.__version__}' if not ModuleInfo.__dev__ else ''}.api.icons"
 
 
 def format_time(protobuf) -> RustTime:
@@ -54,21 +57,21 @@ def convert_marker(name, angle) -> Image:
         "8": "patrol.png",
     }
 
-    with resources.path("rustplus.api.icons", name_to_file[name]) as path:
+    with resources.path(icons_path, name_to_file[name]) as path:
         icon = Image.open(path).convert("RGBA")
     if name == "6":
         icon = icon.resize((85, 85))
     elif name == "2":
         icon = icon.resize((96, 96))
     elif name == "4":
-        with resources.path("rustplus.api.icons", "chinook_blades.png") as path:
+        with resources.path(icons_path, "chinook_blades.png") as path:
             blades = Image.open(path).convert("RGBA")
         blades = blades.resize((100, 100))
         icon.paste(blades, (64 - 50, 96 - 50), blades)
         icon.paste(blades, (64 - 50, 32 - 50), blades)
     elif name == "8":
         icon = icon.resize((200, 200))
-        with resources.path("rustplus.api.icons", "chinook_blades.png") as path:
+        with resources.path(icons_path, "chinook_blades.png") as path:
             blades = Image.open(path).convert("RGBA")
         blades = blades.resize((200, 200))
         icon.paste(blades, (0, 0), blades)
@@ -111,7 +114,7 @@ def convert_monument(name: str, override_images: dict) -> Image:
 
     if name in name_to_file:
         file_name = name_to_file[name]
-        with resources.path("rustplus.api.icons", file_name) as path:
+        with resources.path(icons_path, file_name) as path:
             icon = Image.open(path).convert("RGBA")
     elif (
         "mining_quarry" in name
@@ -130,13 +133,13 @@ def convert_monument(name: str, override_images: dict) -> Image:
             file_name = "swamp.png"
         elif "arctic_base" in name:
             file_name = "arctic_base.png"
-        with resources.path("rustplus.api.icons", file_name) as path:
+        with resources.path(icons_path, file_name) as path:
             icon = Image.open(path).convert("RGBA")
     else:
         logging.getLogger("rustplus.py").info(
             f"{name} - Has no icon, report this as an issue"
         )
-        with resources.path("rustplus.api.icons", "icon.png") as path:
+        with resources.path(icons_path, "icon.png") as path:
             icon = Image.open(path).convert("RGBA")
     return icon
 

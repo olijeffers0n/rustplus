@@ -5,9 +5,9 @@ import setup
 
 
 version = ""
-with open(f"rustplus{os.sep}__init__.py") as input_file:
+with open(f"rustplus{os.sep}module_info.py") as input_file:
     for line in input_file.readlines():
-        if line.startswith("__version__"):
+        if "__version__" in line:
             version = line.strip("__version__ =").strip().strip('"')
             break
 
@@ -24,7 +24,10 @@ for file in os.listdir(f"rustplus"):
     file_path = f"rustplus{os.sep}{file}"
     # If it is a file, it's most likely the __init__.py, therefore just copy it
     if os.path.isfile(file_path):
-        shutil.copy(file_path, f"src{os.sep}rustplus", follow_symlinks=True)
+        if file == "module_info.py":
+            shutil.copy(file_path, f"{new_dir}{os.sep}{file}", follow_symlinks=True)
+        else:
+            shutil.copy(file_path, f"src{os.sep}rustplus", follow_symlinks=True)
     else:
         # This means it's a directory, so copy it as a tree
         copy_tree(file_path, f"{new_dir}{os.sep}{file}")
@@ -44,5 +47,16 @@ with open(f"src{os.sep}rustplus{os.sep}__init__.py", "r") as input_file:
 with open(f"src{os.sep}rustplus{os.sep}__init__.py", "w") as output_file:
     output_file.writelines(data)
 
+for path in [f"src{os.sep}rustplus{os.sep}module_info.py", f"{new_dir}{os.sep}module_info.py"]:
+    with open(path, "r") as input_file:
+        data = []
+        for line in input_file.readlines():
+            if "__dev__" in line:
+                data.append("    __dev__ = False\n")
+            else:
+                data.append(line)
+
+    with open(path, "w") as output_file:
+        output_file.writelines(data)
 
 setup.main()
