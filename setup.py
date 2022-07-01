@@ -25,6 +25,7 @@ def main() -> None:
         license='MIT',
         description='A python wrapper for the Rust Plus API',
         long_description=readme,
+        include_package_data=True,
         long_description_content_type='text/markdown',
         install_requires=[
             "websocket_client",
