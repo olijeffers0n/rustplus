@@ -4,9 +4,8 @@ import logging
 import string
 
 from ..api.structures import RustTime
-from ..module_info import ModuleInfo
 
-icons_path = f"rustplus{'.V' + str(ModuleInfo.__version__.replace('.', '_')) if not ModuleInfo.__dev__ else ''}.api.icons"
+icons_path = "rustplus.api.icons"
 
 
 def format_time(protobuf) -> RustTime:
