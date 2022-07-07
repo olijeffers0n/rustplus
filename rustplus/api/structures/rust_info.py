@@ -1,14 +1,16 @@
 class RustInfo:
     def __init__(self, data) -> None:
-        self._url: str = data.url
         self._name: str = data.name
+        self._url: str = data.url
+        self._header_image: str = data.headerImage
         self._map: str = data.map
         self._size: int = data.mapSize
+        self._wipe_time: int = data.wipeTime
         self._players: int = data.players
         self._max_players: int = data.maxPlayers
         self._queued_players: int = data.queuedPlayers
         self._seed: int = data.seed
-        self._wipe_time: int = data.wipeTime
+        self._logo_image: str = data.logoImage
 
     @property
     def url(self) -> str:
@@ -46,10 +48,18 @@ class RustInfo:
     def wipe_time(self) -> int:
         return self._wipe_time
 
+    @property
+    def header_image(self) -> str:
+        return self._header_image
+
+    @property
+    def logo_image(self) -> str:
+        return self._logo_image
+
     def __str__(self) -> str:
         return (
             "RustInfo[url={}, name={}, map={}, size={}, players={}, max_players={}, queued_players={}, seed={}, "
-            "wipe_time={}]".format(
+            "wipe_time={}, header_image={}, logo_image={}]".format(
                 self._url,
                 self._name,
                 self._map,
@@ -59,5 +69,7 @@ class RustInfo:
                 self._queued_players,
                 self._seed,
                 self._wipe_time,
+                self._header_image,
+                self._logo_image,
             )
         )

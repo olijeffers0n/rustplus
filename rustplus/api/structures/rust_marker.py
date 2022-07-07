@@ -95,6 +95,7 @@ class RustMarker:
         self._colour2 = RustColour(data.color2)
         self._alpha: float = data.alpha
         self._name: str = data.name
+        self._out_of_stock: bool = data.outOfStock
         self._sell_orders = [RustSellOrder(order) for order in data.sellOrders]
 
     @property
@@ -145,10 +146,14 @@ class RustMarker:
     def sell_orders(self) -> List[RustSellOrder]:
         return self._sell_orders
 
+    @property
+    def out_of_stock(self) -> bool:
+        return self._out_of_stock
+
     def __str__(self) -> str:
         return (
             "RustMarker[id={}, type={}, x={}, y={}, steam_id={}, rotation={}, radius={}, colour1={}, colour2={}, "
-            "alpha={}, name={}, sell_orders={}]".format(
+            "alpha={}, name={}, sell_orders={}, out_of_stock={}]".format(
                 self._id,
                 self._type,
                 self._x,
@@ -161,5 +166,6 @@ class RustMarker:
                 self._alpha,
                 self._name,
                 self._sell_orders,
+                self._out_of_stock,
             )
         )
