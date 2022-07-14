@@ -1,6 +1,6 @@
 ![Rust+.py](https://raw.githubusercontent.com/olijeffers0n/rustplus/master/icon.png)
 <div align = "center">
-	<img src = "https://lt.ollieee.xyz/rplusdownloadsbadge">
+	<img src = "https://static.pepy.tech/personalized-badge/rustplus?period=total&units=international_system&left_color=black&right_color=orange&left_text=Downloads">
 	<img src = "https://img.shields.io/pypi/v/rustplus?label=PYPI%20Version">
 	<img src = "https://img.shields.io/pypi/l/rustplus">
 	<img src = "https://img.shields.io/github/stars/olijeffers0n/rustplus?label=GitHub%20Stars">
