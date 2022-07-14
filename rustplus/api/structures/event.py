@@ -2,6 +2,7 @@ from typing import List
 
 from .rust_chat_message import RustChatMessage
 from .rust_team_info import RustTeamInfo
+from .rust_marker import RustMarker
 
 
 class Item:
@@ -90,3 +91,18 @@ class EntityEvent:
     @property
     def items(self) -> List[Item]:
         return self._items
+
+
+class MarkerEvent:
+
+    def __init__(self, marker, is_new) -> None:
+        self._marker = marker
+        self._is_new = is_new
+
+    @property
+    def marker(self) -> RustMarker:
+        return self._marker
+
+    @property
+    def is_new(self) -> bool:
+        return self._is_new

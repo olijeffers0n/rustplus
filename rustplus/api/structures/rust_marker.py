@@ -150,6 +150,11 @@ class RustMarker:
     def out_of_stock(self) -> bool:
         return self._out_of_stock
 
+    def __eq__(self, other):
+        if isinstance(other, RustMarker):
+            return self.id == other.id
+        return False
+
     def __str__(self) -> str:
         return (
             "RustMarker[id={}, type={}, x={}, y={}, steam_id={}, rotation={}, radius={}, colour1={}, colour2={}, "

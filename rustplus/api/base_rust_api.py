@@ -5,7 +5,7 @@ from PIL import Image
 
 from .structures import *
 from .remote.rustplus_proto import AppEmpty, AppRequest
-from .remote import RustRemote, HeartBeat
+from .remote import RustRemote, HeartBeat, MapEventListener
 from ..commands import CommandOptions, CommandHandler
 from ..commands.command_data import CommandData
 from ..exceptions import *
@@ -44,6 +44,7 @@ class BaseRustSocket:
         self.seq = 1
         self.command_options = command_options
         self.raise_ratelimit_exception = raise_ratelimit_exception
+        self.marker_listener = MapEventListener(self)
 
         self.remote = RustRemote(
             ip=self.ip,
@@ -206,6 +207,8 @@ class BaseRustSocket:
         self.remote.conversation_factory = ConversationFactory(self)
         # remove entity events
         self.remote.event_handler.clear_entity_events()
+        # reset marker listener
+        self.marker_listener.persistent_ids.clear()
 
         if connect:
             await self.connect()
@@ -330,6 +333,33 @@ class BaseRustSocket:
 
         return wrap_func
 
+    async def start_marker_event_listener(self, delay: int = 5) -> None:
+        """
+        Starts the marker event listener
+        :param delay: The delay between marker checking
+        :return: None
+        """
+        self.marker_listener.start(delay)
+
+    def marker_event(self, coro) -> RegisteredListener:
+        """
+        A Decorator to register an event listener for new map markers
+
+        :param coro: The coroutine to call when the command is called
+        :return: RegisteredListener - The listener object
+        """
+
+        if isinstance(coro, RegisteredListener):
+            coro = coro.get_coro()
+
+        if not self.marker_listener:
+            raise ValueError("Marker listener not started")
+
+        data = (coro, asyncio.get_event_loop())
+        listener = RegisteredListener("map_marker", data)
+        self.marker_listener.add_listener(listener)
+        return listener
+
     def protobuf_received(self, coro) -> RegisteredListener:
         """
         A Decorator to register an event listener for protobuf being received on the websocket
@@ -354,6 +384,8 @@ class BaseRustSocket:
         """
 
         if isinstance(listener, RegisteredListener):
+            if listener.listener_id == "map_marker":
+                return self.marker_listener.remove_listener(listener)
             return self.remote.remove_listener(listener)
         return False
 
