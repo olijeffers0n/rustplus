@@ -94,7 +94,6 @@ class EntityEvent:
 
 
 class MarkerEvent:
-
     def __init__(self, marker, is_new) -> None:
         self._marker = marker
         self._is_new = is_new

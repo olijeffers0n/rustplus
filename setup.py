@@ -33,5 +33,5 @@ setup(
         "http-ece",
         "requests"
     ],
-    python_requires='>=3.7.0',
+    python_requires='>=3.8.0',
 )

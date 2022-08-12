@@ -106,7 +106,6 @@ class BaseRustSocket:
         try:
             if self.remote.ws is None:
                 self.remote.connect(retries=retries, delay=delay)
-                await self.send_wakeup_request()
                 await self.heartbeat.start_beat()
         except ConnectionRefusedError:
             raise ServerNotResponsiveError("Cannot Connect")

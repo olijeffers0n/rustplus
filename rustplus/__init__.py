@@ -12,5 +12,5 @@ from .utils import *
 
 __name__ = "rustplus"
 __author__ = "olijeffers0n"
-__version__ = "5.4.0"
+__version__ = "5.4.1"
 __support__ = "Discord: https://discord.gg/nQqJe8qvP8"

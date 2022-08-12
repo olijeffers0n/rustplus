@@ -6,7 +6,6 @@ from ..structures import MarkerEvent
 
 
 class MapEventListener:
-
     def __init__(self, api) -> None:
         self.api = api
         self.thread = None
@@ -29,7 +28,9 @@ class MapEventListener:
 
     def start(self, delay) -> None:
         self._iter_delay = delay
-        self.thread = threading.Thread(target=self._run, daemon=True, name="MapEventListener")
+        self.thread = threading.Thread(
+            target=self._run, daemon=True, name="MapEventListener"
+        )
         self.thread.start()
         self.gc = IDGarbageCollector(self.persistent_ids)
         self.gc.start()
@@ -40,7 +41,9 @@ class MapEventListener:
 
             try:
 
-                future = asyncio.run_coroutine_threadsafe(self.api.get_markers(), self.loop)
+                future = asyncio.run_coroutine_threadsafe(
+                    self.api.get_markers(), self.loop
+                )
                 new_highest_id = 0
                 for marker in future.result():
 
@@ -59,7 +62,7 @@ class MapEventListener:
                     if marker.type == 3 or marker.type == 1:
                         removal_time = float("inf")
                     else:
-                        removal_time += 120*60
+                        removal_time += 120 * 60
 
                     self.persistent_ids[marker.id] = removal_time
 
@@ -74,17 +77,20 @@ class MapEventListener:
 
     def call_event(self, marker, is_new) -> None:
         for listener in self.listeners:
-            asyncio.run_coroutine_threadsafe(listener.get_coro()(MarkerEvent(marker, is_new)), self.loop)
+            asyncio.run_coroutine_threadsafe(
+                listener.get_coro()(MarkerEvent(marker, is_new)), self.loop
+            )
 
 
 class IDGarbageCollector:
-
     def __init__(self, target: dict) -> None:
         self.target = target
         self.thread = None
 
     def start(self) -> None:
-        self.thread = threading.Thread(target=self._run, daemon=True, name="IDGarbageCollector")
+        self.thread = threading.Thread(
+            target=self._run, daemon=True, name="IDGarbageCollector"
+        )
         self.thread.start()
 
     def _run(self) -> None:
