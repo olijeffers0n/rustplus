@@ -90,6 +90,9 @@ class RustRemote:
 
     async def send_message(self, request: AppRequest) -> None:
 
+        if self.ws is None:
+            raise ClientNotConnectedError("No Current Websocket Connection")
+
         await self.ws.send_message(request)
 
     async def get_response(
