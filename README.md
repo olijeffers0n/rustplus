@@ -18,6 +18,7 @@ A lot of code and ideas have come from the JavaScript version of a wrapper, so I
 [RustPlus.js](https://github.com/liamcottle/rustplus.js)
 I have used his Protocol Buffer file for generating the necessary requests so chuck some support their way
 
+
 ## Installation:
 Install the package with:
 ```
