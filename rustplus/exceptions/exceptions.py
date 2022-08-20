@@ -56,3 +56,9 @@ class SmartDeviceRegistrationError(Error):
     """Raised when the entity cannot be registered with"""
 
     pass
+
+
+class ServerSwitchDisallowedError(Error):
+    """Raised when you are using the test server and attempt to swap server"""
+
+    pass

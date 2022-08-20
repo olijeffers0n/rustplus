@@ -8,4 +8,5 @@ from .exceptions import (
     ClientNotConnectedError,
     RequestError,
     SmartDeviceRegistrationError,
+    ServerSwitchDisallowedError,
 )

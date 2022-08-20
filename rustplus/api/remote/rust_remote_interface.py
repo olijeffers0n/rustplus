@@ -29,6 +29,7 @@ class RustRemote:
         use_proxy: bool = False,
         api=None,
         loop=None,
+        use_test_server: bool = False,
     ) -> None:
 
         self.ip = ip
@@ -59,6 +60,7 @@ class RustRemote:
         self.magic_value = MagicValueGrabber.get_magic_value()
         self.conversation_factory = ConversationFactory(api)
         self.loop = loop
+        self.use_test_server = use_test_server
 
     def connect(self, retries, delay) -> None:
 
@@ -68,6 +70,7 @@ class RustRemote:
             remote=self,
             use_proxy=self.use_proxy,
             magic_value=self.magic_value,
+            use_test_server=self.use_test_server,
         )
         self.ws.connect(retries=retries, delay=delay)
 

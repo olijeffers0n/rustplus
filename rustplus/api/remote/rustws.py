@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import logging
 import time
 from datetime import datetime
@@ -18,7 +19,7 @@ CLOSED = 3
 
 
 class RustWebsocket(websocket.WebSocket):
-    def __init__(self, ip, port, remote, use_proxy, magic_value):
+    def __init__(self, ip, port, remote, use_proxy, magic_value, use_test_server):
 
         self.ip = ip
         self.port = port
@@ -29,9 +30,10 @@ class RustWebsocket(websocket.WebSocket):
         self.logger = logging.getLogger("rustplus.py")
         self.connected_time = time.time()
         self.magic_value = magic_value
+        self.use_test_server = use_test_server
         self.outgoing_conversation_messages = []
 
-        super().__init__(enable_multithread=True)
+        super().__init__()
 
     def connect(
         self, retries=float("inf"), ignore_open_value: bool = False, delay: int = 20
@@ -52,10 +54,11 @@ class RustWebsocket(websocket.WebSocket):
 
                 try:
                     address = (
-                        f"wss://companion-rust.facepunch.com/game/{self.ip}/{self.port}?v={str(self.magic_value)}"
+                        f"wss://companion-rust.facepunch.com/game/{self.ip}/{self.port}"
                         if self.use_proxy
-                        else f"ws://{self.ip}:{self.port}?v={str(self.magic_value)}"
+                        else f"ws://{self.ip}:{self.port}"
                     )
+                    address += f"?v={str(self.magic_value)}"
                     super().connect(address)
                     self.connected_time = time.time()
                     break
@@ -92,7 +95,10 @@ class RustWebsocket(websocket.WebSocket):
             raise ClientNotConnectedError("Not Connected")
 
         try:
-            self.send_binary(message.SerializeToString())
+            if self.use_test_server:
+                self.send(base64.b64encode(message.SerializeToString()))
+            else:
+                self.send_binary(message.SerializeToString())
             self.remote.pending_for_response[message.seq] = message
         except Exception:
             while self.remote.is_pending():
@@ -108,7 +114,10 @@ class RustWebsocket(websocket.WebSocket):
                 self.remote.event_handler.run_proto_event(data)
 
                 app_message = AppMessage()
-                app_message.ParseFromString(data)
+                if self.use_test_server:
+                    app_message.ParseFromString(base64.b64decode(data))
+                else:
+                    app_message.ParseFromString(data)
 
             except Exception:
                 if self.connection_status == CONNECTED:

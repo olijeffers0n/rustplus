@@ -26,6 +26,7 @@ class BaseRustSocket:
         ratelimit_refill: int = 3,
         heartbeat: HeartBeat = None,
         use_proxy: bool = False,
+        use_test_server: bool = False,
     ) -> None:
 
         if ip is None:
@@ -45,6 +46,7 @@ class BaseRustSocket:
         self.command_options = command_options
         self.raise_ratelimit_exception = raise_ratelimit_exception
         self.marker_listener = MapEventListener(self)
+        self.use_test_server = use_test_server
 
         self.remote = RustRemote(
             ip=self.ip,
@@ -55,6 +57,7 @@ class BaseRustSocket:
             use_proxy=use_proxy,
             api=self,
             loop=asyncio.get_event_loop_policy().get_event_loop(),
+            use_test_server=use_test_server,
         )
 
         if heartbeat is None:
@@ -165,6 +168,10 @@ class BaseRustSocket:
         :param use_proxy: Whether to use the facepunch proxy
         :return: None
         """
+
+        if self.use_test_server:
+            raise ServerSwitchDisallowedError("Cannot switch server")
+
         if ip is None:
             raise ValueError("Ip cannot be None")
         if port is None:
