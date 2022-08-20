@@ -54,13 +54,9 @@ class RustWebsocket(websocket.WebSocket):
 
                 try:
                     address = (
-                        "ws://localhost:4565"
-                        if self.use_test_server
-                        else (
-                            f"wss://companion-rust.facepunch.com/game/{self.ip}/{self.port}"
-                            if self.use_proxy
-                            else f"ws://{self.ip}:{self.port}"
-                        )
+                        f"wss://companion-rust.facepunch.com/game/{self.ip}/{self.port}"
+                        if self.use_proxy
+                        else f"ws://{self.ip}:{self.port}"
                     )
                     address += f"?v={str(self.magic_value)}"
                     super().connect(address)
