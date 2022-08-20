@@ -43,6 +43,7 @@ class RustSocket(BaseRustSocket):
         ratelimit_limit: int = 25,
         ratelimit_refill: int = 3,
         use_proxy: bool = False,
+        use_test_server: bool = False,
     ) -> None:
         super().__init__(
             ip=ip,
@@ -55,6 +56,7 @@ class RustSocket(BaseRustSocket):
             ratelimit_refill=ratelimit_refill,
             heartbeat=HeartBeat(self),
             use_proxy=use_proxy,
+            use_test_server=use_test_server,
         )
 
     async def get_time(self) -> RustTime:
@@ -167,9 +169,12 @@ class RustSocket(BaseRustSocket):
         map_size = int((await self.get_info()).size)
 
         await self._handle_ratelimit(
-            5 + 1
-            if [add_icons, add_events, add_vending_machines].count(True) >= 1
-            else 0
+            5
+            + (
+                1
+                if [add_icons, add_events, add_vending_machines].count(True) >= 1
+                else 0
+            )
         )
 
         app_request = self._generate_protobuf()
@@ -187,12 +192,13 @@ class RustSocket(BaseRustSocket):
         except Exception:
             raise ImageError("Invalid bytes for the image")
 
-        image = image.crop((500, 500, game_map.height - 500, game_map.width - 500))
+        if not self.use_test_server:
+            image = image.crop((500, 500, game_map.height - 500, game_map.width - 500))
 
         game_map = image.resize((map_size, map_size), Image.ANTIALIAS)
 
         if add_icons or add_events or add_vending_machines:
-            map_markers = await self.get_markers()
+            map_markers = await self.get_markers() if add_events or add_vending_machines else []
 
             if add_icons:
                 for monument in monuments:
