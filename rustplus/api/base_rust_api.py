@@ -31,8 +31,6 @@ class BaseRustSocket:
 
         if ip is None:
             raise ValueError("Ip cannot be None")
-        if port is None:
-            raise ValueError("Port cannot be None")
         if steam_id is None:
             raise ValueError("SteamID cannot be None")
         if player_token is None:

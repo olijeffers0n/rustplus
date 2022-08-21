@@ -83,6 +83,16 @@ class RustSellOrder:
 
 
 class RustMarker:
+
+    PlayerMarker = 1
+    ExplosionMarker = 2
+    VendingMachineMarker = 3
+    ChinookMarker = 4
+    CargoShipMarker = 5
+    CrateMarker = 6
+    RadiusMarker = 7
+    PatrolHelicopterMarker = 8
+
     def __init__(self, data) -> None:
         self._id: int = data.id
         self._type: int = data.type

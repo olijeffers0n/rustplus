@@ -198,7 +198,9 @@ class RustSocket(BaseRustSocket):
         game_map = image.resize((map_size, map_size), Image.ANTIALIAS)
 
         if add_icons or add_events or add_vending_machines:
-            map_markers = await self.get_markers() if add_events or add_vending_machines else []
+            map_markers = (
+                await self.get_markers() if add_events or add_vending_machines else []
+            )
 
             if add_icons:
                 for monument in monuments:

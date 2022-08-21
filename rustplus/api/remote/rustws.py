@@ -54,9 +54,16 @@ class RustWebsocket(websocket.WebSocket):
 
                 try:
                     address = (
-                        f"wss://companion-rust.facepunch.com/game/{self.ip}/{self.port}"
-                        if self.use_proxy
-                        else f"ws://{self.ip}:{self.port}"
+                        (
+                            f"wss://{self.ip}" if self.port is None
+                            else f"wss://{self.ip}:{self.port}"
+                        )
+                        if self.use_test_server
+                        else (
+                            f"wss://companion-rust.facepunch.com/game/{self.ip}/{self.port}"
+                            if self.use_proxy
+                            else f"ws://{self.ip}:{self.port}"
+                        )
                     )
                     address += f"?v={str(self.magic_value)}"
                     super().connect(address)
@@ -73,7 +80,6 @@ class RustWebsocket(websocket.WebSocket):
             self.connection_status = CONNECTED
 
         if not ignore_open_value:
-
             self.thread = Thread(
                 target=self.run, name="[RustPlus.py] WebsocketThread", daemon=True
             )
