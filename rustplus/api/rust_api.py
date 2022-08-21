@@ -39,7 +39,7 @@ class RustSocket(BaseRustSocket):
         steam_id: int = None,
         player_token: int = None,
         command_options: CommandOptions = None,
-        raise_ratelimit_exception: bool = True,
+        raise_ratelimit_exception: bool = False,
         ratelimit_limit: int = 25,
         ratelimit_refill: int = 3,
         use_proxy: bool = False,
