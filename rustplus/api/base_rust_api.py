@@ -262,6 +262,9 @@ class BaseRustSocket:
         :return: RegisteredListener - The listener object
         """
 
+        if not self.remote.is_open():
+            raise ClientNotConnectedError("Client is not connected")
+
         if isinstance(coro, RegisteredListener):
             coro = coro.get_coro()
 
@@ -277,6 +280,9 @@ class BaseRustSocket:
         :param coro: The coroutine to call when a message is sent
         :return: RegisteredListener - The listener object
         """
+
+        if not self.remote.is_open():
+            raise ClientNotConnectedError("Client is not connected")
 
         if isinstance(coro, RegisteredListener):
             coro = coro.get_coro()
@@ -346,6 +352,10 @@ class BaseRustSocket:
         :param delay: The delay between marker checking
         :return: None
         """
+
+        if not self.remote.is_open():
+            raise ClientNotConnectedError("Client is not connected")
+
         self.marker_listener.start(delay)
 
     def marker_event(self, coro) -> RegisteredListener:
@@ -355,6 +365,9 @@ class BaseRustSocket:
         :param coro: The coroutine to call when the command is called
         :return: RegisteredListener - The listener object
         """
+
+        if not self.remote.is_open():
+            raise ClientNotConnectedError("Client is not connected")
 
         if isinstance(coro, RegisteredListener):
             coro = coro.get_coro()
@@ -374,6 +387,9 @@ class BaseRustSocket:
         :param coro: The coroutine to call when the command is called
         :return: RegisteredListener - The listener object
         """
+
+        if not self.remote.is_open():
+            raise ClientNotConnectedError("Client is not connected")
 
         if isinstance(coro, RegisteredListener):
             coro = coro.get_coro()
