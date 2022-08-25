@@ -213,6 +213,7 @@ class BaseRustSocket:
         self.remote.event_handler.clear_entity_events()
         # reset marker listener
         self.marker_listener.persistent_ids.clear()
+        self.marker_listener.highest_id = 0
 
         if connect:
             await self.connect()

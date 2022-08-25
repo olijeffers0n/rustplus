@@ -55,7 +55,8 @@ class RustWebsocket(websocket.WebSocket):
                 try:
                     address = (
                         (
-                            f"wss://{self.ip}" if self.port is None
+                            f"wss://{self.ip}"
+                            if self.port is None
                             else f"wss://{self.ip}:{self.port}"
                         )
                         if self.use_test_server
