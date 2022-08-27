@@ -470,6 +470,7 @@ class BaseRustSocket:
         add_events: bool = False,
         add_vending_machines: bool = False,
         override_images: dict = None,
+        add_grid: bool = False,
     ) -> Image:
         """
         Gets an image of the map from the server with the specified additions
@@ -478,6 +479,7 @@ class BaseRustSocket:
         :param add_events: To add the Event icons
         :param add_vending_machines: To add the vending icons
         :param override_images: To override the images pre-supplied with RustPlus.py
+        :param add_grid: To add the grid to the map
         :return Image: PIL Image
         """
         raise NotImplementedError("Not Implemented")

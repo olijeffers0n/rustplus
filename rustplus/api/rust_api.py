@@ -1,3 +1,4 @@
+import requests
 from typing import List
 from PIL import Image
 from io import BytesIO
@@ -161,6 +162,7 @@ class RustSocket(BaseRustSocket):
         add_events: bool = False,
         add_vending_machines: bool = False,
         override_images: dict = None,
+        add_grid: bool = False,
     ) -> Image:
 
         if override_images is None:
@@ -195,7 +197,16 @@ class RustSocket(BaseRustSocket):
         if not self.use_test_server:
             image = image.crop((500, 500, game_map.height - 500, game_map.width - 500))
 
-        game_map = image.resize((map_size, map_size), Image.ANTIALIAS)
+        game_map = image.resize((map_size, map_size), Image.ANTIALIAS).convert("RGBA")
+
+        if add_grid:
+            grid = Image.open(
+                requests.get(
+                    f"https://files.rustmaps.com/grids/{map_size}.png", stream=True
+                ).raw
+            ).resize((map_size, map_size), Image.ANTIALIAS).convert("RGBA")
+
+            game_map.paste(grid, (0, 0), grid)
 
         if add_icons or add_events or add_vending_machines:
             map_markers = (
