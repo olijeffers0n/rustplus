@@ -27,7 +27,7 @@ setup(
     install_requires=[
         "websocket_client",
         "Pillow",
-        "protobuf==4.21.1",
+        "protobuf==4.21.6",
         "asyncio",
         "rustPlusPushReceiver==0.4.1",
         "http-ece",
