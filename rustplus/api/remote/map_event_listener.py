@@ -47,10 +47,12 @@ class MapEventListener:
                 new_highest_id = 0
                 for marker in future.result():
 
+                    new = False
+
                     if marker.id in self.persistent_ids:
+                        self.call_event(marker, new)
                         continue
 
-                    new = False
                     if marker.id > self.highest_id:
                         new = True
                         if marker.id > new_highest_id:
