@@ -200,11 +200,15 @@ class RustSocket(BaseRustSocket):
         game_map = image.resize((map_size, map_size), Image.ANTIALIAS).convert("RGBA")
 
         if add_grid:
-            grid = Image.open(
-                requests.get(
-                    f"https://files.rustmaps.com/grids/{map_size}.png", stream=True
-                ).raw
-            ).resize((map_size, map_size), Image.ANTIALIAS).convert("RGBA")
+            grid = (
+                Image.open(
+                    requests.get(
+                        f"https://files.rustmaps.com/grids/{map_size}.png", stream=True
+                    ).raw
+                )
+                .resize((map_size, map_size), Image.ANTIALIAS)
+                .convert("RGBA")
+            )
 
             game_map.paste(grid, (0, 0), grid)
 
