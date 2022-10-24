@@ -98,7 +98,9 @@ class BaseRustSocket:
 
         return app_request
 
-    async def connect(self, retries: int = float("inf"), delay: int = 20) -> None:
+    async def connect(
+        self, retries: int = float("inf"), delay: int = 20, on_failure=None
+    ) -> None:
         """
         Attempts to open a connection to the rust game server specified in the constructor
 
@@ -106,7 +108,11 @@ class BaseRustSocket:
         """
         try:
             if self.remote.ws is None:
-                self.remote.connect(retries=retries, delay=delay)
+                self.remote.connect(
+                    retries=retries,
+                    delay=delay,
+                    on_failure=(asyncio.get_running_loop(), on_failure),
+                )
                 await self.heartbeat.start_beat()
         except ConnectionRefusedError:
             raise ServerNotResponsiveError("Cannot Connect")

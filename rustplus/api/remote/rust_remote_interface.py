@@ -62,7 +62,7 @@ class RustRemote:
         self.loop = loop
         self.use_test_server = use_test_server
 
-    def connect(self, retries, delay) -> None:
+    def connect(self, retries, delay, on_failure=None) -> None:
 
         self.ws = RustWebsocket(
             ip=self.ip,
@@ -71,6 +71,7 @@ class RustRemote:
             use_proxy=self.use_proxy,
             magic_value=self.magic_value,
             use_test_server=self.use_test_server,
+            on_failure=on_failure,
         )
         self.ws.connect(retries=retries, delay=delay)
 

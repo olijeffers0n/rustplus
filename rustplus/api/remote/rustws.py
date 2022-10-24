@@ -19,7 +19,9 @@ CLOSED = 3
 
 
 class RustWebsocket(websocket.WebSocket):
-    def __init__(self, ip, port, remote, use_proxy, magic_value, use_test_server):
+    def __init__(
+        self, ip, port, remote, use_proxy, magic_value, use_test_server, on_failure
+    ):
 
         self.ip = ip
         self.port = port
@@ -32,6 +34,7 @@ class RustWebsocket(websocket.WebSocket):
         self.magic_value = magic_value
         self.use_test_server = use_test_server
         self.outgoing_conversation_messages = []
+        self.on_failure = on_failure
 
         super().__init__()
 
@@ -71,9 +74,23 @@ class RustWebsocket(websocket.WebSocket):
                     self.connected_time = time.time()
                     break
                 except Exception:
+
+                    # Run the failure callback
+                    try:
+                        if self.on_failure is not None:
+                            if asyncio.iscoroutinefunction(self.on_failure[1]):
+                                asyncio.run_coroutine_threadsafe(
+                                    self.on_failure[1](), self.on_failure[0]
+                                )
+                            else:
+                                self.on_failure[1]()
+
+                    except Exception as e:
+                        self.logger.warning(e)
+
                     self.logger.warning(
                         f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} "
-                        f"[RustPlus.py] Cannot Connect to server. Retrying in {str(delay)} seconds"
+                        f"[RustPlus.py] Cannot Connect to server. Retrying in {str(delay)} second/s"
                     )
                     attempts += 1
                     time.sleep(delay)
