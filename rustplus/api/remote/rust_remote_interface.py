@@ -62,7 +62,7 @@ class RustRemote:
         self.loop = loop
         self.use_test_server = use_test_server
 
-    def connect(self, retries, delay, on_failure=None) -> None:
+    async def connect(self, retries, delay, on_failure=None) -> None:
 
         self.ws = RustWebsocket(
             ip=self.ip,
@@ -72,8 +72,10 @@ class RustRemote:
             magic_value=self.magic_value,
             use_test_server=self.use_test_server,
             on_failure=on_failure,
+            delay=delay,
+            loop=asyncio.get_event_loop_policy().get_event_loop(),
         )
-        self.ws.connect(retries=retries, delay=delay)
+        await self.ws.connect(retries=retries)
 
     def close(self) -> None:
 
@@ -169,20 +171,6 @@ class RustRemote:
             raise RequestError(response.response.error.error)
 
         return response
-
-    def _sock(self, retries) -> RustWebsocket:
-
-        if self.ws is None:
-            raise ClientNotConnectedError("No Current Websocket Connection")
-
-        while self.is_pending():
-            time.sleep(1)
-
-        if time.time() - self.ws.connected_time >= self.websocket_length:
-            self.close()
-            self.connect(retries=retries, delay=20)
-
-        return self.ws
 
     def remove_listener(self, listener: RegisteredListener) -> bool:
 

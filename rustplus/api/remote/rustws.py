@@ -20,7 +20,16 @@ CLOSED = 3
 
 class RustWebsocket(websocket.WebSocket):
     def __init__(
-        self, ip, port, remote, use_proxy, magic_value, use_test_server, on_failure
+        self,
+        ip,
+        port,
+        remote,
+        use_proxy,
+        magic_value,
+        use_test_server,
+        on_failure,
+        delay,
+        loop,
     ):
 
         self.ip = ip
@@ -35,11 +44,13 @@ class RustWebsocket(websocket.WebSocket):
         self.use_test_server = use_test_server
         self.outgoing_conversation_messages = []
         self.on_failure = on_failure
+        self.delay = delay
+        self.loop = loop
 
         super().__init__()
 
-    def connect(
-        self, retries=float("inf"), ignore_open_value: bool = False, delay: int = 20
+    async def connect(
+        self, retries=float("inf"), ignore_open_value: bool = False
     ) -> None:
 
         if (
@@ -73,27 +84,32 @@ class RustWebsocket(websocket.WebSocket):
                     super().connect(address)
                     self.connected_time = time.time()
                     break
-                except Exception:
+                except Exception as exception:
 
-                    # Run the failure callback
-                    try:
-                        if self.on_failure is not None:
-                            if asyncio.iscoroutinefunction(self.on_failure[1]):
-                                asyncio.run_coroutine_threadsafe(
-                                    self.on_failure[1](), self.on_failure[0]
-                                )
-                            else:
-                                self.on_failure[1]()
+                    print_error = True
 
-                    except Exception as e:
-                        self.logger.warning(e)
+                    if not isinstance(exception, KeyboardInterrupt):
+                        # Run the failure callback
+                        try:
+                            if self.on_failure is not None:
+                                if asyncio.iscoroutinefunction(self.on_failure):
+                                    val = await self.on_failure()
+                                else:
+                                    val = self.on_failure()
 
-                    self.logger.warning(
-                        f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} "
-                        f"[RustPlus.py] Cannot Connect to server. Retrying in {str(delay)} second/s"
-                    )
+                                if val is not None:
+                                    print_error = val
+
+                        except Exception as e:
+                            self.logger.warning(e)
+
+                    if print_error:
+                        self.logger.warning(
+                            f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} "
+                            f"[RustPlus.py] Cannot Connect to server. Retrying in {str(self.delay)} second/s"
+                        )
                     attempts += 1
-                    time.sleep(delay)
+                    time.sleep(self.delay)
 
             self.connection_status = CONNECTED
 
@@ -148,7 +164,9 @@ class RustWebsocket(websocket.WebSocket):
                     self.logger.warning(
                         f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} [RustPlus.py] Connection interrupted, Retrying"
                     )
-                    self.connect(ignore_open_value=True)
+                    asyncio.run_coroutine_threadsafe(
+                        self.connect(ignore_open_value=True), self.loop
+                    ).result()
                     continue
                 return
 
