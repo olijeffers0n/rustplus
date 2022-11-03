@@ -108,10 +108,10 @@ class BaseRustSocket:
         """
         try:
             if self.remote.ws is None:
-                self.remote.connect(
+                await self.remote.connect(
                     retries=retries,
                     delay=delay,
-                    on_failure=(asyncio.get_running_loop(), on_failure),
+                    on_failure=on_failure,
                 )
                 await self.heartbeat.start_beat()
         except ConnectionRefusedError:
@@ -243,7 +243,12 @@ class BaseRustSocket:
             coro = coro.get_coro()
 
         if asyncio.iscoroutinefunction(coro):
-            cmd_data = CommandData(coro, asyncio.get_event_loop(), aliases, alias_func)
+            cmd_data = CommandData(
+                coro,
+                asyncio.get_event_loop_policy().get_event_loop(),
+                aliases,
+                alias_func,
+            )
             self.remote.command_handler.register_command(cmd_data)
             return RegisteredListener(coro.__name__, (cmd_data.coro, cmd_data.loop))
 
@@ -255,7 +260,12 @@ class BaseRustSocket:
             if isinstance(coro, RegisteredListener):
                 coro = coro.get_coro()
 
-            cmd_data = CommandData(coro, asyncio.get_event_loop(), aliases, alias_func)
+            cmd_data = CommandData(
+                coro,
+                asyncio.get_event_loop_policy().get_event_loop(),
+                aliases,
+                alias_func,
+            )
             self.remote.command_handler.register_command(cmd_data)
             return RegisteredListener(coro.__name__, (cmd_data.coro, cmd_data.loop))
 
@@ -272,7 +282,7 @@ class BaseRustSocket:
         if isinstance(coro, RegisteredListener):
             coro = coro.get_coro()
 
-        data = (coro, asyncio.get_event_loop())
+        data = (coro, asyncio.get_event_loop_policy().get_event_loop())
         listener = RegisteredListener("team_changed", data)
         self.remote.event_handler.register_event(listener)
         return listener
@@ -288,7 +298,7 @@ class BaseRustSocket:
         if isinstance(coro, RegisteredListener):
             coro = coro.get_coro()
 
-        data = (coro, asyncio.get_event_loop())
+        data = (coro, asyncio.get_event_loop_policy().get_event_loop())
         listener = RegisteredListener("chat_message", data)
 
         self.remote.event_handler.register_event(listener)
@@ -339,7 +349,7 @@ class BaseRustSocket:
                     )
                 )
 
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_event_loop_policy().get_event_loop()
             future = asyncio.run_coroutine_threadsafe(get_entity(self, eid), loop)
             future.add_done_callback(entity_event_callback)
 
@@ -369,7 +379,7 @@ class BaseRustSocket:
         if not self.marker_listener:
             raise ValueError("Marker listener not started")
 
-        data = (coro, asyncio.get_event_loop())
+        data = (coro, asyncio.get_event_loop_policy().get_event_loop())
         listener = RegisteredListener("map_marker", data)
         self.marker_listener.add_listener(listener)
         return listener
@@ -385,7 +395,7 @@ class BaseRustSocket:
         if isinstance(coro, RegisteredListener):
             coro = coro.get_coro()
 
-        data = (coro, asyncio.get_event_loop())
+        data = (coro, asyncio.get_event_loop_policy().get_event_loop())
         listener = RegisteredListener("protobuf_received", data)
         self.remote.event_handler.register_event(listener)
         return listener
