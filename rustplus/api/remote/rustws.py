@@ -209,6 +209,7 @@ class RustWebsocket(websocket.WebSocket):
             steam_id = int(app_message.broadcast.teamMessage.message.steamId)
             message = str(app_message.broadcast.teamMessage.message.message)
 
+            # Conversation API
             if self.remote.conversation_factory.has_conversation(steam_id):
                 if message not in self.outgoing_conversation_messages:
                     conversation: Conversation = (
@@ -237,6 +238,8 @@ class RustWebsocket(websocket.WebSocket):
                         self.remote.conversation_factory.abort_conversation(steam_id)
                 else:
                     self.outgoing_conversation_messages.remove(message)
+
+                # Conversation API end
 
             self.remote.event_handler.run_chat_event(app_message)
 

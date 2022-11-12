@@ -81,7 +81,7 @@ class MapEventListener:
         for listener in self.listeners:
             asyncio.run_coroutine_threadsafe(
                 listener.get_coro()(MarkerEvent(marker, is_new)), self.loop
-            )
+            ).result()
 
 
 class IDGarbageCollector:
