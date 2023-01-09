@@ -291,7 +291,7 @@ class BaseRustSocket:
 
         data = (coro, asyncio.get_event_loop_policy().get_event_loop())
         listener = RegisteredListener("team_changed", data)
-        TeamEvent.handler_list.register(listener)
+        TeamEvent.handlers.register(listener)
         return listener
 
     def chat_event(self, coro) -> RegisteredListener:
@@ -358,7 +358,7 @@ class BaseRustSocket:
             future = asyncio.run_coroutine_threadsafe(get_entity(self, eid), loop)
             future.add_done_callback(entity_event_callback)
 
-            return RegisteredListener(eid, (coro))
+            return RegisteredListener(eid, (coro, loop))
 
         return wrap_func
 

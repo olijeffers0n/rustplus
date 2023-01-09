@@ -24,7 +24,7 @@ class EventHandler:
         if handlers is None:
             return
 
-        for handler in handlers:
+        for handler in handlers.copy():
             coro, loop, event_type = handler.data
 
             self._schedule_event(loop, coro, EntityEvent(app_message, event_type))
@@ -32,7 +32,7 @@ class EventHandler:
     def run_team_event(self, app_message) -> None:
 
         handlers: Set[RegisteredListener] = TeamEvent.handlers.get_handlers()
-        for handler in handlers:
+        for handler in handlers.copy():
             coro, loop = handler.data
 
             self._schedule_event(loop, coro, TeamEvent(app_message))
@@ -40,7 +40,7 @@ class EventHandler:
     def run_chat_event(self, app_message) -> None:
 
         handlers: Set[RegisteredListener] = ChatEvent.handlers.get_handlers()
-        for handler in handlers:
+        for handler in handlers.copy():
             coro, loop = handler.data
 
             self._schedule_event(loop, coro, ChatEvent(app_message))
@@ -48,7 +48,7 @@ class EventHandler:
     def run_proto_event(self, byte_data: bytes) -> None:
 
         handlers: Set[RegisteredListener] = ProtobufEvent.handlers.get_handlers()
-        for handler in handlers:
+        for handler in handlers.copy():
             coro, loop = handler.data
 
             self._schedule_event(loop, coro, ProtobufEvent(byte_data))
