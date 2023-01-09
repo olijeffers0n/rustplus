@@ -1,7 +1,9 @@
 import asyncio
 from asyncio.futures import Future
+from typing import Set
 
-from .events import EntityEvent, TeamEvent, ChatEvent
+from .events import EntityEvent, TeamEvent, ChatEvent, ProtobufEvent
+from .registered_listener import RegisteredListener
 
 
 class EventHandler:
@@ -16,36 +18,32 @@ class EventHandler:
 
     def run_entity_event(self, name, app_message) -> None:
 
-        raise NotImplementedError("Not Implemented")
-        if hasattr(self, str(name)):
-            for event in getattr(self, str(name)):
-                coro, loop, event_type = event.data
+        handlers: Set[RegisteredListener] = EntityEvent.handlers.get_handlers().get(str(name))
+        for handler in handlers:
+            coro, loop, event_type = handler.data
 
-                self._schedule_event(loop, coro, EntityEvent(app_message, event_type))
+            self._schedule_event(loop, coro, EntityEvent(app_message, event_type))
 
     def run_team_event(self, app_message) -> None:
 
-        raise NotImplementedError("Not Implemented")
-        if hasattr(self, "team_changed"):
-            for event in getattr(self, "team_changed"):
-                coro, loop = event.data
+        handlers: Set[RegisteredListener] = TeamEvent.handlers.get_handlers()
+        for handler in handlers:
+            coro, loop = handler.data
 
-                self._schedule_event(loop, coro, TeamEvent(app_message))
+            self._schedule_event(loop, coro, TeamEvent(app_message))
 
     def run_chat_event(self, app_message) -> None:
 
-        raise NotImplementedError("Not Implemented")
-        if hasattr(self, "chat_message"):
-            for event in getattr(self, "chat_message"):
-                coro, loop = event.data
+        handlers: Set[RegisteredListener] = ChatEvent.handlers.get_handlers()
+        for handler in handlers:
+            coro, loop = handler.data
 
-                self._schedule_event(loop, coro, ChatEvent(app_message))
+            self._schedule_event(loop, coro, ChatEvent(app_message))
 
     def run_proto_event(self, byte_data: bytes) -> None:
 
-        raise NotImplementedError("Not Implemented")
-        if hasattr(self, "protobuf_received"):
-            for event in getattr(self, "protobuf_received"):
-                coro, loop = event.data
+        handlers: Set[RegisteredListener] = ProtobufEvent.handlers.get_handlers()
+        for handler in handlers:
+            coro, loop = handler.data
 
-                self._schedule_event(loop, coro, byte_data)
+            self._schedule_event(loop, coro, ProtobufEvent(byte_data))

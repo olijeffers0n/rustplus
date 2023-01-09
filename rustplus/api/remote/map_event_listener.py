@@ -2,7 +2,7 @@ import asyncio
 import threading
 import time
 
-from ..structures import MarkerEvent
+from ..remote.events import MarkerEvent
 
 
 class MapEventListener:

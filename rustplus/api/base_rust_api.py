@@ -301,7 +301,7 @@ class BaseRustSocket:
 
         data = (coro, asyncio.get_event_loop_policy().get_event_loop())
         listener = RegisteredListener("chat_message", data)
-        ChatEvent.handler_list.register(listener)
+        ChatEvent.handlers.register(listener)
         return listener
 
     def entity_event(self, eid):
@@ -405,11 +405,26 @@ class BaseRustSocket:
 
         :return: Success of removal. True = Removed. False = Not Removed
         """
-        raise NotImplementedError("Not Implemented")
         if isinstance(listener, RegisteredListener):
             if listener.listener_id == "map_marker":
                 return self.marker_listener.remove_listener(listener)
-            return self.remote.remove_listener(listener)
+
+            if ChatEvent.handlers.has(listener):
+                ChatEvent.handlers.unregister(listener)
+                return True
+
+            if TeamEvent.handlers.has(listener):
+                TeamEvent.handlers.unregister(listener)
+                return True
+
+            if EntityEvent.handlers.has(listener):
+                EntityEvent.handlers.unregister(listener)
+                return True
+
+            if ProtobufEvent.handlers.has(listener):
+                ProtobufEvent.handlers.unregister(listener)
+                return True
+
         return False
 
     @staticmethod

@@ -19,6 +19,9 @@ class HandlerList:
     def unregister_all(self) -> None:
         self._handlers.clear()
 
+    def get_handlers(self):
+        return self._handlers
+
 
 class EntityHandlerList(HandlerList):
 

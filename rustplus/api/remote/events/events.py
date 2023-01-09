@@ -27,7 +27,7 @@ class Item:
 
 class TeamEvent:
 
-    handler_list = HandlerList()
+    handlers = HandlerList()
 
     def __init__(self, app_message) -> None:
         self._player_id: int = app_message.broadcast.teamChanged.playerId
@@ -44,7 +44,7 @@ class TeamEvent:
 
 class ChatEvent:
 
-    handler_list = HandlerList()
+    handlers = HandlerList()
 
     def __init__(self, app_message) -> None:
         self._message = RustChatMessage(app_message.broadcast.teamMessage.message)

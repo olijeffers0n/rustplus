@@ -6,7 +6,7 @@ from . import Command, CommandTime
 from ..api.structures import RustChatMessage
 from ..commands.command_options import CommandOptions
 from ..commands.command_data import CommandData
-from ..utils import RegisteredListener
+from ..api.remote.events import RegisteredListener
 
 
 class CommandHandler:

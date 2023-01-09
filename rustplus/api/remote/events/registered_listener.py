@@ -10,3 +10,6 @@ class RegisteredListener:
         if isinstance(other, RegisteredListener):
             return self.listener_id == other.listener_id and self.data == other.data
         return False
+
+    def __hash__(self):
+        return hash((self.listener_id, self.data))
