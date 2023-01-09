@@ -9,7 +9,13 @@ from .remote import RustRemote, HeartBeat, MapEventListener
 from ..commands import CommandOptions, CommandHandler
 from ..commands.command_data import CommandData
 from ..exceptions import *
-from .remote.events import RegisteredListener, EntityEvent, TeamEvent, ChatEvent, ProtobufEvent
+from .remote.events import (
+    RegisteredListener,
+    EntityEvent,
+    TeamEvent,
+    ChatEvent,
+    ProtobufEvent,
+)
 from ..utils import deprecated
 from ..conversation import ConversationFactory
 

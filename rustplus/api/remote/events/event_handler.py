@@ -7,7 +7,6 @@ from .registered_listener import RegisteredListener
 
 
 class EventHandler:
-
     @staticmethod
     def _schedule_event(loop, coro, arg) -> None:
         def callback(inner_future: Future):
@@ -18,7 +17,9 @@ class EventHandler:
 
     def run_entity_event(self, name, app_message) -> None:
 
-        handlers: Set[RegisteredListener] = EntityEvent.handlers.get_handlers().get(str(name))
+        handlers: Set[RegisteredListener] = EntityEvent.handlers.get_handlers().get(
+            str(name)
+        )
         for handler in handlers:
             coro, loop, event_type = handler.data
 

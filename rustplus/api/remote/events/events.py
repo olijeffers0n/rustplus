@@ -127,4 +127,3 @@ class ProtobufEvent:
     @property
     def byte_data(self) -> bytes:
         return self._byte_data
-

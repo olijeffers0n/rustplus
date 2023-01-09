@@ -3,7 +3,6 @@ from .registered_listener import RegisteredListener
 
 
 class HandlerList:
-
     def __init__(self) -> None:
         self._handlers: Set[RegisteredListener] = set()
 
@@ -24,7 +23,6 @@ class HandlerList:
 
 
 class EntityHandlerList(HandlerList):
-
     def __init__(self) -> None:
         self._handlers: Dict[str, Set[RegisteredListener]] = {}
 

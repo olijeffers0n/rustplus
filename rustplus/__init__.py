@@ -3,7 +3,14 @@ RustPlus, An API wrapper for interfacing with the Rust+ App API
 """
 
 from .api import RustSocket
-from .api.remote.events import EntityEvent, TeamEvent, ChatEvent, MarkerEvent, ProtobufEvent, RegisteredListener
+from .api.remote.events import (
+    EntityEvent,
+    TeamEvent,
+    ChatEvent,
+    MarkerEvent,
+    ProtobufEvent,
+    RegisteredListener,
+)
 from .api.structures import RustMarker
 from .api.remote.fcm_listener import FCMListener
 from .commands import CommandOptions, Command
