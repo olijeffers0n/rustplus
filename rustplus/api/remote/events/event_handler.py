@@ -20,6 +20,10 @@ class EventHandler:
         handlers: Set[RegisteredListener] = EntityEvent.handlers.get_handlers().get(
             str(name)
         )
+
+        if handlers is None:
+            return
+
         for handler in handlers:
             coro, loop, event_type = handler.data
 
