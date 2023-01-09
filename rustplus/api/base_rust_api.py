@@ -9,7 +9,8 @@ from .remote import RustRemote, HeartBeat, MapEventListener
 from ..commands import CommandOptions, CommandHandler
 from ..commands.command_data import CommandData
 from ..exceptions import *
-from ..utils import RegisteredListener, deprecated
+from .remote.events import RegisteredListener, EntityEvent, TeamEvent, ChatEvent, ProtobufEvent
+from ..utils import deprecated
 from ..conversation import ConversationFactory
 
 
@@ -284,7 +285,7 @@ class BaseRustSocket:
 
         data = (coro, asyncio.get_event_loop_policy().get_event_loop())
         listener = RegisteredListener("team_changed", data)
-        self.remote.event_handler.register_event(listener)
+        TeamEvent.handler_list.register(listener)
         return listener
 
     def chat_event(self, coro) -> RegisteredListener:
@@ -300,9 +301,7 @@ class BaseRustSocket:
 
         data = (coro, asyncio.get_event_loop_policy().get_event_loop())
         listener = RegisteredListener("chat_message", data)
-
-        self.remote.event_handler.register_event(listener)
-
+        ChatEvent.handler_list.register(listener)
         return listener
 
     def entity_event(self, eid):
@@ -343,7 +342,7 @@ class BaseRustSocket:
                 if entity_info.response.HasField("error"):
                     raise SmartDeviceRegistrationError("Not Found")
 
-                self.remote.event_handler.register_event(
+                EntityEvent.handlers.register(
                     RegisteredListener(
                         eid, (coro, loop, entity_info.response.entityInfo.type)
                     )
@@ -397,7 +396,7 @@ class BaseRustSocket:
 
         data = (coro, asyncio.get_event_loop_policy().get_event_loop())
         listener = RegisteredListener("protobuf_received", data)
-        self.remote.event_handler.register_event(listener)
+        ProtobufEvent.handlers.register(listener)
         return listener
 
     def remove_listener(self, listener) -> bool:
@@ -406,7 +405,7 @@ class BaseRustSocket:
 
         :return: Success of removal. True = Removed. False = Not Removed
         """
-
+        raise NotImplementedError("Not Implemented")
         if isinstance(listener, RegisteredListener):
             if listener.listener_id == "map_marker":
                 return self.marker_listener.remove_listener(listener)

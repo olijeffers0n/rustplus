@@ -2,7 +2,7 @@ import asyncio
 import logging
 import time
 
-from .event_handler import EventHandler
+from rustplus.api.remote.events.event_handler import EventHandler
 from .rustplus_proto import AppRequest, AppMessage
 from .rustws import RustWebsocket, CONNECTED, PENDING_CONNECTION
 from .token_bucket import RateLimiter
@@ -14,7 +14,7 @@ from ...exceptions import (
     ResponseNotReceivedError,
     RequestError,
 )
-from ...utils import RegisteredListener
+from ..remote.events import RegisteredListener
 
 
 class RustRemote:
