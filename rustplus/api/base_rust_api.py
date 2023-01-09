@@ -223,7 +223,7 @@ class BaseRustSocket:
         self.remote.ratelimiter.reset()
         self.remote.conversation_factory = ConversationFactory(self)
         # remove entity events
-        self.remote.event_handler.clear_entity_events()
+        EntityEvent.handlers.unregister_all()
         # reset marker listener
         self.marker_listener.persistent_ids.clear()
         self.marker_listener.highest_id = 0
