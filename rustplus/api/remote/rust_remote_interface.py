@@ -2,8 +2,9 @@ import asyncio
 import logging
 import time
 
-from .event_handler import EventHandler
+from rustplus.api.remote.events.event_handler import EventHandler
 from .rustplus_proto import AppRequest, AppMessage
+from .events import ChatEvent, TeamEvent, EntityEvent, ProtobufEvent
 from .rustws import RustWebsocket, CONNECTED, PENDING_CONNECTION
 from .token_bucket import RateLimiter
 from .expo_bundle_handler import MagicValueGrabber
@@ -14,7 +15,7 @@ from ...exceptions import (
     ResponseNotReceivedError,
     RequestError,
 )
-from ...utils import RegisteredListener
+from ..remote.events import RegisteredListener
 
 
 class RustRemote:
@@ -171,16 +172,3 @@ class RustRemote:
             raise RequestError(response.response.error.error)
 
         return response
-
-    def remove_listener(self, listener: RegisteredListener) -> bool:
-
-        if self.event_handler.has_event(listener):
-            self.event_handler.remove_event(listener)
-            return True
-
-        elif self.use_commands:
-            if self.command_handler.has_command(listener):
-                self.command_handler.remove_command(listener)
-                return True
-
-        return False

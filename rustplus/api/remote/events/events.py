@@ -1,8 +1,9 @@
 from typing import List
 
-from .rust_chat_message import RustChatMessage
-from .rust_team_info import RustTeamInfo
-from .rust_marker import RustMarker
+from ...structures import RustChatMessage
+from ...structures.rust_team_info import RustTeamInfo
+from ...structures.rust_marker import RustMarker
+from .handler_list import HandlerList, EntityHandlerList
 
 
 class Item:
@@ -25,6 +26,9 @@ class Item:
 
 
 class TeamEvent:
+
+    handlers = HandlerList()
+
     def __init__(self, app_message) -> None:
         self._player_id: int = app_message.broadcast.teamChanged.playerId
         self._team_info = RustTeamInfo(app_message.broadcast.teamChanged.teamInfo)
@@ -39,6 +43,9 @@ class TeamEvent:
 
 
 class ChatEvent:
+
+    handlers = HandlerList()
+
     def __init__(self, app_message) -> None:
         self._message = RustChatMessage(app_message.broadcast.teamMessage.message)
 
@@ -48,6 +55,9 @@ class ChatEvent:
 
 
 class EntityEvent:
+
+    handlers = EntityHandlerList()
+
     def __init__(self, app_message, entity_type) -> None:
         self._type = int(entity_type)
         self._entity_id: int = app_message.broadcast.entityChanged.entityId
@@ -105,3 +115,15 @@ class MarkerEvent:
     @property
     def is_new(self) -> bool:
         return self._is_new
+
+
+class ProtobufEvent:
+
+    handlers = HandlerList()
+
+    def __init__(self, byte_data) -> None:
+        self._byte_data = byte_data
+
+    @property
+    def byte_data(self) -> bytes:
+        return self._byte_data

@@ -9,7 +9,14 @@ from .remote import RustRemote, HeartBeat, MapEventListener
 from ..commands import CommandOptions, CommandHandler
 from ..commands.command_data import CommandData
 from ..exceptions import *
-from ..utils import RegisteredListener, deprecated
+from .remote.events import (
+    RegisteredListener,
+    EntityEvent,
+    TeamEvent,
+    ChatEvent,
+    ProtobufEvent,
+)
+from ..utils import deprecated
 from ..conversation import ConversationFactory
 
 
@@ -216,7 +223,7 @@ class BaseRustSocket:
         self.remote.ratelimiter.reset()
         self.remote.conversation_factory = ConversationFactory(self)
         # remove entity events
-        self.remote.event_handler.clear_entity_events()
+        EntityEvent.handlers.unregister_all()
         # reset marker listener
         self.marker_listener.persistent_ids.clear()
         self.marker_listener.highest_id = 0
@@ -284,7 +291,7 @@ class BaseRustSocket:
 
         data = (coro, asyncio.get_event_loop_policy().get_event_loop())
         listener = RegisteredListener("team_changed", data)
-        self.remote.event_handler.register_event(listener)
+        TeamEvent.handlers.register(listener)
         return listener
 
     def chat_event(self, coro) -> RegisteredListener:
@@ -300,9 +307,7 @@ class BaseRustSocket:
 
         data = (coro, asyncio.get_event_loop_policy().get_event_loop())
         listener = RegisteredListener("chat_message", data)
-
-        self.remote.event_handler.register_event(listener)
-
+        ChatEvent.handlers.register(listener)
         return listener
 
     def entity_event(self, eid):
@@ -343,7 +348,7 @@ class BaseRustSocket:
                 if entity_info.response.HasField("error"):
                     raise SmartDeviceRegistrationError("Not Found")
 
-                self.remote.event_handler.register_event(
+                EntityEvent.handlers.register(
                     RegisteredListener(
                         eid, (coro, loop, entity_info.response.entityInfo.type)
                     )
@@ -353,7 +358,7 @@ class BaseRustSocket:
             future = asyncio.run_coroutine_threadsafe(get_entity(self, eid), loop)
             future.add_done_callback(entity_event_callback)
 
-            return RegisteredListener(eid, (coro))
+            return RegisteredListener(eid, (coro, loop))
 
         return wrap_func
 
@@ -397,7 +402,7 @@ class BaseRustSocket:
 
         data = (coro, asyncio.get_event_loop_policy().get_event_loop())
         listener = RegisteredListener("protobuf_received", data)
-        self.remote.event_handler.register_event(listener)
+        ProtobufEvent.handlers.register(listener)
         return listener
 
     def remove_listener(self, listener) -> bool:
@@ -406,11 +411,26 @@ class BaseRustSocket:
 
         :return: Success of removal. True = Removed. False = Not Removed
         """
-
         if isinstance(listener, RegisteredListener):
             if listener.listener_id == "map_marker":
                 return self.marker_listener.remove_listener(listener)
-            return self.remote.remove_listener(listener)
+
+            if ChatEvent.handlers.has(listener):
+                ChatEvent.handlers.unregister(listener)
+                return True
+
+            if TeamEvent.handlers.has(listener):
+                TeamEvent.handlers.unregister(listener)
+                return True
+
+            if EntityEvent.handlers.has(listener):
+                EntityEvent.handlers.unregister(listener)
+                return True
+
+            if ProtobufEvent.handlers.has(listener):
+                ProtobufEvent.handlers.unregister(listener)
+                return True
+
         return False
 
     @staticmethod
