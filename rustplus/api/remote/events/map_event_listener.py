@@ -42,7 +42,7 @@ class MapEventListener:
             try:
 
                 future = asyncio.run_coroutine_threadsafe(
-                    self.api.get_markers(), EventLoopManager.get_loop()
+                    self.api.get_markers(), EventLoopManager.get_loop(self.api.server_id)
                 )
                 new_highest_id = 0
                 for marker in future.result():
@@ -80,7 +80,7 @@ class MapEventListener:
     def call_event(self, marker, is_new) -> None:
         for listener in self.listeners:
             asyncio.run_coroutine_threadsafe(
-                listener.get_coro()(MarkerEvent(marker, is_new)), EventLoopManager.get_loop()
+                listener.get_coro()(MarkerEvent(marker, is_new)), EventLoopManager.get_loop(self.api.server_id)
             ).result()
 
 

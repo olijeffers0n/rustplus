@@ -50,7 +50,7 @@ class RustRemote:
             self.use_commands = False
         else:
             self.use_commands = True
-            self.command_handler = CommandHandler(self.command_options)
+            self.command_handler = CommandHandler(self.command_options, api)
 
         self.event_handler = EventHandler()
 

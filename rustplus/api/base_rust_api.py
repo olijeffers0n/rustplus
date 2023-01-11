@@ -114,10 +114,9 @@ class BaseRustSocket:
 
         :return: None
         """
-        if self.event_loop is None:
-            EventLoopManager._loop = asyncio.get_event_loop()
-        else:
-            EventLoopManager._loop = self.event_loop
+        EventLoopManager.set_loop(self.event_loop if self.event_loop is not None else asyncio.get_event_loop(),
+                                  self.server_id)
+
         try:
             if self.remote.ws is None:
                 await self.remote.connect(
@@ -215,7 +214,7 @@ class BaseRustSocket:
                 self.remote.command_handler.command_options = command_options
             else:
                 self.remote.use_commands = True
-                self.remote.command_handler = CommandHandler(self.command_options)
+                self.remote.command_handler = CommandHandler(self.command_options, self)
 
         self.raise_ratelimit_exception = raise_ratelimit_exception
 
@@ -354,7 +353,7 @@ class BaseRustSocket:
                     ), self.server_id
                 )
 
-            future = asyncio.run_coroutine_threadsafe(get_entity(self, eid), EventLoopManager.get_loop())
+            future = asyncio.run_coroutine_threadsafe(get_entity(self, eid), EventLoopManager.get_loop(self.server_id))
             future.add_done_callback(entity_event_callback)
 
             return RegisteredListener(eid, coro)

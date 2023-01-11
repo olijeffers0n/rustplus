@@ -163,7 +163,7 @@ class RustWebsocket(websocket.WebSocket):
                         f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} [RustPlus.py] Connection interrupted, Retrying"
                     )
                     asyncio.run_coroutine_threadsafe(
-                        self.connect(ignore_open_value=True), EventLoopManager.get_loop()
+                        self.connect(ignore_open_value=True), EventLoopManager.get_loop(self.server_id)
                     ).result()
                     continue
                 return

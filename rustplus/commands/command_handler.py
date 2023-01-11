@@ -10,9 +10,10 @@ from ..api.remote.events import RegisteredListener, EventLoopManager
 
 
 class CommandHandler:
-    def __init__(self, command_options: CommandOptions) -> None:
+    def __init__(self, command_options: CommandOptions, api) -> None:
         self.command_options = command_options
         self.commands = {}
+        self.api = api
 
     def register_command(self, data: CommandData) -> None:
 
@@ -40,7 +41,7 @@ class CommandHandler:
             data = self.commands[command]
 
             self._schedule_event(
-                EventLoopManager.get_loop(),
+                EventLoopManager.get_loop(self.api.server_id),
                 data.coro,
                 Command(
                     message.name,
@@ -57,7 +58,7 @@ class CommandHandler:
 
                 if command in data.aliases or data.callable_func(command):
                     self._schedule_event(
-                        EventLoopManager.get_loop(),
+                        EventLoopManager.get_loop(self.api.server_id),
                         data.coro,
                         Command(
                             message.name,
