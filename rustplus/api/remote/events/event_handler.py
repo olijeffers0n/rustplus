@@ -4,6 +4,7 @@ from typing import Set
 
 from .events import EntityEvent, TeamEvent, ChatEvent, ProtobufEvent
 from .registered_listener import RegisteredListener
+from .event_loop_manager import EventLoopManager
 
 
 class EventHandler:
@@ -15,9 +16,9 @@ class EventHandler:
         future: Future = asyncio.run_coroutine_threadsafe(coro(arg), loop)
         future.add_done_callback(callback)
 
-    def run_entity_event(self, name, app_message) -> None:
+    def run_entity_event(self, name, app_message, server_id) -> None:
 
-        handlers: Set[RegisteredListener] = EntityEvent.handlers.get_handlers().get(
+        handlers: Set[RegisteredListener] = EntityEvent.handlers.get_handlers(server_id).get(
             str(name)
         )
 
@@ -25,30 +26,30 @@ class EventHandler:
             return
 
         for handler in handlers.copy():
-            coro, loop, event_type = handler.data
+            coro, event_type = handler.data
 
-            self._schedule_event(loop, coro, EntityEvent(app_message, event_type))
+            self._schedule_event(EventLoopManager.get_loop(), coro, EntityEvent(app_message, event_type))
 
-    def run_team_event(self, app_message) -> None:
+    def run_team_event(self, app_message, server_id) -> None:
 
-        handlers: Set[RegisteredListener] = TeamEvent.handlers.get_handlers()
+        handlers: Set[RegisteredListener] = TeamEvent.handlers.get_handlers(server_id)
         for handler in handlers.copy():
-            coro, loop = handler.data
+            coro = handler.data
 
-            self._schedule_event(loop, coro, TeamEvent(app_message))
+            self._schedule_event(EventLoopManager.get_loop(), coro, TeamEvent(app_message))
 
-    def run_chat_event(self, app_message) -> None:
+    def run_chat_event(self, app_message, server_id) -> None:
 
-        handlers: Set[RegisteredListener] = ChatEvent.handlers.get_handlers()
+        handlers: Set[RegisteredListener] = ChatEvent.handlers.get_handlers(server_id)
         for handler in handlers.copy():
-            coro, loop = handler.data
+            coro = handler.data
 
-            self._schedule_event(loop, coro, ChatEvent(app_message))
+            self._schedule_event(EventLoopManager.get_loop(), coro, ChatEvent(app_message))
 
-    def run_proto_event(self, byte_data: bytes) -> None:
+    def run_proto_event(self, byte_data: bytes, server_id) -> None:
 
-        handlers: Set[RegisteredListener] = ProtobufEvent.handlers.get_handlers()
+        handlers: Set[RegisteredListener] = ProtobufEvent.handlers.get_handlers(server_id)
         for handler in handlers.copy():
-            coro, loop = handler.data
+            coro = handler.data
 
-            self._schedule_event(loop, coro, ProtobufEvent(byte_data))
+            self._schedule_event(EventLoopManager.get_loop(), coro, ProtobufEvent(byte_data))

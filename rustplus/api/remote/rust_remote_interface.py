@@ -2,12 +2,12 @@ import asyncio
 import logging
 import time
 
-from rustplus.api.remote.events.event_handler import EventHandler
+from .events.event_handler import EventHandler
 from .rustplus_proto import AppRequest, AppMessage
-from .events import ChatEvent, TeamEvent, EntityEvent, ProtobufEvent
 from .rustws import RustWebsocket, CONNECTED, PENDING_CONNECTION
 from .token_bucket import RateLimiter
 from .expo_bundle_handler import MagicValueGrabber
+from ...utils import ServerID
 from ...conversation import ConversationFactory
 from ...commands import CommandHandler
 from ...exceptions import (
@@ -15,26 +15,22 @@ from ...exceptions import (
     ResponseNotReceivedError,
     RequestError,
 )
-from ..remote.events import RegisteredListener
 
 
 class RustRemote:
     def __init__(
         self,
-        ip,
-        port,
+        server_id: ServerID,
         command_options,
         ratelimit_limit,
         ratelimit_refill,
         websocket_length=600,
         use_proxy: bool = False,
         api=None,
-        loop=None,
         use_test_server: bool = False,
     ) -> None:
 
-        self.ip = ip
-        self.port = port
+        self.server_id = server_id
         self.command_options = command_options
         self.ratelimit_limit = ratelimit_limit
         self.ratelimit_refill = ratelimit_refill
@@ -60,21 +56,18 @@ class RustRemote:
 
         self.magic_value = MagicValueGrabber.get_magic_value()
         self.conversation_factory = ConversationFactory(api)
-        self.loop = loop
         self.use_test_server = use_test_server
 
     async def connect(self, retries, delay, on_failure=None) -> None:
 
         self.ws = RustWebsocket(
-            ip=self.ip,
-            port=self.port,
+            server_id=self.server_id,
             remote=self,
             use_proxy=self.use_proxy,
             magic_value=self.magic_value,
             use_test_server=self.use_test_server,
             on_failure=on_failure,
             delay=delay,
-            loop=asyncio.get_event_loop_policy().get_event_loop(),
         )
         await self.ws.connect(retries=retries)
 

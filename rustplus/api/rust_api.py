@@ -1,3 +1,4 @@
+import asyncio
 import requests
 from typing import List
 from PIL import Image
@@ -45,6 +46,7 @@ class RustSocket(BaseRustSocket):
         ratelimit_refill: int = 3,
         use_proxy: bool = False,
         use_test_server: bool = False,
+        event_loop: asyncio.AbstractEventLoop = None,
     ) -> None:
         super().__init__(
             ip=ip,
@@ -58,6 +60,7 @@ class RustSocket(BaseRustSocket):
             heartbeat=HeartBeat(self),
             use_proxy=use_proxy,
             use_test_server=use_test_server,
+            event_loop=event_loop,
         )
 
     async def get_time(self) -> RustTime:

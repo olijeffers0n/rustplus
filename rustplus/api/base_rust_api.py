@@ -3,6 +3,7 @@ from asyncio.futures import Future
 from typing import List, Callable, Union
 from PIL import Image
 
+from .remote.events.event_loop_manager import EventLoopManager
 from .structures import *
 from .remote.rustplus_proto import AppEmpty, AppRequest
 from .remote import RustRemote, HeartBeat, MapEventListener
@@ -18,6 +19,7 @@ from .remote.events import (
 )
 from ..utils import deprecated
 from ..conversation import ConversationFactory
+from ..utils import ServerID
 
 
 class BaseRustSocket:
@@ -34,6 +36,7 @@ class BaseRustSocket:
         heartbeat: HeartBeat = None,
         use_proxy: bool = False,
         use_test_server: bool = False,
+        event_loop: asyncio.AbstractEventLoop = None,
     ) -> None:
 
         if ip is None:
@@ -43,25 +46,23 @@ class BaseRustSocket:
         if player_token is None:
             raise ValueError("PlayerToken cannot be None")
 
-        self.ip = ip
-        self.port = port
         self.steam_id = steam_id
         self.player_token = player_token
+        self.server_id = ServerID(ip, port, steam_id, player_token)
         self.seq = 1
         self.command_options = command_options
         self.raise_ratelimit_exception = raise_ratelimit_exception
         self.marker_listener = MapEventListener(self)
         self.use_test_server = use_test_server
+        self.event_loop = event_loop
 
         self.remote = RustRemote(
-            ip=self.ip,
-            port=self.port,
+            server_id=self.server_id,
             command_options=command_options,
             ratelimit_limit=ratelimit_limit,
             ratelimit_refill=ratelimit_refill,
             use_proxy=use_proxy,
             api=self,
-            loop=asyncio.get_event_loop_policy().get_event_loop(),
             use_test_server=use_test_server,
         )
 
@@ -113,6 +114,10 @@ class BaseRustSocket:
 
         :return: None
         """
+        if self.event_loop is None:
+            EventLoopManager._loop = asyncio.get_event_loop()
+        else:
+            EventLoopManager._loop = self.event_loop
         try:
             if self.remote.ws is None:
                 await self.remote.connect(
@@ -196,8 +201,7 @@ class BaseRustSocket:
         await self.disconnect()
 
         # Reset basic credentials
-        self.ip = ip
-        self.port = port
+        self.server_id = ServerID(ip, port, steam_id, player_token)
         self.steam_id = steam_id
         self.player_token = player_token
         self.seq = 1
@@ -252,12 +256,11 @@ class BaseRustSocket:
         if asyncio.iscoroutinefunction(coro):
             cmd_data = CommandData(
                 coro,
-                asyncio.get_event_loop_policy().get_event_loop(),
                 aliases,
                 alias_func,
             )
             self.remote.command_handler.register_command(cmd_data)
-            return RegisteredListener(coro.__name__, (cmd_data.coro, cmd_data.loop))
+            return RegisteredListener(coro.__name__, cmd_data.coro)
 
         def wrap_func(coro):
 
@@ -269,12 +272,11 @@ class BaseRustSocket:
 
             cmd_data = CommandData(
                 coro,
-                asyncio.get_event_loop_policy().get_event_loop(),
                 aliases,
                 alias_func,
             )
             self.remote.command_handler.register_command(cmd_data)
-            return RegisteredListener(coro.__name__, (cmd_data.coro, cmd_data.loop))
+            return RegisteredListener(coro.__name__, cmd_data.coro)
 
         return wrap_func
 
@@ -289,9 +291,8 @@ class BaseRustSocket:
         if isinstance(coro, RegisteredListener):
             coro = coro.get_coro()
 
-        data = (coro, asyncio.get_event_loop_policy().get_event_loop())
-        listener = RegisteredListener("team_changed", data)
-        TeamEvent.handlers.register(listener)
+        listener = RegisteredListener("team_changed", coro)
+        TeamEvent.handlers.register(listener, self.server_id)
         return listener
 
     def chat_event(self, coro) -> RegisteredListener:
@@ -305,9 +306,8 @@ class BaseRustSocket:
         if isinstance(coro, RegisteredListener):
             coro = coro.get_coro()
 
-        data = (coro, asyncio.get_event_loop_policy().get_event_loop())
-        listener = RegisteredListener("chat_message", data)
-        ChatEvent.handlers.register(listener)
+        listener = RegisteredListener("chat_message", coro)
+        ChatEvent.handlers.register(listener, self.server_id)
         return listener
 
     def entity_event(self, eid):
@@ -350,15 +350,14 @@ class BaseRustSocket:
 
                 EntityEvent.handlers.register(
                     RegisteredListener(
-                        eid, (coro, loop, entity_info.response.entityInfo.type)
-                    )
+                        eid, (coro, entity_info.response.entityInfo.type)
+                    ), self.server_id
                 )
 
-            loop = asyncio.get_event_loop_policy().get_event_loop()
-            future = asyncio.run_coroutine_threadsafe(get_entity(self, eid), loop)
+            future = asyncio.run_coroutine_threadsafe(get_entity(self, eid), EventLoopManager.get_loop())
             future.add_done_callback(entity_event_callback)
 
-            return RegisteredListener(eid, (coro, loop))
+            return RegisteredListener(eid, coro)
 
         return wrap_func
 
@@ -384,8 +383,7 @@ class BaseRustSocket:
         if not self.marker_listener:
             raise ValueError("Marker listener not started")
 
-        data = (coro, asyncio.get_event_loop_policy().get_event_loop())
-        listener = RegisteredListener("map_marker", data)
+        listener = RegisteredListener("map_marker", coro)
         self.marker_listener.add_listener(listener)
         return listener
 
@@ -400,9 +398,8 @@ class BaseRustSocket:
         if isinstance(coro, RegisteredListener):
             coro = coro.get_coro()
 
-        data = (coro, asyncio.get_event_loop_policy().get_event_loop())
-        listener = RegisteredListener("protobuf_received", data)
-        ProtobufEvent.handlers.register(listener)
+        listener = RegisteredListener("protobuf_received", coro)
+        ProtobufEvent.handlers.register(listener, self.server_id)
         return listener
 
     def remove_listener(self, listener) -> bool:
@@ -415,20 +412,20 @@ class BaseRustSocket:
             if listener.listener_id == "map_marker":
                 return self.marker_listener.remove_listener(listener)
 
-            if ChatEvent.handlers.has(listener):
-                ChatEvent.handlers.unregister(listener)
+            if ChatEvent.handlers.has(listener, self.server_id):
+                ChatEvent.handlers.unregister(listener, self.server_id)
                 return True
 
-            if TeamEvent.handlers.has(listener):
-                TeamEvent.handlers.unregister(listener)
+            if TeamEvent.handlers.has(listener, self.server_id):
+                TeamEvent.handlers.unregister(listener, self.server_id)
                 return True
 
-            if EntityEvent.handlers.has(listener):
-                EntityEvent.handlers.unregister(listener)
+            if EntityEvent.handlers.has(listener, self.server_id):
+                EntityEvent.handlers.unregister(listener, self.server_id)
                 return True
 
-            if ProtobufEvent.handlers.has(listener):
-                ProtobufEvent.handlers.unregister(listener)
+            if ProtobufEvent.handlers.has(listener, self.server_id):
+                ProtobufEvent.handlers.unregister(listener, self.server_id)
                 return True
 
         return False

@@ -3,5 +3,5 @@ from .rustws import RustWebsocket
 from .token_bucket import RateLimiter
 from .rust_remote_interface import RustRemote
 from .heartbeat import HeartBeat
-from rustplus.api.remote.events.event_handler import EventHandler
-from .map_event_listener import MapEventListener
+from ..remote.events.event_handler import EventHandler
+from ..remote.events.map_event_listener import MapEventListener

@@ -2,9 +2,8 @@ from typing import Callable, List
 
 
 class CommandData:
-    def __init__(self, coro, loop, aliases, callable_func) -> None:
+    def __init__(self, coro, aliases, callable_func) -> None:
         self.coro = coro
-        self.loop = loop
         self._aliases = aliases
         self._callable_func = callable_func
 

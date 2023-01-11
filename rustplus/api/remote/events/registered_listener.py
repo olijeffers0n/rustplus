@@ -8,8 +8,16 @@ class RegisteredListener:
 
     def __eq__(self, other):
         if isinstance(other, RegisteredListener):
-            return self.listener_id == other.listener_id and self.data[0] == other.data[0]
+
+            coro = self.data
+            if isinstance(self.data, tuple):
+                coro = self.data[0]
+
+            return self.listener_id == other.listener_id and coro == coro
         return False
 
     def __hash__(self):
-        return hash((self.listener_id, self.data[0]))
+        coro = self.data
+        if isinstance(self.data, tuple):
+            coro = self.data[0]
+        return hash((self.listener_id, coro))

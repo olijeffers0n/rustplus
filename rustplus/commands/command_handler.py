@@ -6,7 +6,7 @@ from . import Command, CommandTime
 from ..api.structures import RustChatMessage
 from ..commands.command_options import CommandOptions
 from ..commands.command_data import CommandData
-from ..api.remote.events import RegisteredListener
+from ..api.remote.events import RegisteredListener, EventLoopManager
 
 
 class CommandHandler:
@@ -32,7 +32,7 @@ class CommandHandler:
     def run_command(self, message: RustChatMessage, prefix) -> None:
 
         if prefix == self.command_options.prefix:
-            command = message.message.split(" ")[0][len(prefix) :]
+            command = message.message.split(" ")[0][len(prefix):]
         else:
             command = prefix
 
@@ -40,7 +40,7 @@ class CommandHandler:
             data = self.commands[command]
 
             self._schedule_event(
-                data.loop,
+                EventLoopManager.get_loop(),
                 data.coro,
                 Command(
                     message.name,
@@ -57,7 +57,7 @@ class CommandHandler:
 
                 if command in data.aliases or data.callable_func(command):
                     self._schedule_event(
-                        data.loop,
+                        EventLoopManager.get_loop(),
                         data.coro,
                         Command(
                             message.name,

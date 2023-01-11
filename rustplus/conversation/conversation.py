@@ -1,6 +1,7 @@
 import asyncio
 from typing import List
 from .conversation_prompt import ConversationPrompt
+from ..api.remote.events import EventLoopManager
 
 
 class Conversation:
@@ -24,7 +25,6 @@ class Conversation:
         self._answers = []
         self._seq = 0
         self._api = api
-        self._loop = None
         self._register = register
 
     def add_prompt(self, prompt: ConversationPrompt) -> None:
@@ -52,11 +52,10 @@ class Conversation:
 
     async def start(self) -> None:
         self._register(self._target, self)
-        self._loop = asyncio.get_event_loop_policy().get_event_loop()
         await self.send_prompt(await self._prompts[0].prompt())
 
     def run_coro(self, coro, args):
-        return asyncio.run_coroutine_threadsafe(coro(*args), self._loop).result()
+        return asyncio.run_coroutine_threadsafe(coro(*args), EventLoopManager.get_loop()).result()
 
     def get_answers(self) -> List[str]:
         return self._answers

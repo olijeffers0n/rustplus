@@ -2,7 +2,8 @@ import asyncio
 import threading
 import time
 
-from ..remote.events import MarkerEvent
+from .event_loop_manager import EventLoopManager
+from .events import MarkerEvent
 
 
 class MapEventListener:
@@ -10,7 +11,6 @@ class MapEventListener:
         self.api = api
         self.thread = None
         self.gc = None
-        self.loop = asyncio.get_event_loop_policy().get_event_loop()
         self._iter_delay = 5
         self.persistent_ids = {}
         self.highest_id = 0
@@ -42,7 +42,7 @@ class MapEventListener:
             try:
 
                 future = asyncio.run_coroutine_threadsafe(
-                    self.api.get_markers(), self.loop
+                    self.api.get_markers(), EventLoopManager.get_loop()
                 )
                 new_highest_id = 0
                 for marker in future.result():
@@ -80,7 +80,7 @@ class MapEventListener:
     def call_event(self, marker, is_new) -> None:
         for listener in self.listeners:
             asyncio.run_coroutine_threadsafe(
-                listener.get_coro()(MarkerEvent(marker, is_new)), self.loop
+                listener.get_coro()(MarkerEvent(marker, is_new)), EventLoopManager.get_loop()
             ).result()
 
 

@@ -7,10 +7,12 @@ from threading import Thread
 from typing import Optional
 import websocket
 
+from .events import EventLoopManager
 from .rustplus_proto import AppMessage, AppRequest
 from ..structures import RustChatMessage
 from ...exceptions import ClientNotConnectedError
 from ...conversation import Conversation
+from ...utils import ServerID
 
 CONNECTED = 1
 PENDING_CONNECTION = 2
@@ -21,19 +23,16 @@ CLOSED = 3
 class RustWebsocket(websocket.WebSocket):
     def __init__(
         self,
-        ip,
-        port,
+        server_id: ServerID,
         remote,
         use_proxy,
         magic_value,
         use_test_server,
         on_failure,
         delay,
-        loop,
     ):
 
-        self.ip = ip
-        self.port = port
+        self.server_id = server_id
         self.thread: Thread = None
         self.connection_status = CLOSED
         self.use_proxy = use_proxy
@@ -45,7 +44,6 @@ class RustWebsocket(websocket.WebSocket):
         self.outgoing_conversation_messages = []
         self.on_failure = on_failure
         self.delay = delay
-        self.loop = loop
 
         super().__init__()
 
@@ -69,15 +67,15 @@ class RustWebsocket(websocket.WebSocket):
                 try:
                     address = (
                         (
-                            f"wss://{self.ip}"
-                            if self.port is None
-                            else f"wss://{self.ip}:{self.port}"
+                            f"wss://{self.server_id.ip}"
+                            if self.server_id.port is None
+                            else f"wss://{self.server_id.ip}:{self.server_id.port}"
                         )
                         if self.use_test_server
                         else (
-                            f"wss://companion-rust.facepunch.com/game/{self.ip}/{self.port}"
+                            f"wss://companion-rust.facepunch.com/game/{self.server_id.ip}/{self.server_id.port}"
                             if self.use_proxy
-                            else f"ws://{self.ip}:{self.port}"
+                            else f"ws://{self.server_id.ip}:{self.server_id.port}"
                         )
                     )
                     address += f"?v={str(self.magic_value)}"
@@ -151,7 +149,7 @@ class RustWebsocket(websocket.WebSocket):
             try:
                 data = self.recv()
 
-                self.remote.event_handler.run_proto_event(data)
+                self.remote.event_handler.run_proto_event(data, self.server_id)
 
                 app_message = AppMessage()
                 if self.use_test_server:
@@ -165,7 +163,7 @@ class RustWebsocket(websocket.WebSocket):
                         f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} [RustPlus.py] Connection interrupted, Retrying"
                     )
                     asyncio.run_coroutine_threadsafe(
-                        self.connect(ignore_open_value=True), self.loop
+                        self.connect(ignore_open_value=True), EventLoopManager.get_loop()
                     ).result()
                     continue
                 return
@@ -196,12 +194,12 @@ class RustWebsocket(websocket.WebSocket):
             # This means that an entity has changed state
 
             self.remote.event_handler.run_entity_event(
-                app_message.broadcast.entityChanged.entityId, app_message
+                app_message.broadcast.entityChanged.entityId, app_message, self.server_id
             )
 
         elif self.is_team_broadcast(app_message):
             # This means that the team of the current player has changed
-            self.remote.event_handler.run_team_event(app_message)
+            self.remote.event_handler.run_team_event(app_message, self.server_id)
 
         elif self.is_message(app_message):
             # This means that a message has been sent to the team chat
@@ -241,7 +239,7 @@ class RustWebsocket(websocket.WebSocket):
 
                 # Conversation API end
 
-            self.remote.event_handler.run_chat_event(app_message)
+            self.remote.event_handler.run_chat_event(app_message, self.server_id)
 
         else:
             # This means that it wasn't sent by the server and is a message from the server in response to an action
