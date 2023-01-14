@@ -166,7 +166,7 @@ class RustSocket(BaseRustSocket):
         add_vending_machines: bool = False,
         override_images: dict = None,
         add_grid: bool = False,
-    ) -> Image:
+    ) -> Image.Image:
 
         if override_images is None:
             override_images = {}
