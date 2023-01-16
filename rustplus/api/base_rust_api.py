@@ -6,7 +6,7 @@ from PIL import Image
 from .remote.events.event_loop_manager import EventLoopManager
 from .structures import *
 from .remote.rustplus_proto import AppEmpty, AppRequest
-from .remote import RustRemote, HeartBeat, MapEventListener
+from .remote import RustRemote, HeartBeat, MapEventListener, ServerChecker
 from ..commands import CommandOptions, CommandHandler
 from ..commands.command_data import CommandData
 from ..exceptions import *
@@ -114,6 +114,10 @@ class BaseRustSocket:
 
         :return: None
         """
+
+        if not self.use_test_server:
+            ServerChecker(self.server_id.ip, self.server_id.port).run()
+
         EventLoopManager.set_loop(self.event_loop if self.event_loop is not None else asyncio.get_event_loop(),
                                   self.server_id)
 
