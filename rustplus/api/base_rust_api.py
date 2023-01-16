@@ -6,7 +6,7 @@ from PIL import Image
 from .remote.events.event_loop_manager import EventLoopManager
 from .structures import *
 from .remote.rustplus_proto import AppEmpty, AppRequest
-from .remote import RustRemote, HeartBeat, MapEventListener, ServerChecker
+from .remote import RustRemote, HeartBeat, MapEventListener, ServerChecker, RateLimiter
 from ..commands import CommandOptions, CommandHandler
 from ..commands.command_data import CommandData
 from ..exceptions import *
@@ -37,6 +37,7 @@ class BaseRustSocket:
         use_proxy: bool = False,
         use_test_server: bool = False,
         event_loop: asyncio.AbstractEventLoop = None,
+        rate_limiter: RateLimiter = None,
     ) -> None:
 
         if ip is None:
@@ -52,6 +53,8 @@ class BaseRustSocket:
         self.seq = 1
         self.command_options = command_options
         self.raise_ratelimit_exception = raise_ratelimit_exception
+        self.ratelimit_limit = ratelimit_limit
+        self.ratelimit_refill = ratelimit_refill
         self.marker_listener = MapEventListener(self)
         self.use_test_server = use_test_server
         self.event_loop = event_loop
@@ -64,6 +67,7 @@ class BaseRustSocket:
             use_proxy=use_proxy,
             api=self,
             use_test_server=use_test_server,
+            rate_limiter=rate_limiter,
         )
 
         if heartbeat is None:
@@ -79,17 +83,18 @@ class BaseRustSocket:
         """
         while True:
 
-            if self.remote.ratelimiter.can_consume(amount):
-                self.remote.ratelimiter.consume(amount)
-                self.heartbeat.reset_rhythm()
-                return
+            if self.remote.ratelimiter.can_consume(self.server_id, amount):
+                self.remote.ratelimiter.consume(self.server_id, amount)
+                break
 
             if self.raise_ratelimit_exception:
                 raise RateLimitError("Out of tokens")
 
             await asyncio.sleep(
-                self.remote.ratelimiter.get_estimated_delay_time(amount)
+                self.remote.ratelimiter.get_estimated_delay_time(self.server_id, amount)
             )
+
+        self.heartbeat.reset_rhythm()
 
     def _generate_protobuf(self) -> AppRequest:
         """
@@ -114,12 +119,22 @@ class BaseRustSocket:
 
         :return: None
         """
+        EventLoopManager.set_loop(
+            self.event_loop
+            if self.event_loop is not None
+            else asyncio.get_event_loop(),
+            self.server_id,
+        )
 
         if not self.use_test_server:
             ServerChecker(self.server_id.ip, self.server_id.port).run()
 
-        EventLoopManager.set_loop(self.event_loop if self.event_loop is not None else asyncio.get_event_loop(),
-                                  self.server_id)
+        EventLoopManager.set_loop(
+            self.event_loop
+            if self.event_loop is not None
+            else asyncio.get_event_loop(),
+            self.server_id,
+        )
 
         try:
             if self.remote.ws is None:
@@ -227,7 +242,14 @@ class BaseRustSocket:
         self.remote.use_proxy = use_proxy
 
         # reset ratelimiter
-        self.remote.ratelimiter.reset()
+        self.remote.ratelimiter.remove(self.server_id)
+        self.remote.ratelimiter.add_socket(
+            self.server_id,
+            self.ratelimit_limit,
+            self.ratelimit_limit,
+            1,
+            self.ratelimit_refill,
+        )
         self.remote.conversation_factory = ConversationFactory(self)
         # remove entity events
         EntityEvent.handlers.unregister_all()
@@ -354,10 +376,13 @@ class BaseRustSocket:
                 EntityEvent.handlers.register(
                     RegisteredListener(
                         eid, (coro, entity_info.response.entityInfo.type)
-                    ), self.server_id
+                    ),
+                    self.server_id,
                 )
 
-            future = asyncio.run_coroutine_threadsafe(get_entity(self, eid), EventLoopManager.get_loop(self.server_id))
+            future = asyncio.run_coroutine_threadsafe(
+                get_entity(self, eid), EventLoopManager.get_loop(self.server_id)
+            )
             future.add_done_callback(entity_event_callback)
 
             return RegisteredListener(eid, coro)

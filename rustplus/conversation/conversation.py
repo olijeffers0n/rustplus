@@ -55,7 +55,9 @@ class Conversation:
         await self.send_prompt(await self._prompts[0].prompt())
 
     def run_coro(self, coro, args):
-        return asyncio.run_coroutine_threadsafe(coro(*args), EventLoopManager.get_loop(self._api.server_id)).result()
+        return asyncio.run_coroutine_threadsafe(
+            coro(*args), EventLoopManager.get_loop(self._api.server_id)
+        ).result()
 
     def get_answers(self) -> List[str]:
         return self._answers

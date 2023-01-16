@@ -5,7 +5,7 @@ import time
 from .events.event_handler import EventHandler
 from .rustplus_proto import AppRequest, AppMessage
 from .rustws import RustWebsocket, CONNECTED, PENDING_CONNECTION
-from .token_bucket import RateLimiter
+from .ratelimiter import RateLimiter
 from .expo_bundle_handler import MagicValueGrabber
 from ...utils import ServerID
 from ...conversation import ConversationFactory
@@ -28,6 +28,7 @@ class RustRemote:
         use_proxy: bool = False,
         api=None,
         use_test_server: bool = False,
+        rate_limiter: RateLimiter = None,
     ) -> None:
 
         self.server_id = server_id
@@ -35,8 +36,13 @@ class RustRemote:
         self.ratelimit_limit = ratelimit_limit
         self.ratelimit_refill = ratelimit_refill
         self.use_proxy = use_proxy
-        self.ratelimiter = RateLimiter(
-            ratelimit_limit, ratelimit_limit, 1, ratelimit_refill
+        if isinstance(rate_limiter, RateLimiter):
+            self.ratelimiter = rate_limiter
+        else:
+            self.ratelimiter = RateLimiter.default()
+
+        self.ratelimiter.add_socket(
+            api.server_id, ratelimit_limit, ratelimit_limit, 1, ratelimit_refill
         )
         self.ws = None
         self.websocket_length = websocket_length
@@ -140,23 +146,27 @@ class RustRemote:
 
             # Fully Refill the bucket
 
-            self.ratelimiter.last_consumed = time.time()
-            self.ratelimiter.bucket.current = 0
+            self.ratelimiter.socket_buckets.get(self.server_id).current = 0
 
-            while self.ratelimiter.bucket.current < self.ratelimiter.bucket.max:
+            while (
+                self.ratelimiter.socket_buckets.get(self.server_id).current
+                < self.ratelimiter.socket_buckets.get(self.server_id).max
+            ):
                 await asyncio.sleep(1)
-                self.ratelimiter.bucket.refresh()
+                self.ratelimiter.socket_buckets.get(self.server_id).refresh()
 
             # Reattempt the sending with a full bucket
             cost = self.ws.get_proto_cost(app_request)
 
             while True:
 
-                if self.ratelimiter.can_consume(cost):
-                    self.ratelimiter.consume(cost)
+                if self.ratelimiter.can_consume(self.server_id, cost):
+                    self.ratelimiter.consume(self.server_id, cost)
                     break
 
-                await asyncio.sleep(self.ratelimiter.get_estimated_delay_time(cost))
+                await asyncio.sleep(
+                    self.ratelimiter.get_estimated_delay_time(self.server_id, cost)
+                )
 
             await self.send_message(app_request)
             response = await self.get_response(seq, app_request)
