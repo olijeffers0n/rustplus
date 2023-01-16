@@ -132,6 +132,8 @@ class RustWebsocket(websocket.WebSocket):
         if self.connection_status == CLOSED:
             raise ClientNotConnectedError("Not Connected")
 
+        print(message)
+
         try:
             if self.use_test_server:
                 self.send(base64.b64encode(message.SerializeToString()))
@@ -156,6 +158,8 @@ class RustWebsocket(websocket.WebSocket):
                     app_message.ParseFromString(base64.b64decode(data))
                 else:
                     app_message.ParseFromString(data)
+
+                print(app_message)
 
             except Exception:
                 if self.connection_status == CONNECTED:
