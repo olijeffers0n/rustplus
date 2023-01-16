@@ -507,7 +507,7 @@ class BaseRustSocket:
         add_vending_machines: bool = False,
         override_images: dict = None,
         add_grid: bool = False,
-    ) -> Image:
+    ) -> Image.Image:
         """
         Gets an image of the map from the server with the specified additions
 
