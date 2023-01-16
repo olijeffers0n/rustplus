@@ -1,5 +1,4 @@
 class ServerID:
-
     def __init__(self, ip, port, player_id, player_token) -> None:
         self.ip = ip
         self.port = port
@@ -16,7 +15,9 @@ class ServerID:
         if not isinstance(o, ServerID):
             return False
 
-        return self.ip == o.ip and \
-            self.port == o.port and \
-            self.player_id == o.player_id and \
-            self.player_token == o.player_token
+        return (
+            self.ip == o.ip
+            and self.port == o.port
+            and self.player_id == o.player_id
+            and self.player_token == o.player_token
+        )

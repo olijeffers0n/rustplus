@@ -114,8 +114,12 @@ class BaseRustSocket:
 
         :return: None
         """
-        EventLoopManager.set_loop(self.event_loop if self.event_loop is not None else asyncio.get_event_loop(),
-                                  self.server_id)
+        EventLoopManager.set_loop(
+            self.event_loop
+            if self.event_loop is not None
+            else asyncio.get_event_loop(),
+            self.server_id,
+        )
 
         try:
             if self.remote.ws is None:
@@ -350,10 +354,13 @@ class BaseRustSocket:
                 EntityEvent.handlers.register(
                     RegisteredListener(
                         eid, (coro, entity_info.response.entityInfo.type)
-                    ), self.server_id
+                    ),
+                    self.server_id,
                 )
 
-            future = asyncio.run_coroutine_threadsafe(get_entity(self, eid), EventLoopManager.get_loop(self.server_id))
+            future = asyncio.run_coroutine_threadsafe(
+                get_entity(self, eid), EventLoopManager.get_loop(self.server_id)
+            )
             future.add_done_callback(entity_event_callback)
 
             return RegisteredListener(eid, coro)

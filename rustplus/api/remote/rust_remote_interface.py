@@ -5,7 +5,7 @@ import time
 from .events.event_handler import EventHandler
 from .rustplus_proto import AppRequest, AppMessage
 from .rustws import RustWebsocket, CONNECTED, PENDING_CONNECTION
-from .token_bucket import RateLimiter
+from .ratelimiter import RateLimiter
 from .expo_bundle_handler import MagicValueGrabber
 from ...utils import ServerID
 from ...conversation import ConversationFactory
@@ -140,7 +140,6 @@ class RustRemote:
 
             # Fully Refill the bucket
 
-            self.ratelimiter.last_consumed = time.time()
             self.ratelimiter.bucket.current = 0
 
             while self.ratelimiter.bucket.current < self.ratelimiter.bucket.max:

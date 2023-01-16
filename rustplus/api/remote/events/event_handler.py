@@ -18,9 +18,9 @@ class EventHandler:
 
     def run_entity_event(self, name, app_message, server_id) -> None:
 
-        handlers: Set[RegisteredListener] = EntityEvent.handlers.get_handlers(server_id).get(
-            str(name)
-        )
+        handlers: Set[RegisteredListener] = EntityEvent.handlers.get_handlers(
+            server_id
+        ).get(str(name))
 
         if handlers is None:
             return
@@ -28,7 +28,11 @@ class EventHandler:
         for handler in handlers.copy():
             coro, event_type = handler.data
 
-            self._schedule_event(EventLoopManager.get_loop(server_id), coro, EntityEvent(app_message, event_type))
+            self._schedule_event(
+                EventLoopManager.get_loop(server_id),
+                coro,
+                EntityEvent(app_message, event_type),
+            )
 
     def run_team_event(self, app_message, server_id) -> None:
 
@@ -36,7 +40,9 @@ class EventHandler:
         for handler in handlers.copy():
             coro = handler.data
 
-            self._schedule_event(EventLoopManager.get_loop(server_id), coro, TeamEvent(app_message))
+            self._schedule_event(
+                EventLoopManager.get_loop(server_id), coro, TeamEvent(app_message)
+            )
 
     def run_chat_event(self, app_message, server_id) -> None:
 
@@ -44,12 +50,18 @@ class EventHandler:
         for handler in handlers.copy():
             coro = handler.data
 
-            self._schedule_event(EventLoopManager.get_loop(server_id), coro, ChatEvent(app_message))
+            self._schedule_event(
+                EventLoopManager.get_loop(server_id), coro, ChatEvent(app_message)
+            )
 
     def run_proto_event(self, byte_data: bytes, server_id) -> None:
 
-        handlers: Set[RegisteredListener] = ProtobufEvent.handlers.get_handlers(server_id)
+        handlers: Set[RegisteredListener] = ProtobufEvent.handlers.get_handlers(
+            server_id
+        )
         for handler in handlers.copy():
             coro = handler.data
 
-            self._schedule_event(EventLoopManager.get_loop(server_id), coro, ProtobufEvent(byte_data))
+            self._schedule_event(
+                EventLoopManager.get_loop(server_id), coro, ProtobufEvent(byte_data)
+            )

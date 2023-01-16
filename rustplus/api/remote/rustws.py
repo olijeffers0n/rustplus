@@ -163,7 +163,8 @@ class RustWebsocket(websocket.WebSocket):
                         f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} [RustPlus.py] Connection interrupted, Retrying"
                     )
                     asyncio.run_coroutine_threadsafe(
-                        self.connect(ignore_open_value=True), EventLoopManager.get_loop(self.server_id)
+                        self.connect(ignore_open_value=True),
+                        EventLoopManager.get_loop(self.server_id),
                     ).result()
                     continue
                 return
@@ -194,7 +195,9 @@ class RustWebsocket(websocket.WebSocket):
             # This means that an entity has changed state
 
             self.remote.event_handler.run_entity_event(
-                app_message.broadcast.entityChanged.entityId, app_message, self.server_id
+                app_message.broadcast.entityChanged.entityId,
+                app_message,
+                self.server_id,
             )
 
         elif self.is_team_broadcast(app_message):

@@ -33,7 +33,7 @@ class CommandHandler:
     def run_command(self, message: RustChatMessage, prefix) -> None:
 
         if prefix == self.command_options.prefix:
-            command = message.message.split(" ")[0][len(prefix):]
+            command = message.message.split(" ")[0][len(prefix) :]
         else:
             command = prefix
 

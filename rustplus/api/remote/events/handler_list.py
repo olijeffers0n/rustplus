@@ -20,13 +20,17 @@ class HandlerList:
     def unregister_all(self) -> None:
         self._handlers.clear()
 
-    def get_handlers(self, server_id: ServerID) -> Dict[ServerID, Set[RegisteredListener]]:
+    def get_handlers(
+        self, server_id: ServerID
+    ) -> Dict[ServerID, Set[RegisteredListener]]:
         return self._handlers.get(server_id, set())
 
 
 class EntityHandlerList(HandlerList):
     def __init__(self) -> None:
-        self._handlers: Dict[ServerID, Dict[str, Set[RegisteredListener]]] = defaultdict(dict)
+        self._handlers: Dict[
+            ServerID, Dict[str, Set[RegisteredListener]]
+        ] = defaultdict(dict)
 
     def unregister(self, listener: RegisteredListener, server_id: ServerID) -> None:
         if listener.listener_id in self._handlers.get(server_id):
@@ -43,7 +47,9 @@ class EntityHandlerList(HandlerList):
         self._handlers.get(server_id).get(listener.listener_id).add(listener)
 
     def has(self, listener: RegisteredListener, server_id: ServerID) -> bool:
-        if server_id in self._handlers and listener.listener_id in self._handlers.get(server_id):
+        if server_id in self._handlers and listener.listener_id in self._handlers.get(
+            server_id
+        ):
             return listener in self._handlers.get(server_id).get(listener.listener_id)
 
         return False

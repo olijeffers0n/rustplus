@@ -8,7 +8,10 @@ class EventLoopManager:
 
     @staticmethod
     def get_loop(server_id: ServerID) -> asyncio.AbstractEventLoop:
-        if EventLoopManager._loop is None or EventLoopManager._loop.get(server_id) is None:
+        if (
+            EventLoopManager._loop is None
+            or EventLoopManager._loop.get(server_id) is None
+        ):
             raise RuntimeError("Event loop is not set")
 
         if EventLoopManager._loop.get(server_id).is_closed():
