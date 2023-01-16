@@ -6,85 +6,124 @@ from google.protobuf.internal import builder as _builder
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import descriptor_pool as _descriptor_pool
 from google.protobuf import symbol_database as _symbol_database
-
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(
-    b'\n\x0erustplus.proto\x12\x08rustplus"`\n\nAppMessage\x12\'\n\x08response\x18\x01 \x01(\x0b\x32\x15.rustplus.AppResponse\x12)\n\tbroadcast\x18\x02 \x01(\x0b\x32\x16.rustplus.AppBroadcast"\xe2\x04\n\nAppRequest\x12\x0b\n\x03seq\x18\x01 \x02(\r\x12\x10\n\x08playerId\x18\x02 \x02(\x04\x12\x13\n\x0bplayerToken\x18\x03 \x02(\x05\x12\x10\n\x08\x65ntityId\x18\x04 \x01(\r\x12#\n\x07getInfo\x18\x08 \x01(\x0b\x32\x12.rustplus.AppEmpty\x12#\n\x07getTime\x18\t \x01(\x0b\x32\x12.rustplus.AppEmpty\x12"\n\x06getMap\x18\n \x01(\x0b\x32\x12.rustplus.AppEmpty\x12\'\n\x0bgetTeamInfo\x18\x0b \x01(\x0b\x32\x12.rustplus.AppEmpty\x12\'\n\x0bgetTeamChat\x18\x0c \x01(\x0b\x32\x12.rustplus.AppEmpty\x12\x31\n\x0fsendTeamMessage\x18\r \x01(\x0b\x32\x18.rustplus.AppSendMessage\x12)\n\rgetEntityInfo\x18\x0e \x01(\x0b\x32\x12.rustplus.AppEmpty\x12\x33\n\x0esetEntityValue\x18\x0f \x01(\x0b\x32\x1b.rustplus.AppSetEntityValue\x12-\n\x11\x63heckSubscription\x18\x10 \x01(\x0b\x32\x12.rustplus.AppEmpty\x12*\n\x0fsetSubscription\x18\x11 \x01(\x0b\x32\x11.rustplus.AppFlag\x12)\n\rgetMapMarkers\x18\x12 \x01(\x0b\x32\x12.rustplus.AppEmpty\x12\x35\n\x0fpromoteToLeader\x18\x14 \x01(\x0b\x32\x1c.rustplus.AppPromoteToLeader"!\n\x0e\x41ppSendMessage\x12\x0f\n\x07message\x18\x01 \x02(\t""\n\x11\x41ppSetEntityValue\x12\r\n\x05value\x18\x01 \x02(\x08":\n\x15\x41ppCameraFrameRequest\x12\x12\n\nidentifier\x18\x01 \x02(\t\x12\r\n\x05\x66rame\x18\x02 \x02(\r"%\n\x12\x41ppPromoteToLeader\x12\x0f\n\x07steamId\x18\x01 \x02(\x04"\x92\x03\n\x0b\x41ppResponse\x12\x0b\n\x03seq\x18\x01 \x02(\r\x12%\n\x07success\x18\x04 \x01(\x0b\x32\x14.rustplus.AppSuccess\x12!\n\x05\x65rror\x18\x05 \x01(\x0b\x32\x12.rustplus.AppError\x12\x1f\n\x04info\x18\x06 \x01(\x0b\x32\x11.rustplus.AppInfo\x12\x1f\n\x04time\x18\x07 \x01(\x0b\x32\x11.rustplus.AppTime\x12\x1d\n\x03map\x18\x08 \x01(\x0b\x32\x10.rustplus.AppMap\x12\'\n\x08teamInfo\x18\t \x01(\x0b\x32\x15.rustplus.AppTeamInfo\x12\'\n\x08teamChat\x18\n \x01(\x0b\x32\x15.rustplus.AppTeamChat\x12+\n\nentityInfo\x18\x0b \x01(\x0b\x32\x17.rustplus.AppEntityInfo\x12\x1f\n\x04\x66lag\x18\x0c \x01(\x0b\x32\x11.rustplus.AppFlag\x12+\n\nmapMarkers\x18\r \x01(\x0b\x32\x17.rustplus.AppMapMarkers"\x9f\x01\n\x0c\x41ppBroadcast\x12-\n\x0bteamChanged\x18\x04 \x01(\x0b\x32\x18.rustplus.AppTeamChanged\x12-\n\x0bteamMessage\x18\x05 \x01(\x0b\x32\x18.rustplus.AppTeamMessage\x12\x31\n\rentityChanged\x18\x06 \x01(\x0b\x32\x1a.rustplus.AppEntityChanged"\n\n\x08\x41ppEmpty"\x0c\n\nAppSuccess"\x19\n\x08\x41ppError\x12\r\n\x05\x65rror\x18\x01 \x02(\t"\xd4\x01\n\x07\x41ppInfo\x12\x0c\n\x04name\x18\x01 \x02(\t\x12\x13\n\x0bheaderImage\x18\x02 \x02(\t\x12\x0b\n\x03url\x18\x03 \x02(\t\x12\x0b\n\x03map\x18\x04 \x02(\t\x12\x0f\n\x07mapSize\x18\x05 \x02(\r\x12\x10\n\x08wipeTime\x18\x06 \x02(\r\x12\x0f\n\x07players\x18\x07 \x02(\r\x12\x12\n\nmaxPlayers\x18\x08 \x02(\r\x12\x15\n\rqueuedPlayers\x18\t \x02(\r\x12\x0c\n\x04seed\x18\n \x01(\r\x12\x0c\n\x04salt\x18\x0b \x01(\r\x12\x11\n\tlogoImage\x18\x0c \x01(\t"e\n\x07\x41ppTime\x12\x18\n\x10\x64\x61yLengthMinutes\x18\x01 \x02(\x02\x12\x11\n\ttimeScale\x18\x02 \x02(\x02\x12\x0f\n\x07sunrise\x18\x03 \x02(\x02\x12\x0e\n\x06sunset\x18\x04 \x02(\x02\x12\x0c\n\x04time\x18\x05 \x02(\x02"\xc1\x01\n\x06\x41ppMap\x12\r\n\x05width\x18\x01 \x02(\r\x12\x0e\n\x06height\x18\x02 \x02(\r\x12\x10\n\x08jpgImage\x18\x03 \x02(\x0c\x12\x13\n\x0boceanMargin\x18\x04 \x02(\x05\x12,\n\tmonuments\x18\x05 \x03(\x0b\x32\x19.rustplus.AppMap.Monument\x12\x12\n\nbackground\x18\x06 \x01(\t\x1a/\n\x08Monument\x12\r\n\x05token\x18\x01 \x02(\t\x12\t\n\x01x\x18\x02 \x02(\x02\x12\t\n\x01y\x18\x03 \x02(\x02"\xea\x02\n\x0b\x41ppTeamInfo\x12\x15\n\rleaderSteamId\x18\x01 \x02(\x04\x12-\n\x07members\x18\x02 \x03(\x0b\x32\x1c.rustplus.AppTeamInfo.Member\x12,\n\x08mapNotes\x18\x03 \x03(\x0b\x32\x1a.rustplus.AppTeamInfo.Note\x12\x32\n\x0eleaderMapNotes\x18\x04 \x03(\x0b\x32\x1a.rustplus.AppTeamInfo.Note\x1a\x86\x01\n\x06Member\x12\x0f\n\x07steamId\x18\x01 \x02(\x04\x12\x0c\n\x04name\x18\x02 \x02(\t\x12\t\n\x01x\x18\x03 \x02(\x02\x12\t\n\x01y\x18\x04 \x02(\x02\x12\x10\n\x08isOnline\x18\x05 \x02(\x08\x12\x11\n\tspawnTime\x18\x06 \x02(\r\x12\x0f\n\x07isAlive\x18\x07 \x02(\x08\x12\x11\n\tdeathTime\x18\x08 \x02(\r\x1a*\n\x04Note\x12\x0c\n\x04type\x18\x02 \x02(\x05\x12\t\n\x01x\x18\x03 \x02(\x02\x12\t\n\x01y\x18\x04 \x02(\x02"9\n\x0b\x41ppTeamChat\x12*\n\x08messages\x18\x01 \x03(\x0b\x32\x18.rustplus.AppChatMessage"]\n\x0e\x41ppChatMessage\x12\x0f\n\x07steamId\x18\x01 \x02(\x04\x12\x0c\n\x04name\x18\x02 \x02(\t\x12\x0f\n\x07message\x18\x03 \x02(\t\x12\r\n\x05\x63olor\x18\x04 \x02(\t\x12\x0c\n\x04time\x18\x05 \x02(\r"c\n\rAppEntityInfo\x12%\n\x04type\x18\x01 \x02(\x0e\x32\x17.rustplus.AppEntityType\x12+\n\x07payload\x18\x03 \x02(\x0b\x32\x1a.rustplus.AppEntityPayload"\xd7\x01\n\x10\x41ppEntityPayload\x12\r\n\x05value\x18\x01 \x01(\x08\x12.\n\x05items\x18\x02 \x03(\x0b\x32\x1f.rustplus.AppEntityPayload.Item\x12\x10\n\x08\x63\x61pacity\x18\x03 \x01(\x05\x12\x15\n\rhasProtection\x18\x04 \x01(\x08\x12\x18\n\x10protectionExpiry\x18\x05 \x01(\r\x1a\x41\n\x04Item\x12\x0e\n\x06itemId\x18\x01 \x02(\x05\x12\x10\n\x08quantity\x18\x02 \x02(\x05\x12\x17\n\x0fitemIsBlueprint\x18\x03 \x02(\x08"\x18\n\x07\x41ppFlag\x12\r\n\x05value\x18\x01 \x02(\x08"5\n\rAppMapMarkers\x12$\n\x07markers\x18\x01 \x03(\x0b\x32\x13.rustplus.AppMarker"5\n\x07Vector4\x12\t\n\x01x\x18\x01 \x01(\x02\x12\t\n\x01y\x18\x02 \x01(\x02\x12\t\n\x01z\x18\x03 \x01(\x02\x12\t\n\x01w\x18\x04 \x01(\x02"\xd7\x03\n\tAppMarker\x12\n\n\x02id\x18\x01 \x02(\r\x12%\n\x04type\x18\x02 \x02(\x0e\x32\x17.rustplus.AppMarkerType\x12\t\n\x01x\x18\x03 \x02(\x02\x12\t\n\x01y\x18\x04 \x02(\x02\x12\x0f\n\x07steamId\x18\x05 \x01(\x04\x12\x10\n\x08rotation\x18\x06 \x01(\x02\x12\x0e\n\x06radius\x18\x07 \x01(\x02\x12!\n\x06\x63olor1\x18\x08 \x01(\x0b\x32\x11.rustplus.Vector4\x12!\n\x06\x63olor2\x18\t \x01(\x0b\x32\x11.rustplus.Vector4\x12\r\n\x05\x61lpha\x18\n \x01(\x02\x12\x0c\n\x04name\x18\x0b \x01(\t\x12\x12\n\noutOfStock\x18\x0c \x01(\x08\x12\x31\n\nsellOrders\x18\r \x03(\x0b\x32\x1d.rustplus.AppMarker.SellOrder\x1a\xa3\x01\n\tSellOrder\x12\x0e\n\x06itemId\x18\x01 \x02(\x05\x12\x10\n\x08quantity\x18\x02 \x02(\x05\x12\x12\n\ncurrencyId\x18\x03 \x02(\x05\x12\x13\n\x0b\x63ostPerItem\x18\x04 \x02(\x05\x12\x15\n\ramountInStock\x18\x05 \x02(\x05\x12\x17\n\x0fitemIsBlueprint\x18\x06 \x02(\x08\x12\x1b\n\x13\x63urrencyIsBlueprint\x18\x07 \x02(\x08"K\n\x0e\x41ppTeamChanged\x12\x10\n\x08playerId\x18\x01 \x02(\x04\x12\'\n\x08teamInfo\x18\x02 \x02(\x0b\x32\x15.rustplus.AppTeamInfo";\n\x0e\x41ppTeamMessage\x12)\n\x07message\x18\x01 \x02(\x0b\x32\x18.rustplus.AppChatMessage"Q\n\x10\x41ppEntityChanged\x12\x10\n\x08\x65ntityId\x18\x01 \x02(\r\x12+\n\x07payload\x18\x02 \x02(\x0b\x32\x1a.rustplus.AppEntityPayload*:\n\rAppEntityType\x12\n\n\x06Switch\x10\x01\x12\t\n\x05\x41larm\x10\x02\x12\x12\n\x0eStorageMonitor\x10\x03*\x8b\x01\n\rAppMarkerType\x12\n\n\x06Player\x10\x01\x12\r\n\tExplosion\x10\x02\x12\x12\n\x0eVendingMachine\x10\x03\x12\x08\n\x04\x43H47\x10\x04\x12\r\n\tCargoShip\x10\x05\x12\t\n\x05\x43rate\x10\x06\x12\x11\n\rGenericRadius\x10\x07\x12\x14\n\x10PatrolHelicopter\x10\x08'
-)
+
+
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0erustplus.proto\x12\x08rustplus\"\x1f\n\x07Vector2\x12\t\n\x01x\x18\x01 \x01(\x02\x12\t\n\x01y\x18\x02 \x01(\x02\"*\n\x07Vector3\x12\t\n\x01x\x18\x01 \x01(\x02\x12\t\n\x01y\x18\x02 \x01(\x02\x12\t\n\x01z\x18\x03 \x01(\x02\"5\n\x07Vector4\x12\t\n\x01x\x18\x01 \x01(\x02\x12\t\n\x01y\x18\x02 \x01(\x02\x12\t\n\x01z\x18\x03 \x01(\x02\x12\t\n\x01w\x18\x04 \x01(\x02\"(\n\x05Half3\x12\t\n\x01x\x18\x01 \x01(\x02\x12\t\n\x01y\x18\x02 \x01(\x02\x12\t\n\x01z\x18\x03 \x01(\x02\"3\n\x05\x43olor\x12\t\n\x01r\x18\x01 \x01(\x02\x12\t\n\x01g\x18\x02 \x01(\x02\x12\t\n\x01\x62\x18\x03 \x01(\x02\x12\t\n\x01\x61\x18\x04 \x01(\x02\"N\n\x03Ray\x12!\n\x06origin\x18\x01 \x01(\x0b\x32\x11.rustplus.Vector3\x12$\n\tdirection\x18\x02 \x01(\x0b\x32\x11.rustplus.Vector3\"p\n\x10\x43lanActionResult\x12\x11\n\trequestId\x18\x01 \x02(\x05\x12\x0e\n\x06result\x18\x02 \x02(\x05\x12\x13\n\x0bhasClanInfo\x18\x03 \x02(\x08\x12$\n\x08\x63lanInfo\x18\x04 \x01(\x0b\x32\x12.rustplus.ClanInfo\"\xbf\x05\n\x08\x43lanInfo\x12\x0e\n\x06\x63lanId\x18\x01 \x02(\x03\x12\x0c\n\x04name\x18\x02 \x02(\t\x12\x0f\n\x07\x63reated\x18\x03 \x02(\x03\x12\x0f\n\x07\x63reator\x18\x04 \x02(\x03\x12\x0c\n\x04motd\x18\x05 \x01(\t\x12\x15\n\rmotdTimestamp\x18\x06 \x01(\x03\x12\x12\n\nmotdAuthor\x18\x07 \x01(\x03\x12\x0c\n\x04logo\x18\x08 \x01(\x0c\x12\r\n\x05\x63olor\x18\t \x01(\x11\x12&\n\x05roles\x18\n \x03(\x0b\x32\x17.rustplus.ClanInfo.Role\x12*\n\x07members\x18\x0b \x03(\x0b\x32\x19.rustplus.ClanInfo.Member\x12*\n\x07invites\x18\x0c \x03(\x0b\x32\x19.rustplus.ClanInfo.Invite\x12\x16\n\x0emaxMemberCount\x18\r \x01(\x05\x1a\xd7\x01\n\x04Role\x12\x0e\n\x06roleId\x18\x01 \x02(\x05\x12\x0c\n\x04rank\x18\x02 \x02(\x05\x12\x0c\n\x04name\x18\x03 \x02(\t\x12\x12\n\ncanSetMotd\x18\x04 \x02(\x08\x12\x12\n\ncanSetLogo\x18\x05 \x02(\x08\x12\x11\n\tcanInvite\x18\x06 \x02(\x08\x12\x0f\n\x07\x63\x61nKick\x18\x07 \x02(\x08\x12\x12\n\ncanPromote\x18\x08 \x02(\x08\x12\x11\n\tcanDemote\x18\t \x02(\x08\x12\x19\n\x11\x63\x61nSetPlayerNotes\x18\n \x02(\x08\x12\x15\n\rcanAccessLogs\x18\x0b \x02(\x08\x1aj\n\x06Member\x12\x0f\n\x07steamId\x18\x01 \x02(\x03\x12\x0e\n\x06roleId\x18\x02 \x02(\x05\x12\x0e\n\x06joined\x18\x03 \x02(\x03\x12\x10\n\x08lastSeen\x18\x04 \x02(\x03\x12\r\n\x05notes\x18\x05 \x01(\t\x12\x0e\n\x06online\x18\x06 \x01(\x08\x1a?\n\x06Invite\x12\x0f\n\x07steamId\x18\x01 \x02(\x03\x12\x11\n\trecruiter\x18\x02 \x02(\x03\x12\x11\n\ttimestamp\x18\x03 \x02(\x03\"\xac\x01\n\x07\x43lanLog\x12\x0e\n\x06\x63lanId\x18\x01 \x02(\x03\x12+\n\nlogEntries\x18\x02 \x03(\x0b\x32\x17.rustplus.ClanLog.Entry\x1a\x64\n\x05\x45ntry\x12\x11\n\ttimestamp\x18\x01 \x02(\x03\x12\x10\n\x08\x65ventKey\x18\x02 \x02(\t\x12\x0c\n\x04\x61rg1\x18\x03 \x01(\t\x12\x0c\n\x04\x61rg2\x18\x04 \x01(\t\x12\x0c\n\x04\x61rg3\x18\x05 \x01(\t\x12\x0c\n\x04\x61rg4\x18\x06 \x01(\t\"\x90\x01\n\x0f\x43lanInvitations\x12\x39\n\x0binvitations\x18\x01 \x03(\x0b\x32$.rustplus.ClanInvitations.Invitation\x1a\x42\n\nInvitation\x12\x0e\n\x06\x63lanId\x18\x01 \x02(\x03\x12\x11\n\trecruiter\x18\x02 \x02(\x03\x12\x11\n\ttimestamp\x18\x03 \x02(\x03\"\xc7\x06\n\nAppRequest\x12\x0b\n\x03seq\x18\x01 \x02(\r\x12\x10\n\x08playerId\x18\x02 \x02(\x04\x12\x13\n\x0bplayerToken\x18\x03 \x02(\x05\x12\x10\n\x08\x65ntityId\x18\x04 \x01(\r\x12#\n\x07getInfo\x18\x08 \x01(\x0b\x32\x12.rustplus.AppEmpty\x12#\n\x07getTime\x18\t \x01(\x0b\x32\x12.rustplus.AppEmpty\x12\"\n\x06getMap\x18\n \x01(\x0b\x32\x12.rustplus.AppEmpty\x12\'\n\x0bgetTeamInfo\x18\x0b \x01(\x0b\x32\x12.rustplus.AppEmpty\x12\'\n\x0bgetTeamChat\x18\x0c \x01(\x0b\x32\x12.rustplus.AppEmpty\x12\x31\n\x0fsendTeamMessage\x18\r \x01(\x0b\x32\x18.rustplus.AppSendMessage\x12)\n\rgetEntityInfo\x18\x0e \x01(\x0b\x32\x12.rustplus.AppEmpty\x12\x33\n\x0esetEntityValue\x18\x0f \x01(\x0b\x32\x1b.rustplus.AppSetEntityValue\x12-\n\x11\x63heckSubscription\x18\x10 \x01(\x0b\x32\x12.rustplus.AppEmpty\x12*\n\x0fsetSubscription\x18\x11 \x01(\x0b\x32\x11.rustplus.AppFlag\x12)\n\rgetMapMarkers\x18\x12 \x01(\x0b\x32\x12.rustplus.AppEmpty\x12\x35\n\x0fpromoteToLeader\x18\x14 \x01(\x0b\x32\x1c.rustplus.AppPromoteToLeader\x12\'\n\x0bgetClanInfo\x18\x15 \x01(\x0b\x32\x12.rustplus.AppEmpty\x12-\n\x0bsetClanMotd\x18\x16 \x01(\x0b\x32\x18.rustplus.AppSendMessage\x12\'\n\x0bgetClanChat\x18\x17 \x01(\x0b\x32\x12.rustplus.AppEmpty\x12\x31\n\x0fsendClanMessage\x18\x18 \x01(\x0b\x32\x18.rustplus.AppSendMessage\x12/\n\x0cgetNexusAuth\x18\x19 \x01(\x0b\x32\x19.rustplus.AppGetNexusAuth\"`\n\nAppMessage\x12\'\n\x08response\x18\x01 \x01(\x0b\x32\x15.rustplus.AppResponse\x12)\n\tbroadcast\x18\x02 \x01(\x0b\x32\x16.rustplus.AppBroadcast\"\x8f\x04\n\x0b\x41ppResponse\x12\x0b\n\x03seq\x18\x01 \x02(\x05\x12%\n\x07success\x18\x04 \x01(\x0b\x32\x14.rustplus.AppSuccess\x12!\n\x05\x65rror\x18\x05 \x01(\x0b\x32\x12.rustplus.AppError\x12\x1f\n\x04info\x18\x06 \x01(\x0b\x32\x11.rustplus.AppInfo\x12\x1f\n\x04time\x18\x07 \x01(\x0b\x32\x11.rustplus.AppTime\x12\x1d\n\x03map\x18\x08 \x01(\x0b\x32\x10.rustplus.AppMap\x12\'\n\x08teamInfo\x18\t \x01(\x0b\x32\x15.rustplus.AppTeamInfo\x12\'\n\x08teamChat\x18\n \x01(\x0b\x32\x15.rustplus.AppTeamChat\x12+\n\nentityInfo\x18\x0b \x01(\x0b\x32\x17.rustplus.AppEntityInfo\x12\x1f\n\x04\x66lag\x18\x0c \x01(\x0b\x32\x11.rustplus.AppFlag\x12+\n\nmapMarkers\x18\r \x01(\x0b\x32\x17.rustplus.AppMapMarkers\x12\'\n\x08\x63lanInfo\x18\x0f \x01(\x0b\x32\x15.rustplus.AppClanInfo\x12\'\n\x08\x63lanChat\x18\x10 \x01(\x0b\x32\x15.rustplus.AppClanChat\x12)\n\tnexusAuth\x18\x11 \x01(\x0b\x32\x16.rustplus.AppNexusAuth\"\x86\x02\n\x0c\x41ppBroadcast\x12-\n\x0bteamChanged\x18\x04 \x01(\x0b\x32\x18.rustplus.AppTeamChanged\x12\x33\n\x0enewTeamMessage\x18\x05 \x01(\x0b\x32\x1b.rustplus.AppNewTeamMessage\x12\x31\n\rentityChanged\x18\x06 \x01(\x0b\x32\x1a.rustplus.AppEntityChanged\x12-\n\x0b\x63lanChanged\x18\x07 \x01(\x0b\x32\x18.rustplus.AppClanChanged\x12\x30\n\x0b\x63lanMessage\x18\x08 \x01(\x0b\x32\x1b.rustplus.AppNewClanMessage\"\n\n\x08\x41ppEmpty\"!\n\x0e\x41ppSendMessage\x12\x0f\n\x07message\x18\x01 \x02(\t\"\"\n\x11\x41ppSetEntityValue\x12\r\n\x05value\x18\x01 \x02(\x08\"%\n\x12\x41ppPromoteToLeader\x12\x0f\n\x07steamId\x18\x01 \x02(\x03\"!\n\x0f\x41ppGetNexusAuth\x12\x0e\n\x06\x61ppKey\x18\x01 \x02(\t\"\x0c\n\nAppSuccess\"\x19\n\x08\x41ppError\x12\r\n\x05\x65rror\x18\x01 \x02(\t\"\x18\n\x07\x41ppFlag\x12\r\n\x05value\x18\x01 \x02(\x08\"\x87\x02\n\x07\x41ppInfo\x12\x0c\n\x04name\x18\x01 \x02(\t\x12\x13\n\x0bheaderImage\x18\x02 \x02(\t\x12\x0b\n\x03url\x18\x03 \x02(\t\x12\x0b\n\x03map\x18\x04 \x02(\t\x12\x0f\n\x07mapSize\x18\x05 \x02(\r\x12\x10\n\x08wipeTime\x18\x06 \x02(\r\x12\x0f\n\x07players\x18\x07 \x02(\r\x12\x12\n\nmaxPlayers\x18\x08 \x02(\r\x12\x15\n\rqueuedPlayers\x18\t \x02(\r\x12\x0c\n\x04seed\x18\n \x01(\r\x12\x0c\n\x04salt\x18\x0b \x01(\r\x12\x11\n\tlogoImage\x18\x0c \x01(\t\x12\r\n\x05nexus\x18\r \x01(\t\x12\x0f\n\x07nexusId\x18\x0e \x01(\x05\x12\x11\n\tnexusZone\x18\x0f \x01(\t\"e\n\x07\x41ppTime\x12\x18\n\x10\x64\x61yLengthMinutes\x18\x01 \x02(\x02\x12\x11\n\ttimeScale\x18\x02 \x02(\x02\x12\x0f\n\x07sunrise\x18\x03 \x02(\x02\x12\x0e\n\x06sunset\x18\x04 \x02(\x02\x12\x0c\n\x04time\x18\x05 \x02(\x02\"\xc1\x01\n\x06\x41ppMap\x12\r\n\x05width\x18\x01 \x02(\r\x12\x0e\n\x06height\x18\x02 \x02(\r\x12\x10\n\x08jpgImage\x18\x03 \x02(\x0c\x12\x13\n\x0boceanMargin\x18\x04 \x02(\x05\x12,\n\tmonuments\x18\x05 \x03(\x0b\x32\x19.rustplus.AppMap.Monument\x12\x12\n\nbackground\x18\x06 \x01(\t\x1a/\n\x08Monument\x12\r\n\x05token\x18\x01 \x02(\t\x12\t\n\x01x\x18\x02 \x02(\x02\x12\t\n\x01y\x18\x03 \x02(\x02\"c\n\rAppEntityInfo\x12%\n\x04type\x18\x01 \x02(\x0e\x32\x17.rustplus.AppEntityType\x12+\n\x07payload\x18\x03 \x02(\x0b\x32\x1a.rustplus.AppEntityPayload\"\xd7\x01\n\x10\x41ppEntityPayload\x12\r\n\x05value\x18\x01 \x01(\x08\x12.\n\x05items\x18\x02 \x03(\x0b\x32\x1f.rustplus.AppEntityPayload.Item\x12\x10\n\x08\x63\x61pacity\x18\x03 \x01(\x05\x12\x15\n\rhasProtection\x18\x04 \x01(\x08\x12\x18\n\x10protectionExpiry\x18\x05 \x01(\r\x1a\x41\n\x04Item\x12\x0e\n\x06itemId\x18\x01 \x02(\x05\x12\x10\n\x08quantity\x18\x02 \x02(\x05\x12\x17\n\x0fitemIsBlueprint\x18\x03 \x02(\x08\"\xea\x02\n\x0b\x41ppTeamInfo\x12\x15\n\rleaderSteamId\x18\x01 \x02(\x04\x12-\n\x07members\x18\x02 \x03(\x0b\x32\x1c.rustplus.AppTeamInfo.Member\x12,\n\x08mapNotes\x18\x03 \x03(\x0b\x32\x1a.rustplus.AppTeamInfo.Note\x12\x32\n\x0eleaderMapNotes\x18\x04 \x03(\x0b\x32\x1a.rustplus.AppTeamInfo.Note\x1a\x86\x01\n\x06Member\x12\x0f\n\x07steamId\x18\x01 \x02(\x04\x12\x0c\n\x04name\x18\x02 \x02(\t\x12\t\n\x01x\x18\x03 \x02(\x02\x12\t\n\x01y\x18\x04 \x02(\x02\x12\x10\n\x08isOnline\x18\x05 \x02(\x08\x12\x11\n\tspawnTime\x18\x06 \x02(\r\x12\x0f\n\x07isAlive\x18\x07 \x02(\x08\x12\x11\n\tdeathTime\x18\x08 \x02(\r\x1a*\n\x04Note\x12\x0c\n\x04type\x18\x02 \x02(\x05\x12\t\n\x01x\x18\x03 \x02(\x02\x12\t\n\x01y\x18\x04 \x02(\x02\"]\n\x0e\x41ppTeamMessage\x12\x0f\n\x07steamId\x18\x01 \x02(\x04\x12\x0c\n\x04name\x18\x02 \x02(\t\x12\x0f\n\x07message\x18\x03 \x02(\t\x12\r\n\x05\x63olor\x18\x04 \x02(\t\x12\x0c\n\x04time\x18\x05 \x02(\r\"9\n\x0b\x41ppTeamChat\x12*\n\x08messages\x18\x01 \x03(\x0b\x32\x18.rustplus.AppTeamMessage\"\x88\x04\n\tAppMarker\x12\n\n\x02id\x18\x01 \x02(\r\x12%\n\x04type\x18\x02 \x02(\x0e\x32\x17.rustplus.AppMarkerType\x12\t\n\x01x\x18\x03 \x02(\x02\x12\t\n\x01y\x18\x04 \x02(\x02\x12\x0f\n\x07steamId\x18\x05 \x01(\x04\x12\x10\n\x08rotation\x18\x06 \x01(\x02\x12\x0e\n\x06radius\x18\x07 \x01(\x02\x12!\n\x06\x63olor1\x18\x08 \x01(\x0b\x32\x11.rustplus.Vector4\x12!\n\x06\x63olor2\x18\t \x01(\x0b\x32\x11.rustplus.Vector4\x12\r\n\x05\x61lpha\x18\n \x01(\x02\x12\x0c\n\x04name\x18\x0b \x01(\t\x12\x12\n\noutOfStock\x18\x0c \x01(\x08\x12\x31\n\nsellOrders\x18\r \x03(\x0b\x32\x1d.rustplus.AppMarker.SellOrder\x1a\xd4\x01\n\tSellOrder\x12\x0e\n\x06itemId\x18\x01 \x02(\x05\x12\x10\n\x08quantity\x18\x02 \x02(\x05\x12\x12\n\ncurrencyId\x18\x03 \x02(\x05\x12\x13\n\x0b\x63ostPerItem\x18\x04 \x02(\x05\x12\x15\n\ramountInStock\x18\x05 \x02(\x05\x12\x17\n\x0fitemIsBlueprint\x18\x06 \x02(\x08\x12\x1b\n\x13\x63urrencyIsBlueprint\x18\x07 \x02(\x08\x12\x15\n\ritemCondition\x18\x08 \x01(\x02\x12\x18\n\x10itemConditionMax\x18\t \x01(\x02\"5\n\rAppMapMarkers\x12$\n\x07markers\x18\x01 \x03(\x0b\x32\x13.rustplus.AppMarker\"3\n\x0b\x41ppClanInfo\x12$\n\x08\x63lanInfo\x18\x01 \x01(\x0b\x32\x12.rustplus.ClanInfo\"N\n\x0e\x41ppClanMessage\x12\x0f\n\x07steamId\x18\x01 \x02(\x04\x12\x0c\n\x04name\x18\x02 \x02(\t\x12\x0f\n\x07message\x18\x03 \x02(\t\x12\x0c\n\x04time\x18\x04 \x02(\x03\"9\n\x0b\x41ppClanChat\x12*\n\x08messages\x18\x01 \x03(\x0b\x32\x18.rustplus.AppClanMessage\"5\n\x0c\x41ppNexusAuth\x12\x10\n\x08serverId\x18\x01 \x02(\t\x12\x13\n\x0bplayerToken\x18\x02 \x02(\x05\"K\n\x0e\x41ppTeamChanged\x12\x10\n\x08playerId\x18\x01 \x02(\x04\x12\'\n\x08teamInfo\x18\x02 \x02(\x0b\x32\x15.rustplus.AppTeamInfo\">\n\x11\x41ppNewTeamMessage\x12)\n\x07message\x18\x01 \x02(\x0b\x32\x18.rustplus.AppTeamMessage\"Q\n\x10\x41ppEntityChanged\x12\x10\n\x08\x65ntityId\x18\x01 \x02(\r\x12+\n\x07payload\x18\x02 \x02(\x0b\x32\x1a.rustplus.AppEntityPayload\"6\n\x0e\x41ppClanChanged\x12$\n\x08\x63lanInfo\x18\x01 \x01(\x0b\x32\x12.rustplus.ClanInfo\"N\n\x11\x41ppNewClanMessage\x12\x0e\n\x06\x63lanId\x18\x01 \x02(\x03\x12)\n\x07message\x18\x02 \x02(\x0b\x32\x18.rustplus.AppClanMessage*:\n\rAppEntityType\x12\n\n\x06Switch\x10\x01\x12\t\n\x05\x41larm\x10\x02\x12\x12\n\x0eStorageMonitor\x10\x03*\x9a\x01\n\rAppMarkerType\x12\r\n\tUndefined\x10\x00\x12\n\n\x06Player\x10\x01\x12\r\n\tExplosion\x10\x02\x12\x12\n\x0eVendingMachine\x10\x03\x12\x08\n\x04\x43H47\x10\x04\x12\r\n\tCargoShip\x10\x05\x12\t\n\x05\x43rate\x10\x06\x12\x11\n\rGenericRadius\x10\x07\x12\x14\n\x10PatrolHelicopter\x10\x08')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
-_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, "rustplus_pb2", globals())
+_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'rustplus_pb2', globals())
 if _descriptor._USE_C_DESCRIPTORS == False:
 
-    DESCRIPTOR._options = None
-    _APPENTITYTYPE._serialized_start = 3712
-    _APPENTITYTYPE._serialized_end = 3770
-    _APPMARKERTYPE._serialized_start = 3773
-    _APPMARKERTYPE._serialized_end = 3912
-    _APPMESSAGE._serialized_start = 28
-    _APPMESSAGE._serialized_end = 124
-    _APPREQUEST._serialized_start = 127
-    _APPREQUEST._serialized_end = 737
-    _APPSENDMESSAGE._serialized_start = 739
-    _APPSENDMESSAGE._serialized_end = 772
-    _APPSETENTITYVALUE._serialized_start = 774
-    _APPSETENTITYVALUE._serialized_end = 808
-    _APPCAMERAFRAMEREQUEST._serialized_start = 810
-    _APPCAMERAFRAMEREQUEST._serialized_end = 868
-    _APPPROMOTETOLEADER._serialized_start = 870
-    _APPPROMOTETOLEADER._serialized_end = 907
-    _APPRESPONSE._serialized_start = 910
-    _APPRESPONSE._serialized_end = 1312
-    _APPBROADCAST._serialized_start = 1315
-    _APPBROADCAST._serialized_end = 1474
-    _APPEMPTY._serialized_start = 1476
-    _APPEMPTY._serialized_end = 1486
-    _APPSUCCESS._serialized_start = 1488
-    _APPSUCCESS._serialized_end = 1500
-    _APPERROR._serialized_start = 1502
-    _APPERROR._serialized_end = 1527
-    _APPINFO._serialized_start = 1530
-    _APPINFO._serialized_end = 1742
-    _APPTIME._serialized_start = 1744
-    _APPTIME._serialized_end = 1845
-    _APPMAP._serialized_start = 1848
-    _APPMAP._serialized_end = 2041
-    _APPMAP_MONUMENT._serialized_start = 1994
-    _APPMAP_MONUMENT._serialized_end = 2041
-    _APPTEAMINFO._serialized_start = 2044
-    _APPTEAMINFO._serialized_end = 2406
-    _APPTEAMINFO_MEMBER._serialized_start = 2228
-    _APPTEAMINFO_MEMBER._serialized_end = 2362
-    _APPTEAMINFO_NOTE._serialized_start = 2364
-    _APPTEAMINFO_NOTE._serialized_end = 2406
-    _APPTEAMCHAT._serialized_start = 2408
-    _APPTEAMCHAT._serialized_end = 2465
-    _APPCHATMESSAGE._serialized_start = 2467
-    _APPCHATMESSAGE._serialized_end = 2560
-    _APPENTITYINFO._serialized_start = 2562
-    _APPENTITYINFO._serialized_end = 2661
-    _APPENTITYPAYLOAD._serialized_start = 2664
-    _APPENTITYPAYLOAD._serialized_end = 2879
-    _APPENTITYPAYLOAD_ITEM._serialized_start = 2814
-    _APPENTITYPAYLOAD_ITEM._serialized_end = 2879
-    _APPFLAG._serialized_start = 2881
-    _APPFLAG._serialized_end = 2905
-    _APPMAPMARKERS._serialized_start = 2907
-    _APPMAPMARKERS._serialized_end = 2960
-    _VECTOR4._serialized_start = 2962
-    _VECTOR4._serialized_end = 3015
-    _APPMARKER._serialized_start = 3018
-    _APPMARKER._serialized_end = 3489
-    _APPMARKER_SELLORDER._serialized_start = 3326
-    _APPMARKER_SELLORDER._serialized_end = 3489
-    _APPTEAMCHANGED._serialized_start = 3491
-    _APPTEAMCHANGED._serialized_end = 3566
-    _APPTEAMMESSAGE._serialized_start = 3568
-    _APPTEAMMESSAGE._serialized_end = 3627
-    _APPENTITYCHANGED._serialized_start = 3629
-    _APPENTITYCHANGED._serialized_end = 3710
+  DESCRIPTOR._options = None
+  _APPENTITYTYPE._serialized_start=6024
+  _APPENTITYTYPE._serialized_end=6082
+  _APPMARKERTYPE._serialized_start=6085
+  _APPMARKERTYPE._serialized_end=6239
+  _VECTOR2._serialized_start=28
+  _VECTOR2._serialized_end=59
+  _VECTOR3._serialized_start=61
+  _VECTOR3._serialized_end=103
+  _VECTOR4._serialized_start=105
+  _VECTOR4._serialized_end=158
+  _HALF3._serialized_start=160
+  _HALF3._serialized_end=200
+  _COLOR._serialized_start=202
+  _COLOR._serialized_end=253
+  _RAY._serialized_start=255
+  _RAY._serialized_end=333
+  _CLANACTIONRESULT._serialized_start=335
+  _CLANACTIONRESULT._serialized_end=447
+  _CLANINFO._serialized_start=450
+  _CLANINFO._serialized_end=1153
+  _CLANINFO_ROLE._serialized_start=765
+  _CLANINFO_ROLE._serialized_end=980
+  _CLANINFO_MEMBER._serialized_start=982
+  _CLANINFO_MEMBER._serialized_end=1088
+  _CLANINFO_INVITE._serialized_start=1090
+  _CLANINFO_INVITE._serialized_end=1153
+  _CLANLOG._serialized_start=1156
+  _CLANLOG._serialized_end=1328
+  _CLANLOG_ENTRY._serialized_start=1228
+  _CLANLOG_ENTRY._serialized_end=1328
+  _CLANINVITATIONS._serialized_start=1331
+  _CLANINVITATIONS._serialized_end=1475
+  _CLANINVITATIONS_INVITATION._serialized_start=1409
+  _CLANINVITATIONS_INVITATION._serialized_end=1475
+  _APPREQUEST._serialized_start=1478
+  _APPREQUEST._serialized_end=2317
+  _APPMESSAGE._serialized_start=2319
+  _APPMESSAGE._serialized_end=2415
+  _APPRESPONSE._serialized_start=2418
+  _APPRESPONSE._serialized_end=2945
+  _APPBROADCAST._serialized_start=2948
+  _APPBROADCAST._serialized_end=3210
+  _APPEMPTY._serialized_start=3212
+  _APPEMPTY._serialized_end=3222
+  _APPSENDMESSAGE._serialized_start=3224
+  _APPSENDMESSAGE._serialized_end=3257
+  _APPSETENTITYVALUE._serialized_start=3259
+  _APPSETENTITYVALUE._serialized_end=3293
+  _APPPROMOTETOLEADER._serialized_start=3295
+  _APPPROMOTETOLEADER._serialized_end=3332
+  _APPGETNEXUSAUTH._serialized_start=3334
+  _APPGETNEXUSAUTH._serialized_end=3367
+  _APPSUCCESS._serialized_start=3369
+  _APPSUCCESS._serialized_end=3381
+  _APPERROR._serialized_start=3383
+  _APPERROR._serialized_end=3408
+  _APPFLAG._serialized_start=3410
+  _APPFLAG._serialized_end=3434
+  _APPINFO._serialized_start=3437
+  _APPINFO._serialized_end=3700
+  _APPTIME._serialized_start=3702
+  _APPTIME._serialized_end=3803
+  _APPMAP._serialized_start=3806
+  _APPMAP._serialized_end=3999
+  _APPMAP_MONUMENT._serialized_start=3952
+  _APPMAP_MONUMENT._serialized_end=3999
+  _APPENTITYINFO._serialized_start=4001
+  _APPENTITYINFO._serialized_end=4100
+  _APPENTITYPAYLOAD._serialized_start=4103
+  _APPENTITYPAYLOAD._serialized_end=4318
+  _APPENTITYPAYLOAD_ITEM._serialized_start=4253
+  _APPENTITYPAYLOAD_ITEM._serialized_end=4318
+  _APPTEAMINFO._serialized_start=4321
+  _APPTEAMINFO._serialized_end=4683
+  _APPTEAMINFO_MEMBER._serialized_start=4505
+  _APPTEAMINFO_MEMBER._serialized_end=4639
+  _APPTEAMINFO_NOTE._serialized_start=4641
+  _APPTEAMINFO_NOTE._serialized_end=4683
+  _APPTEAMMESSAGE._serialized_start=4685
+  _APPTEAMMESSAGE._serialized_end=4778
+  _APPTEAMCHAT._serialized_start=4780
+  _APPTEAMCHAT._serialized_end=4837
+  _APPMARKER._serialized_start=4840
+  _APPMARKER._serialized_end=5360
+  _APPMARKER_SELLORDER._serialized_start=5148
+  _APPMARKER_SELLORDER._serialized_end=5360
+  _APPMAPMARKERS._serialized_start=5362
+  _APPMAPMARKERS._serialized_end=5415
+  _APPCLANINFO._serialized_start=5417
+  _APPCLANINFO._serialized_end=5468
+  _APPCLANMESSAGE._serialized_start=5470
+  _APPCLANMESSAGE._serialized_end=5548
+  _APPCLANCHAT._serialized_start=5550
+  _APPCLANCHAT._serialized_end=5607
+  _APPNEXUSAUTH._serialized_start=5609
+  _APPNEXUSAUTH._serialized_end=5662
+  _APPTEAMCHANGED._serialized_start=5664
+  _APPTEAMCHANGED._serialized_end=5739
+  _APPNEWTEAMMESSAGE._serialized_start=5741
+  _APPNEWTEAMMESSAGE._serialized_end=5803
+  _APPENTITYCHANGED._serialized_start=5805
+  _APPENTITYCHANGED._serialized_end=5886
+  _APPCLANCHANGED._serialized_start=5888
+  _APPCLANCHANGED._serialized_end=5942
+  _APPNEWCLANMESSAGE._serialized_start=5944
+  _APPNEWCLANMESSAGE._serialized_end=6022
 # @@protoc_insertion_point(module_scope)
