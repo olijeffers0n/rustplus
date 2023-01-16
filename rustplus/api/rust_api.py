@@ -19,7 +19,7 @@ from .structures import (
     RustItem,
 )
 from .remote.rustplus_proto import *
-from .remote import HeartBeat
+from .remote import HeartBeat, RateLimiter
 from ..commands import CommandOptions
 from ..exceptions import *
 from ..utils import (
@@ -47,6 +47,7 @@ class RustSocket(BaseRustSocket):
         use_proxy: bool = False,
         use_test_server: bool = False,
         event_loop: asyncio.AbstractEventLoop = None,
+        rate_limiter: RateLimiter = None,
     ) -> None:
         super().__init__(
             ip=ip,
@@ -61,6 +62,7 @@ class RustSocket(BaseRustSocket):
             use_proxy=use_proxy,
             use_test_server=use_test_server,
             event_loop=event_loop,
+            rate_limiter=rate_limiter,
         )
 
     async def get_time(self) -> RustTime:

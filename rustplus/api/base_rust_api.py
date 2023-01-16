@@ -6,7 +6,7 @@ from PIL import Image
 from .remote.events.event_loop_manager import EventLoopManager
 from .structures import *
 from .remote.rustplus_proto import AppEmpty, AppRequest
-from .remote import RustRemote, HeartBeat, MapEventListener
+from .remote import RustRemote, HeartBeat, MapEventListener, RateLimiter
 from ..commands import CommandOptions, CommandHandler
 from ..commands.command_data import CommandData
 from ..exceptions import *
@@ -37,6 +37,7 @@ class BaseRustSocket:
         use_proxy: bool = False,
         use_test_server: bool = False,
         event_loop: asyncio.AbstractEventLoop = None,
+        rate_limiter: RateLimiter = None,
     ) -> None:
 
         if ip is None:
@@ -64,6 +65,7 @@ class BaseRustSocket:
             use_proxy=use_proxy,
             api=self,
             use_test_server=use_test_server,
+            rate_limiter=rate_limiter,
         )
 
         if heartbeat is None:
@@ -79,17 +81,18 @@ class BaseRustSocket:
         """
         while True:
 
-            if self.remote.ratelimiter.can_consume(amount):
-                self.remote.ratelimiter.consume(amount)
-                self.heartbeat.reset_rhythm()
-                return
+            if self.remote.ratelimiter.can_consume(self.server_id, amount):
+                self.remote.ratelimiter.consume(self.server_id, amount)
+                break
 
             if self.raise_ratelimit_exception:
                 raise RateLimitError("Out of tokens")
 
             await asyncio.sleep(
-                self.remote.ratelimiter.get_estimated_delay_time(amount)
+                self.remote.ratelimiter.get_estimated_delay_time(self.server_id, amount)
             )
+
+        self.heartbeat.reset_rhythm()
 
     def _generate_protobuf(self) -> AppRequest:
         """
@@ -227,7 +230,7 @@ class BaseRustSocket:
         self.remote.use_proxy = use_proxy
 
         # reset ratelimiter
-        self.remote.ratelimiter.reset()
+        self.remote.ratelimiter.reset(self.server_id)
         self.remote.conversation_factory = ConversationFactory(self)
         # remove entity events
         EntityEvent.handlers.unregister_all()
