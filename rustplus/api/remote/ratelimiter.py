@@ -76,7 +76,10 @@ class RateLimiter:
         self.lock.acquire(blocking=True)
         can_consume = True
 
-        for bucket in [self.socket_buckets.get(server_id), self.server_buckets.get(server_id.get_server_string())]:
+        for bucket in [
+            self.socket_buckets.get(server_id),
+            self.server_buckets.get(server_id.get_server_string()),
+        ]:
             bucket.refresh()
             if not bucket.can_consume(amount):
                 can_consume = False
@@ -89,7 +92,10 @@ class RateLimiter:
         Consumes an amount of tokens from the bucket. You should first check to see whether it is possible with can_consume
         """
         self.lock.acquire(blocking=True)
-        for bucket in [self.socket_buckets.get(server_id), self.server_buckets.get(server_id.get_server_string())]:
+        for bucket in [
+            self.socket_buckets.get(server_id),
+            self.server_buckets.get(server_id.get_server_string()),
+        ]:
             bucket.refresh()
             if not bucket.can_consume(amount):
                 self.lock.release()
@@ -103,7 +109,10 @@ class RateLimiter:
         """
         self.lock.acquire(blocking=True)
         delay = 0
-        for bucket in [self.socket_buckets.get(server_id), self.server_buckets.get(server_id.get_server_string())]:
+        for bucket in [
+            self.socket_buckets.get(server_id),
+            self.server_buckets.get(server_id.get_server_string()),
+        ]:
             val = (
                 math.ceil(
                     (((target_cost - bucket.current) / bucket.refresh_per_second) + 0.1)

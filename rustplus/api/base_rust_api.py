@@ -233,7 +233,13 @@ class BaseRustSocket:
 
         # reset ratelimiter
         self.remote.ratelimiter.remove(self.server_id)
-        self.remote.ratelimiter.add_socket(self.server_id, self.ratelimit_limit, self.ratelimit_limit, 1, self.ratelimit_refill)
+        self.remote.ratelimiter.add_socket(
+            self.server_id,
+            self.ratelimit_limit,
+            self.ratelimit_limit,
+            1,
+            self.ratelimit_refill,
+        )
         self.remote.conversation_factory = ConversationFactory(self)
         # remove entity events
         EntityEvent.handlers.unregister_all()
