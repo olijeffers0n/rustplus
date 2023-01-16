@@ -8,6 +8,9 @@ class ServerID:
     def __str__(self) -> str:
         return f"{self.ip}:{self.port} {self.player_id} {self.player_token}"
 
+    def get_server_string(self) -> str:
+        return f"{self.ip}:{self.port}"
+
     def __hash__(self):
         return hash(self.__str__())
 
