@@ -4,7 +4,9 @@ class RegisteredListener:
         self.data = data
 
     def get_coro(self):
-        return self.data[0]
+        if isinstance(self.data, tuple):
+            return self.data[0]
+        return self.data
 
     def __eq__(self, other):
         if isinstance(other, RegisteredListener):
