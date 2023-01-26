@@ -28,6 +28,7 @@ def format_time(protobuf) -> RustTime:
         sunset,
         parsed_time,
         protobuf.response.time.time,
+        protobuf.response.time.timeScale,
     )
 
 

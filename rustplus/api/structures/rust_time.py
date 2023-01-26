@@ -1,10 +1,11 @@
 class RustTime:
-    def __init__(self, day_length, sunrise, sunset, time, raw_time) -> None:
+    def __init__(self, day_length, sunrise, sunset, time, raw_time, time_scale) -> None:
         self._day_length: float = day_length
         self._sunrise: str = sunrise
         self._sunset: str = sunset
         self._time: str = time
         self._raw_time: float = raw_time
+        self._time_scale: float = time_scale
 
     @property
     def day_length(self) -> float:
@@ -26,7 +27,11 @@ class RustTime:
     def raw_time(self) -> float:
         return self._raw_time
 
+    @property
+    def time_scale(self) -> float:
+        return self._time_scale
+
     def __str__(self) -> str:
-        return "RustTime[day_length={}, sunrise={}, sunset={}, time={}, raw_time={}]".format(
-            self._day_length, self._sunrise, self._sunset, self._time, self._raw_time
+        return "RustTime[day_length={}, sunrise={}, sunset={}, time={}, raw_time={}, time_scale={}]".format(
+            self._day_length, self._sunrise, self._sunset, self._time, self._raw_time, self._time_scale
         )
