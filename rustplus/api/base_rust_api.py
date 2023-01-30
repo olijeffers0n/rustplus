@@ -237,9 +237,8 @@ class BaseRustSocket:
 
         self.raise_ratelimit_exception = raise_ratelimit_exception
 
-        self.remote.ip = ip
-        self.remote.port = port
-        self.remote.use_proxy = use_proxy
+        self.remote.pending_entity_subscriptions = []
+        self.remote.server_id = ServerID(ip, port, steam_id, player_token)
 
         # reset ratelimiter
         self.remote.ratelimiter.remove(self.server_id)
@@ -352,38 +351,7 @@ class BaseRustSocket:
             if isinstance(coro, RegisteredListener):
                 coro = coro.get_coro()
 
-            async def get_entity(self, eid) -> RustEntityInfo:
 
-                await self._handle_ratelimit()
-
-                app_request = self._generate_protobuf()
-                app_request.entityId = eid
-                app_request.getEntityInfo.CopyFrom(AppEmpty())
-
-                await self.remote.send_message(app_request)
-
-                return await self.remote.get_response(
-                    app_request.seq, app_request, False
-                )
-
-            def entity_event_callback(future_inner: Future):
-
-                entity_info = future_inner.result()
-
-                if entity_info.response.HasField("error"):
-                    raise SmartDeviceRegistrationError("Not Found")
-
-                EntityEvent.handlers.register(
-                    RegisteredListener(
-                        eid, (coro, entity_info.response.entityInfo.type)
-                    ),
-                    self.server_id,
-                )
-
-            future = asyncio.run_coroutine_threadsafe(
-                get_entity(self, eid), EventLoopManager.get_loop(self.server_id)
-            )
-            future.add_done_callback(entity_event_callback)
 
             return RegisteredListener(eid, coro)
 
