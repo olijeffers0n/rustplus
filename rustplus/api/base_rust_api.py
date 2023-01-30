@@ -1,5 +1,4 @@
 import asyncio
-from asyncio.futures import Future
 from typing import List, Callable, Union
 from PIL import Image
 
@@ -47,8 +46,6 @@ class BaseRustSocket:
         if player_token is None:
             raise ValueError("PlayerToken cannot be None")
 
-        self.steam_id = steam_id
-        self.player_token = player_token
         self.server_id = ServerID(ip, port, steam_id, player_token)
         self.seq = 1
         self.command_options = command_options
@@ -104,8 +101,8 @@ class BaseRustSocket:
         """
         app_request = AppRequest()
         app_request.seq = self.seq
-        app_request.playerId = self.steam_id
-        app_request.playerToken = self.player_token
+        app_request.playerId = self.server_id.player_id
+        app_request.playerToken = self.server_id.player_token
 
         self.seq += 1
 
@@ -220,8 +217,6 @@ class BaseRustSocket:
 
         # Reset basic credentials
         self.server_id = ServerID(ip, port, steam_id, player_token)
-        self.steam_id = steam_id
-        self.player_token = player_token
         self.seq = 1
 
         # Deal with commands
