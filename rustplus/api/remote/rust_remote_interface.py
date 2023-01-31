@@ -1,9 +1,11 @@
 import asyncio
 import logging
-import time
 
+from asyncio import Future
+
+from .events import EventLoopManager, EntityEvent, RegisteredListener
 from .events.event_handler import EventHandler
-from .rustplus_proto import AppRequest, AppMessage
+from .rustplus_proto import AppRequest, AppMessage, AppEmpty
 from .rustws import RustWebsocket, CONNECTED, PENDING_CONNECTION
 from .ratelimiter import RateLimiter
 from .expo_bundle_handler import MagicValueGrabber
@@ -14,6 +16,7 @@ from ...exceptions import (
     ClientNotConnectedError,
     ResponseNotReceivedError,
     RequestError,
+    SmartDeviceRegistrationError,
 )
 
 
@@ -32,6 +35,7 @@ class RustRemote:
     ) -> None:
 
         self.server_id = server_id
+        self.api = api
         self.command_options = command_options
         self.ratelimit_limit = ratelimit_limit
         self.ratelimit_refill = ratelimit_refill
@@ -42,7 +46,7 @@ class RustRemote:
             self.ratelimiter = RateLimiter.default()
 
         self.ratelimiter.add_socket(
-            api.server_id, ratelimit_limit, ratelimit_limit, 1, ratelimit_refill
+            self.server_id, ratelimit_limit, ratelimit_limit, 1, ratelimit_refill
         )
         self.ws = None
         self.websocket_length = websocket_length
@@ -63,6 +67,7 @@ class RustRemote:
         self.magic_value = MagicValueGrabber.get_magic_value()
         self.conversation_factory = ConversationFactory(api)
         self.use_test_server = use_test_server
+        self.pending_entity_subscriptions = []
 
     async def connect(self, retries, delay, on_failure=None) -> None:
 
@@ -76,6 +81,9 @@ class RustRemote:
             delay=delay,
         )
         await self.ws.connect(retries=retries)
+
+        for entity_id, coroutine in self.pending_entity_subscriptions:
+            self.handle_subscribing_entity(entity_id, coroutine)
 
     def close(self) -> None:
 
@@ -175,3 +183,42 @@ class RustRemote:
             raise RequestError(response.response.error.error)
 
         return response
+
+    def handle_subscribing_entity(self, entity_id: int, coroutine) -> None:
+
+        if not self.is_open():
+            self.pending_entity_subscriptions.append((entity_id, coroutine))
+            return
+
+        async def get_entity_info(self: RustRemote, eid):
+
+            await self.api._handle_ratelimit()
+
+            app_request = self.api._generate_protobuf()
+            app_request.entityId = eid
+            app_request.getEntityInfo.CopyFrom(AppEmpty())
+
+            await self.send_message(app_request)
+
+            return await self.get_response(
+                app_request.seq, app_request, False
+            )
+
+        def entity_event_callback(future_inner: Future):
+
+            entity_info = future_inner.result()
+
+            if entity_info.response.HasField("error"):
+                raise SmartDeviceRegistrationError(f"Entity: '{entity_id}' has not been found")
+
+            EntityEvent.handlers.register(
+                RegisteredListener(
+                    entity_id, (coroutine, entity_info.response.entityInfo.type)
+                ),
+                self.server_id,
+            )
+
+        future = asyncio.run_coroutine_threadsafe(
+            get_entity_info(self, entity_id), EventLoopManager.get_loop(self.server_id)
+        )
+        future.add_done_callback(entity_event_callback)

@@ -1,5 +1,4 @@
 import asyncio
-from asyncio.futures import Future
 from typing import List, Callable, Union
 from PIL import Image
 
@@ -47,8 +46,6 @@ class BaseRustSocket:
         if player_token is None:
             raise ValueError("PlayerToken cannot be None")
 
-        self.steam_id = steam_id
-        self.player_token = player_token
         self.server_id = ServerID(ip, port, steam_id, player_token)
         self.seq = 1
         self.command_options = command_options
@@ -104,8 +101,8 @@ class BaseRustSocket:
         """
         app_request = AppRequest()
         app_request.seq = self.seq
-        app_request.playerId = self.steam_id
-        app_request.playerToken = self.player_token
+        app_request.playerId = self.server_id.player_id
+        app_request.playerToken = self.server_id.player_token
 
         self.seq += 1
 
@@ -220,8 +217,6 @@ class BaseRustSocket:
 
         # Reset basic credentials
         self.server_id = ServerID(ip, port, steam_id, player_token)
-        self.steam_id = steam_id
-        self.player_token = player_token
         self.seq = 1
 
         # Deal with commands
@@ -237,9 +232,8 @@ class BaseRustSocket:
 
         self.raise_ratelimit_exception = raise_ratelimit_exception
 
-        self.remote.ip = ip
-        self.remote.port = port
-        self.remote.use_proxy = use_proxy
+        self.remote.pending_entity_subscriptions = []
+        self.remote.server_id = ServerID(ip, port, steam_id, player_token)
 
         # reset ratelimiter
         self.remote.ratelimiter.remove(self.server_id)
@@ -344,46 +338,12 @@ class BaseRustSocket:
         :raises SmartDeviceRegistrationError
         """
 
-        if not self.remote.is_open():
-            raise ClientNotConnectedError("Client is not connected")
-
         def wrap_func(coro) -> RegisteredListener:
 
             if isinstance(coro, RegisteredListener):
                 coro = coro.get_coro()
 
-            async def get_entity(self, eid) -> RustEntityInfo:
-
-                await self._handle_ratelimit()
-
-                app_request = self._generate_protobuf()
-                app_request.entityId = eid
-                app_request.getEntityInfo.CopyFrom(AppEmpty())
-
-                await self.remote.send_message(app_request)
-
-                return await self.remote.get_response(
-                    app_request.seq, app_request, False
-                )
-
-            def entity_event_callback(future_inner: Future):
-
-                entity_info = future_inner.result()
-
-                if entity_info.response.HasField("error"):
-                    raise SmartDeviceRegistrationError("Not Found")
-
-                EntityEvent.handlers.register(
-                    RegisteredListener(
-                        eid, (coro, entity_info.response.entityInfo.type)
-                    ),
-                    self.server_id,
-                )
-
-            future = asyncio.run_coroutine_threadsafe(
-                get_entity(self, eid), EventLoopManager.get_loop(self.server_id)
-            )
-            future.add_done_callback(entity_event_callback)
+            self.remote.handle_subscribing_entity(eid, coro)
 
             return RegisteredListener(eid, coro)
 
