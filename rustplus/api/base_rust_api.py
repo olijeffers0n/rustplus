@@ -338,15 +338,12 @@ class BaseRustSocket:
         :raises SmartDeviceRegistrationError
         """
 
-        if not self.remote.is_open():
-            raise ClientNotConnectedError("Client is not connected")
-
         def wrap_func(coro) -> RegisteredListener:
 
             if isinstance(coro, RegisteredListener):
                 coro = coro.get_coro()
 
-
+            self.remote.handle_subscribing_entity(eid, coro)
 
             return RegisteredListener(eid, coro)
 

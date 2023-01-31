@@ -1,16 +1,14 @@
 import asyncio
 import logging
-import time
 
 from asyncio import Future
 
-from .events import EventLoopManager
+from .events import EventLoopManager, EntityEvent, RegisteredListener
 from .events.event_handler import EventHandler
 from .rustplus_proto import AppRequest, AppMessage, AppEmpty
 from .rustws import RustWebsocket, CONNECTED, PENDING_CONNECTION
 from .ratelimiter import RateLimiter
 from .expo_bundle_handler import MagicValueGrabber
-from ... import RegisteredListener, EntityEvent, SmartDeviceRegistrationError
 from ...utils import ServerID
 from ...conversation import ConversationFactory
 from ...commands import CommandHandler
@@ -18,6 +16,7 @@ from ...exceptions import (
     ClientNotConnectedError,
     ResponseNotReceivedError,
     RequestError,
+    SmartDeviceRegistrationError,
 )
 
 
