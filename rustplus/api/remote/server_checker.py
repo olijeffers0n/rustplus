@@ -14,7 +14,10 @@ class ServerChecker:
         threading.Thread(target=self._check_server, daemon=True).start()
 
     def _check_server(self) -> None:
-        req = requests.post(f"https://companion-rust.facepunch.com/api/server/test_connection?address={self.ip}&port={self.port}")
-        for msg in req.json()["messages"]:
-            if "does not match your outgoing IP address" not in msg:
-                self.logger.warning(f"Error from server Checker:{msg}")
+        try:
+            req = requests.post(f"https://companion-rust.facepunch.com/api/server/test_connection?address={self.ip}&port={self.port}")
+            for msg in req.json()["messages"]:
+                if "does not match your outgoing IP address" not in msg:
+                    self.logger.warning(f"Error from server Checker:{msg}")
+        except Exception:
+            pass

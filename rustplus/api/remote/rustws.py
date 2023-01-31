@@ -174,7 +174,10 @@ class RustWebsocket(websocket.WebSocket):
             except KeyError:
                 pass
 
-            self.handle_message(app_message)
+            try:
+                self.handle_message(app_message)
+            except Exception as e:
+                self.logger.error(e)
 
     def handle_message(self, app_message: AppMessage) -> None:
 

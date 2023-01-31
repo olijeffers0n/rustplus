@@ -56,3 +56,8 @@ class EntityHandlerList(HandlerList):
 
     def unregister_all(self) -> None:
         self._handlers.clear()
+
+    def get_handlers(
+        self, server_id: ServerID
+    ) -> Dict[ServerID, Set[RegisteredListener]]:
+        return self._handlers.get(server_id, dict())
