@@ -233,6 +233,7 @@ class BaseRustSocket:
         self.raise_ratelimit_exception = raise_ratelimit_exception
 
         self.remote.pending_entity_subscriptions = []
+        self.remote.tracked_entities = set()
         self.remote.server_id = ServerID(ip, port, steam_id, player_token)
 
         # reset ratelimiter

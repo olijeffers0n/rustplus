@@ -68,6 +68,7 @@ class RustRemote:
         self.conversation_factory = ConversationFactory(api)
         self.use_test_server = use_test_server
         self.pending_entity_subscriptions = []
+        self.tracked_entities = set()
 
     async def connect(self, retries, delay, on_failure=None) -> None:
 
@@ -190,20 +191,6 @@ class RustRemote:
             self.pending_entity_subscriptions.append((entity_id, coroutine))
             return
 
-        async def get_entity_info(self: RustRemote, eid):
-
-            await self.api._handle_ratelimit()
-
-            app_request = self.api._generate_protobuf()
-            app_request.entityId = eid
-            app_request.getEntityInfo.CopyFrom(AppEmpty())
-
-            await self.send_message(app_request)
-
-            return await self.get_response(
-                app_request.seq, app_request, False
-            )
-
         def entity_event_callback(future_inner: Future):
 
             entity_info = future_inner.result()
@@ -219,6 +206,22 @@ class RustRemote:
             )
 
         future = asyncio.run_coroutine_threadsafe(
-            get_entity_info(self, entity_id), EventLoopManager.get_loop(self.server_id)
+            self.__subscribe_to_entity(entity_id), EventLoopManager.get_loop(self.server_id)
         )
         future.add_done_callback(entity_event_callback)
+
+        self.tracked_entities.add(entity_id)
+
+    def __subscribe_to_entity(self, eid: int) -> AppMessage:
+
+        await self.api._handle_ratelimit()
+
+        app_request = self.api._generate_protobuf()
+        app_request.entityId = eid
+        app_request.getEntityInfo.CopyFrom(AppEmpty())
+
+        await self.send_message(app_request)
+
+        return await self.get_response(
+            app_request.seq, app_request, False
+        )
