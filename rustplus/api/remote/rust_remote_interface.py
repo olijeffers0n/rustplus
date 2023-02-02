@@ -206,13 +206,13 @@ class RustRemote:
             )
 
         future = asyncio.run_coroutine_threadsafe(
-            self.__subscribe_to_entity(entity_id), EventLoopManager.get_loop(self.server_id)
+            self.__subscribe_to_entity(entity_id, True), EventLoopManager.get_loop(self.server_id)
         )
         future.add_done_callback(entity_event_callback)
 
         self.tracked_entities.add(entity_id)
 
-    def __subscribe_to_entity(self, eid: int) -> AppMessage:
+    def __subscribe_to_entity(self, eid: int, return_data: bool) -> AppMessage:
 
         await self.api._handle_ratelimit()
 
@@ -222,6 +222,7 @@ class RustRemote:
 
         await self.send_message(app_request)
 
-        return await self.get_response(
-            app_request.seq, app_request, False
-        )
+        if return_data:
+            return await self.get_response(
+                app_request.seq, app_request, False
+            )

@@ -118,7 +118,7 @@ class RustWebsocket(websocket.WebSocket):
             self.thread.start()
 
         for entity in self.remote.tracked_entities:
-            self.remote.__subscribe_to_entity(entity)
+            self.remote.__subscribe_to_entity(entity, False)
 
     def close(self) -> None:
 
