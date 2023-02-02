@@ -410,6 +410,7 @@ class BaseRustSocket:
                 return True
 
             if EntityEvent.handlers.has(listener, self.server_id):
+                self.remote.tracked_entities.remove(listener.listener_id)
                 EntityEvent.handlers.unregister(listener, self.server_id)
                 return True
 
