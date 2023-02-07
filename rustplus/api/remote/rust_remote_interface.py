@@ -200,16 +200,16 @@ class RustRemote:
 
             await self.send_message(app_request)
 
-            return await self.get_response(
-                app_request.seq, app_request, False
-            )
+            return await self.get_response(app_request.seq, app_request, False)
 
         def entity_event_callback(future_inner: Future):
 
             entity_info = future_inner.result()
 
             if entity_info.response.HasField("error"):
-                raise SmartDeviceRegistrationError(f"Entity: '{entity_id}' has not been found")
+                raise SmartDeviceRegistrationError(
+                    f"Entity: '{entity_id}' has not been found"
+                )
 
             EntityEvent.handlers.register(
                 RegisteredListener(
