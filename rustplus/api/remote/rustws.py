@@ -185,12 +185,12 @@ class RustWebsocket(websocket.WebSocket):
             self.remote.ignored_responses.remove(app_message.response.seq)
             return
 
-        prefix = self.get_prefix(str(app_message.broadcast.teamMessage.message.message))
+        prefix = self.get_prefix(str(app_message.broadcast.newTeamMessage.message.message))
 
         if prefix is not None:
             # This means it is a command
 
-            message = RustChatMessage(app_message.broadcast.teamMessage.message)
+            message = RustChatMessage(app_message.broadcast.newTeamMessage.message)
 
             self.remote.command_handler.run_command(message, prefix)
 
@@ -210,8 +210,8 @@ class RustWebsocket(websocket.WebSocket):
         elif self.is_message(app_message):
             # This means that a message has been sent to the team chat
 
-            steam_id = int(app_message.broadcast.teamMessage.message.steamId)
-            message = str(app_message.broadcast.teamMessage.message.message)
+            steam_id = int(app_message.broadcast.newTeamMessage.message.steamId)
+            message = str(app_message.broadcast.newTeamMessage.message.message)
 
             # Conversation API
             if self.remote.conversation_factory.has_conversation(steam_id):
@@ -267,7 +267,7 @@ class RustWebsocket(websocket.WebSocket):
 
     @staticmethod
     def is_message(app_message) -> bool:
-        return str(app_message.broadcast.teamMessage.message.message) != ""
+        return str(app_message.broadcast.newTeamMessage.message.message) != ""
 
     @staticmethod
     def is_entity_broadcast(app_message) -> bool:
