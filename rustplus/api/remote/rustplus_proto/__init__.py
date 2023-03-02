@@ -25,6 +25,8 @@ from .rustplus_pb2 import AppMarkerType as amt
 from .rustplus_pb2 import AppTeamChanged as atcc
 from .rustplus_pb2 import AppTeamMessage as atm
 from .rustplus_pb2 import AppEntityChanged as aec
+from .rustplus_pb2 import AppCameraSubscribe as acs
+from .rustplus_pb2 import AppCameraInput as aci
 
 
 AppRequest = ar
@@ -54,3 +56,5 @@ AppMarkerType = amt
 AppTeamChanged = atcc
 AppTeamMessage = atm
 AppEntityChanged = aec
+AppCameraSubscribe = acs
+AppCameraInput = aci

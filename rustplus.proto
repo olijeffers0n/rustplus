@@ -197,6 +197,11 @@ message Vector4 {
 	optional float w = 4;
 }
 
+message Vector2 {
+	optional float x = 1;
+	optional float y = 2;
+}
+
 message AppMarker {
 
 	required uint32 id = 1;
@@ -248,4 +253,13 @@ message AppTeamMessage {
 message AppEntityChanged {
 	required uint32 entityId = 1;
 	required AppEntityPayload payload = 2;
+}
+
+message AppCameraSubscribe {
+	required string cameraId = 1;
+}
+
+message AppCameraInput {
+	required int32 buttons = 1;
+	required Vector2 mouseDelta = 2;
 }
