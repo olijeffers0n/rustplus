@@ -8,6 +8,7 @@ from collections import defaultdict
 from importlib import resources
 
 from .base_rust_api import BaseRustSocket
+from .remote.camera.camera_manager import CameraManager
 from .structures import (
     RustInfo,
     RustMap,
@@ -413,3 +414,6 @@ class RustSocket(BaseRustSocket):
         self, eid: int = None, combine_stacks: bool = False
     ) -> RustContents:
         return await self.get_contents(eid=eid, combine_stacks=combine_stacks)
+
+    async def get_camera_manager(self, id: str) -> CameraManager:
+        return await self.remote.create_camera_manager(id)

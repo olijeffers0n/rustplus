@@ -153,6 +153,9 @@ message AppRequest {
 		optional AppEmpty getClanChat = 23;
 		optional AppSendMessage sendClanMessage = 24;
 		optional AppGetNexusAuth getNexusAuth = 25;
+		optional AppCameraSubscribe cameraSubscribe = 30;
+		optional AppEmpty cameraUnsubscribe = 31;
+		optional AppCameraInput cameraInput = 32;
 }
 
 message AppMessage {
@@ -184,6 +187,7 @@ message AppBroadcast {
 		optional AppEntityChanged entityChanged = 6;
 		optional AppClanChanged clanChanged = 7;
 		optional AppNewClanMessage clanMessage = 8;
+		optional AppCameraRays cameraRays = 10;
 }
 
 message AppEmpty {
