@@ -11,9 +11,10 @@ from .api.remote.events import (
     ProtobufEvent,
     RegisteredListener,
 )
-from .api.structures import RustMarker
+from .api.structures import RustMarker, Vector
 from .api.remote.fcm_listener import FCMListener
 from .api.remote.ratelimiter import RateLimiter
+from .api.remote.camera import CameraManager, MovementControls, CameraControls
 from .commands import CommandOptions, Command
 from .exceptions import *
 from .conversation import ConversationFactory, Conversation, ConversationPrompt
@@ -21,5 +22,5 @@ from .utils import *
 
 __name__ = "rustplus"
 __author__ = "olijeffers0n"
-__version__ = "5.5.4"
+__version__ = "5.5.5-STAGING"
 __support__ = "Discord: https://discord.gg/nQqJe8qvP8"

@@ -232,6 +232,7 @@ class RustRemote:
             if self.camera_manager._cam_id == cam_id:
                 return self.camera_manager
 
+        await self.api._handle_ratelimit()
         app_request = self.api._generate_protobuf()
         subscribe = AppCameraSubscribe()
         subscribe.cameraId = cam_id
@@ -241,5 +242,5 @@ class RustRemote:
 
         app_message = await self.get_response(app_request.seq, app_request)
 
-        self.camera_manager = CameraManager(self, cam_id, app_message)
+        self.camera_manager = CameraManager(self.api, cam_id, app_message.response.cameraSubscribeInfo)
         return self.camera_manager
