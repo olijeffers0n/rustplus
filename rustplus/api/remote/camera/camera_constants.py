@@ -17,7 +17,7 @@ class MovementControls:
     FIRE_THIRD = 134217728
 
 
-class CameraControls:
+class CameraMovementOptions:
     """
     Indicate which camera controls are active for the camera.
 

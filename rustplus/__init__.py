@@ -14,7 +14,7 @@ from .api.remote.events import (
 from .api.structures import RustMarker, Vector
 from .api.remote.fcm_listener import FCMListener
 from .api.remote.ratelimiter import RateLimiter
-from .api.remote.camera import CameraManager, MovementControls, CameraControls
+from .api.remote.camera import CameraManager, MovementControls, CameraMovementOptions
 from .commands import CommandOptions, Command
 from .exceptions import *
 from .conversation import ConversationFactory, Conversation, ConversationPrompt

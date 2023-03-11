@@ -1,6 +1,7 @@
 from typing import Iterable
-from ..rustplus_proto import AppCameraRays, AppCameraInfo, AppCameraInput, Vector2, AppEmpty
+from ..rustplus_proto import AppCameraInput, Vector2, AppEmpty
 from ...structures import Vector
+from .structures import CameraInfo, RayPacket
 
 
 class CameraManager:
@@ -8,12 +9,15 @@ class CameraManager:
     def __init__(self, rust_socket, cam_id, cam_info_message) -> None:
         self.rust_socket = rust_socket
         self._cam_id = cam_id
-        self._last_packet: AppCameraRays = None
-        self._cam_info_message: AppCameraInfo = cam_info_message
+        self._last_packet: RayPacket = None
+        self._cam_info_message: CameraInfo = CameraInfo(cam_info_message)
         self._open = True
 
     def set_packet(self, packet):
         self._last_packet = packet
+
+    def has_packet(self) -> bool:
+        return self._last_packet is not None
 
     def get_frame(self):
         if self._last_packet is None:
@@ -25,7 +29,7 @@ class CameraManager:
         return self._last_packet
 
     def can_move(self, control_type: int) -> bool:
-        return self._cam_info_message.controlFlags & control_type == control_type
+        return self._cam_info_message.is_move_option_permissible(control_type)
 
     async def clear_movement(self) -> None:
         await self.send_combined_movement()

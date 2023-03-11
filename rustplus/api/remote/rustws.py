@@ -7,6 +7,7 @@ from threading import Thread
 from typing import Optional
 import websocket
 
+from .camera.structures import RayPacket
 from .events import EventLoopManager
 from .rustplus_proto import AppMessage, AppRequest
 from ..structures import RustChatMessage
@@ -205,7 +206,7 @@ class RustWebsocket(websocket.WebSocket):
 
         elif self.is_camera_broadcast(app_message):
             if self.remote.camera_manager is not None:
-                self.remote.camera_manager.set_packet(app_message.broadcast.cameraRays)
+                self.remote.camera_manager.set_packet(RayPacket(app_message.broadcast.cameraRays))
 
         elif self.is_team_broadcast(app_message):
             # This means that the team of the current player has changed
