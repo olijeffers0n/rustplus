@@ -26,7 +26,7 @@ class Parser:
 
         self.output = [None for _ in range(self.width * self.height)]
 
-    def handle_camera_ray_data(self, data):
+    async def handle_camera_ray_data(self, data):
         self._rays = data
         self.data_pointer = 0
         self._sample_offset = 2 * data.sample_offset
@@ -34,17 +34,17 @@ class Parser:
             self._sample_offset -= 2 * self.width * self.height
         self._ray_lookback = [[0 for _ in range(3)] for _ in range(64)]
 
-    def step(self):
+    async def step(self):
 
         if self._rays is None:
             return None
 
         while True:
-            if self.process_rays_batch():
+            if await self.process_rays_batch():
                 self._rays = None
                 break
 
-    def process_rays_batch(self):
+    async def process_rays_batch(self):
         if self._rays is None:
             return True
 
@@ -53,7 +53,7 @@ class Parser:
             if self.data_pointer >= len(self._rays.ray_data) - 1:
                 return True
 
-            ray = self.next_ray(self._rays.ray_data)
+            ray = await self.next_ray(self._rays.ray_data)
 
             while self._sample_offset >= 2 * self.width * self.height:
                 self._sample_offset -= 2 * self.width * self.height
@@ -70,16 +70,16 @@ class Parser:
 
         return False
 
-    def next_ray(self, rayData):
-        byte = rayData[self.data_pointer]
+    async def next_ray(self, ray_data):
+        byte = ray_data[self.data_pointer]
         self.data_pointer += 1
 
         if byte == 255:
-            second_byte = rayData[self.data_pointer]
+            second_byte = ray_data[self.data_pointer]
             self.data_pointer += 1
-            third_byte = rayData[self.data_pointer]
+            third_byte = ray_data[self.data_pointer]
             self.data_pointer += 1
-            fourth_byte = rayData[self.data_pointer]
+            fourth_byte = ray_data[self.data_pointer]
             self.data_pointer += 1
 
             t = (second_byte << 2) | (third_byte >> 6)
@@ -101,13 +101,14 @@ class Parser:
                 t = y[0]
                 r = y[1]
                 i = y[2]
+
             elif c == 64:
                 p = 63 & byte
                 v = self._ray_lookback[p]
                 b = v[0]
                 w = v[1]
                 x = v[2]
-                g = rayData[self.data_pointer]
+                g = ray_data[self.data_pointer]
                 self.data_pointer += 1
                 t = b + ((g >> 3) - 15)
                 r = w + ((7 & g) - 3)
@@ -120,15 +121,15 @@ class Parser:
                 P = C[1]
                 k = C[2]
 
-                t = I + (rayData[self.data_pointer] - 127)
+                t = I + (ray_data[self.data_pointer] - 127)
                 self.data_pointer += 1
                 r = P
                 i = k
 
             else:
-                A = rayData[self.data_pointer]
+                A = ray_data[self.data_pointer]
                 self.data_pointer += 1
-                F = rayData[self.data_pointer]
+                F = ray_data[self.data_pointer]
                 self.data_pointer += 1
 
                 t = (A << 2) | (F >> 6)
@@ -142,7 +143,7 @@ class Parser:
 
         return [t / 1023, r / 63, i]
 
-    def render(self):
+    async def render(self):
 
         # We have the output array filled with RayData objects
         # We can get the material at each pixel and use that to get the colour

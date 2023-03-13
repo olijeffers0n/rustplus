@@ -1,11 +1,11 @@
-from typing import Iterable, List, Union
+from typing import Iterable, Union
 
 from PIL import Image
 
 from .camera_parser import Parser
 from ..rustplus_proto import AppCameraInput, Vector2, AppEmpty
 from ...structures import Vector
-from .structures import CameraInfo, RayPacket, LimitedQueue
+from .structures import CameraInfo, LimitedQueue
 
 
 class CameraManager:
@@ -24,7 +24,7 @@ class CameraManager:
     def has_frame_data(self) -> bool:
         return len(self._last_packets) > 0
 
-    def get_frame(self) -> Union[Image.Image, None]:
+    async def get_frame(self) -> Union[Image.Image, None]:
         if self._last_packets is None:
             return None
 
@@ -32,10 +32,10 @@ class CameraManager:
             raise Exception("Camera is closed")
 
         for i in range(len(self._last_packets)):
-            self.parser.handle_camera_ray_data(self._last_packets.get(i))
-            self.parser.step()
+            await self.parser.handle_camera_ray_data(self._last_packets.get(i))
+            await self.parser.step()
 
-        return self.parser.render()
+        return await self.parser.render()
 
     def can_move(self, control_type: int) -> bool:
         return self._cam_info_message.is_move_option_permissible(control_type)
