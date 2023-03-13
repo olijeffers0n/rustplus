@@ -1,7 +1,11 @@
-from typing import Iterable
+from typing import Iterable, List, Union
+
+from PIL import Image
+
+from .camera_parser import Parser
 from ..rustplus_proto import AppCameraInput, Vector2, AppEmpty
 from ...structures import Vector
-from .structures import CameraInfo, RayPacket
+from .structures import CameraInfo, RayPacket, LimitedQueue
 
 
 class CameraManager:
@@ -9,24 +13,29 @@ class CameraManager:
     def __init__(self, rust_socket, cam_id, cam_info_message) -> None:
         self.rust_socket = rust_socket
         self._cam_id = cam_id
-        self._last_packet: RayPacket = None
+        self._last_packets: LimitedQueue = LimitedQueue(15)
         self._cam_info_message: CameraInfo = CameraInfo(cam_info_message)
         self._open = True
+        self.parser = Parser(self._cam_info_message.width, self._cam_info_message.height)
 
-    def set_packet(self, packet):
-        self._last_packet = packet
+    def add_packet(self, packet):
+        self._last_packets.add(packet)
 
-    def has_packet(self) -> bool:
-        return self._last_packet is not None
+    def has_frame_data(self) -> bool:
+        return len(self._last_packets) > 0
 
-    def get_frame(self):
-        if self._last_packet is None:
+    def get_frame(self) -> Union[Image.Image, None]:
+        if self._last_packets is None:
             return None
 
         if not self._open:
             raise Exception("Camera is closed")
 
-        return self._last_packet
+        for i in range(len(self._last_packets)):
+            self.parser.handle_camera_ray_data(self._last_packets.get(i))
+            self.parser.step()
+
+        return self.parser.render()
 
     def can_move(self, control_type: int) -> bool:
         return self._cam_info_message.is_move_option_permissible(control_type)
@@ -75,4 +84,4 @@ class CameraManager:
         self.rust_socket.remote.ignored_responses.append(app_request.seq)
 
         self._open = False
-        self._last_packet = None
+        self._last_packets = None

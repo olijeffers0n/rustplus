@@ -206,7 +206,7 @@ class RustWebsocket(websocket.WebSocket):
 
         elif self.is_camera_broadcast(app_message):
             if self.remote.camera_manager is not None:
-                self.remote.camera_manager.set_packet(RayPacket(app_message.broadcast.cameraRays))
+                self.remote.camera_manager.add_packet(RayPacket(app_message.broadcast.cameraRays))
 
         elif self.is_team_broadcast(app_message):
             # This means that the team of the current player has changed
