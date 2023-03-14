@@ -13,7 +13,7 @@ class CameraManager:
     def __init__(self, rust_socket, cam_id, cam_info_message) -> None:
         self.rust_socket = rust_socket
         self._cam_id = cam_id
-        self._last_packets: LimitedQueue = LimitedQueue(15)
+        self._last_packets: LimitedQueue = LimitedQueue(5)
         self._cam_info_message: CameraInfo = CameraInfo(cam_info_message)
         self._open = True
         self.parser = Parser(
