@@ -1,3 +1,4 @@
+import time
 from typing import Iterable, Union
 
 from PIL import Image
@@ -9,14 +10,16 @@ from .structures import CameraInfo, LimitedQueue
 
 
 class CameraManager:
-
     def __init__(self, rust_socket, cam_id, cam_info_message) -> None:
         self.rust_socket = rust_socket
         self._cam_id = cam_id
         self._last_packets: LimitedQueue = LimitedQueue(15)
         self._cam_info_message: CameraInfo = CameraInfo(cam_info_message)
         self._open = True
-        self.parser = Parser(self._cam_info_message.width, self._cam_info_message.height)
+        self.parser = Parser(
+            self._cam_info_message.width, self._cam_info_message.height
+        )
+        self.time_since_last_subscribe = time.time()
 
     def add_packet(self, packet) -> None:
         self._last_packets.add(packet)
@@ -49,7 +52,9 @@ class CameraManager:
     async def send_mouse_movement(self, mouse_delta: Vector) -> None:
         await self.send_combined_movement(joystick_vector=mouse_delta)
 
-    async def send_combined_movement(self, movements: Iterable[int] = None, joystick_vector: Vector = None) -> None:
+    async def send_combined_movement(
+        self, movements: Iterable[int] = None, joystick_vector: Vector = None
+    ) -> None:
 
         if joystick_vector is None:
             joystick_vector = Vector()
@@ -85,3 +90,7 @@ class CameraManager:
 
         self._open = False
         self._last_packets = None
+
+    async def resubscribe(self) -> None:
+        await self.rust_socket.remote.subscribe_to_camera(self._cam_id, True)
+        self.time_since_last_subscribe = time.time()

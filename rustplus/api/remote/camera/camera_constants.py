@@ -22,6 +22,7 @@ class CameraMovementOptions:
     Indicate which camera controls are active for the camera.
 
     """
+
     NONE = 0
     MOVEMENT = 1
     MOUSE = 2

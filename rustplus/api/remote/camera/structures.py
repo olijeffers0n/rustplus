@@ -2,7 +2,6 @@ from typing import Any
 
 
 class CameraInfo:
-
     def __init__(self, camera_info_message) -> None:
         self.width = camera_info_message.width
         self.height = camera_info_message.height
@@ -14,12 +13,13 @@ class CameraInfo:
         return self.control_flags & value == value
 
     def __str__(self) -> str:
-        return f"CameraInfo(width={self.width}, height={self.height}, near_plane={self.near_plane}, " \
-               f"far_plane={self.far_plane}, control_flags={self.control_flags})"
+        return (
+            f"CameraInfo(width={self.width}, height={self.height}, near_plane={self.near_plane}, "
+            f"far_plane={self.far_plane}, control_flags={self.control_flags})"
+        )
 
 
 class Entity:
-
     def __init__(self, entity_data) -> None:
         self.entity_id = entity_data.entityId
         self.type = entity_data.type
@@ -29,12 +29,13 @@ class Entity:
         self.name = entity_data.name
 
     def __str__(self) -> str:
-        return f"Entity(entity_id={self.entity_id}, type={self.type}, position={self.position}, " \
-               f"rotation={self.rotation}, size={self.size}, name={self.name})"
+        return (
+            f"Entity(entity_id={self.entity_id}, type={self.type}, position={self.position}, "
+            f"rotation={self.rotation}, size={self.size}, name={self.name})"
+        )
 
 
 class RayPacket:
-
     def __init__(self, ray_packet) -> None:
         self.vertical_fov = ray_packet.verticalFov
         self.sample_offset = ray_packet.sampleOffset
@@ -43,12 +44,13 @@ class RayPacket:
         self.entities = [Entity(data) for data in ray_packet.entities]
 
     def __str__(self) -> str:
-        return f"RayPacket(vertical_fov={self.vertical_fov}, sample_offset={self.sample_offset}, " \
-               f"ray_data={self.ray_data}, distance={self.distance}, entities={self.entities})"
+        return (
+            f"RayPacket(vertical_fov={self.vertical_fov}, sample_offset={self.sample_offset}, "
+            f"ray_data={self.ray_data}, distance={self.distance}, entities={self.entities})"
+        )
 
 
 class LimitedQueue:
-
     def __init__(self, length) -> None:
         self._length = length
         self._queue = []
@@ -59,6 +61,9 @@ class LimitedQueue:
             self._queue.pop(0)
 
     def get(self, index=0) -> Any:
+        if index >= len(self._queue) or index < 0:
+            return None
+
         return self._queue[index]
 
     def pop(self) -> Any:

@@ -3,6 +3,7 @@ from typing import Union, Tuple, List
 from PIL import Image
 
 from .camera_constants import LOOKUP_CONSTANTS
+from .structures import RayPacket
 
 
 @dataclasses.dataclass
@@ -13,7 +14,6 @@ class RayData:
 
 
 class Parser:
-
     def __init__(self, width, height) -> None:
         self.width = width
         self.height = height
@@ -21,8 +21,16 @@ class Parser:
         self._rays = None
         self._ray_lookback = [[0 for _ in range(3)] for _ in range(64)]
         self._sample_offset = 0
-        self.colours = [[0.5, 0.5, 0.5], [0.8, 0.7, 0.7], [0.3, 0.7, 1], [0.6, 0.6, 0.6],
-                        [0.7, 0.7, 0.7], [0.8, 0.6, 0.4], [1, 0.4, 0.4], [0.5, 0.5, 0.5]]
+        self.colours = [
+            [0.5, 0.5, 0.5],
+            [0.8, 0.7, 0.7],
+            [0.3, 0.7, 1],
+            [0.6, 0.6, 0.6],
+            [0.7, 0.7, 0.7],
+            [0.8, 0.6, 0.4],
+            [1, 0.4, 0.4],
+            [0.5, 0.5, 0.5],
+        ]
 
         self.output = [None for _ in range(self.width * self.height)]
 
@@ -70,7 +78,7 @@ class Parser:
 
         return False
 
-    async def next_ray(self, ray_data) -> List[float, float, int]:
+    async def next_ray(self, ray_data) -> List[Union[float, int]]:
         byte = ray_data[self.data_pointer]
         self.data_pointer += 1
 
@@ -149,7 +157,7 @@ class Parser:
         # We can get the material at each pixel and use that to get the colour
         # We can then use the alignment to get the alpha value
 
-        image = Image.new("RGB", (self.width, self.height), (208, 230, 252))
+        image = Image.new("RGBA", (self.width, self.height), (208, 230, 252))
 
         for i in range(len(self.output)):
             ray: Union[RayData, None] = self.output[i]
@@ -159,22 +167,42 @@ class Parser:
             material = ray.material
             alignment = ray.alignment
 
+            if ray.distance == 1 and alignment == 0 and material == 0:
+                continue
+
             colour = self.colours[material]
-            image.putpixel((i % self.width, self.height - 1 - (i // self.width)),
-                           self._convert_colour((int(colour[0] * 255), int(colour[1] * 255), int(colour[2] * 255), int(alignment * 255))))
+            image.putpixel(
+                (i % self.width, self.height - 1 - (i // self.width)),
+                await self._convert_colour(
+                    (
+                        int(colour[0] * 255),
+                        int(colour[1] * 255),
+                        int(colour[2] * 255),
+                        int(alignment * 255),
+                    )
+                ),
+            )
 
         return image
 
-    async def _convert_colour(colour: Tuple[int, int, int, int], background: Tuple[int, int, int] = (0, 0, 0)) -> Tuple[int, int, int]:
-        normalised_colour = (colour[0] / 255, colour[1] / 255, colour[2] / 255, colour[3] / 255)
+    @staticmethod
+    async def _convert_colour(
+        colour: Tuple[int, int, int, int], background: Tuple[int, int, int] = (0, 0, 0)
+    ) -> Tuple[int, int, int]:
+        normalised_colour = (
+            colour[0] / 255,
+            colour[1] / 255,
+            colour[2] / 255,
+            colour[3] / 255,
+        )
         target_colour = (
             ((1 - normalised_colour[3]) * background[0]) + (normalised_colour[3] * normalised_colour[0]),
             ((1 - normalised_colour[3]) * background[1]) + (normalised_colour[3] * normalised_colour[1]),
-            ((1 - normalised_colour[3]) * background[2]) + (normalised_colour[3] * normalised_colour.[2])
+            ((1 - normalised_colour[3]) * background[2]) + (normalised_colour[3] * normalised_colour[2])
         )
 
         return (
-            min(255, target_colour[0] * 255),
-            min(255, target_colour[1] * 255),
-            min(255, target_colour[2] * 255)
+            min(255, int(target_colour[0] * 255)),
+            min(255, int(target_colour[1] * 255)),
+            min(255, int(target_colour[2] * 255))
         )

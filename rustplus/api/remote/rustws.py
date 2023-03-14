@@ -186,7 +186,9 @@ class RustWebsocket(websocket.WebSocket):
             self.remote.ignored_responses.remove(app_message.response.seq)
             return
 
-        prefix = self.get_prefix(str(app_message.broadcast.newTeamMessage.message.message))
+        prefix = self.get_prefix(
+            str(app_message.broadcast.newTeamMessage.message.message)
+        )
 
         if prefix is not None:
             # This means it is a command
@@ -206,7 +208,9 @@ class RustWebsocket(websocket.WebSocket):
 
         elif self.is_camera_broadcast(app_message):
             if self.remote.camera_manager is not None:
-                self.remote.camera_manager.add_packet(RayPacket(app_message.broadcast.cameraRays))
+                self.remote.camera_manager.add_packet(
+                    RayPacket(app_message.broadcast.cameraRays)
+                )
 
         elif self.is_team_broadcast(app_message):
             # This means that the team of the current player has changed
