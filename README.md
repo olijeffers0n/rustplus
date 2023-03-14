@@ -34,7 +34,7 @@ It should also install all the dependencies, but if not you will have to install
 - Send Team Messages
 - Getting the time
 - Using Smart Devices
-- And so much more!
+- Camera Handling
 
 # For information on all the above methods, see the [Wiki](https://rplus.ollieee.xyz)
 
