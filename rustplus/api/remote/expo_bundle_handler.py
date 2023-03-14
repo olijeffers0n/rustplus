@@ -13,7 +13,7 @@ class MagicValueGrabber:
                 "https://exp.host/@facepunch/RustCompanion",
                 headers={
                     "Exponent-SDK-Version": "40.0.0",  # These are the two lines that determine the version of data that
-                    "Exponent-Version": "0.0.27",  # you receive as far as I can tell from my limited debugging. As of
+                    "Exponent-Version": "0.0.29",  # you receive as far as I can tell from my limited debugging. As of
                     # now (8th April 2022), this is the latest
                     "Exponent-Platform": "android",
                     "Accept": "application/expo+json,application/json",

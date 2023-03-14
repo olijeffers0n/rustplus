@@ -5,7 +5,8 @@ from .conversation import Conversation
 
 
 class ConversationFactory:
-    def __init__(self, api):
+    
+    def __init__(self, api) -> None:
         self.api = api
         self.conversations = {}
         self.expires = {}

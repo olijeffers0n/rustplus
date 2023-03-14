@@ -205,7 +205,7 @@ class RustRemote:
 
             return await self.get_response(app_request.seq, app_request, False)
 
-        def entity_event_callback(future_inner: Future):
+        def entity_event_callback(future_inner: Future) -> None:
 
             entity_info = future_inner.result()
 

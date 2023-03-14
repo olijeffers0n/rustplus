@@ -286,7 +286,7 @@ class RustWebsocket(websocket.WebSocket):
     def is_team_broadcast(app_message) -> bool:
         return str(app_message.broadcast.teamChanged) != ""
 
-    async def _retry_failed_request(self, app_request: AppRequest):
+    async def _retry_failed_request(self, app_request: AppRequest) -> None:
         """
         Resends an AppRequest to the server if it has failed
         """

@@ -1,5 +1,5 @@
 import dataclasses
-from typing import Union, Tuple
+from typing import Union, Tuple, List
 from PIL import Image
 
 from .camera_constants import LOOKUP_CONSTANTS
@@ -14,7 +14,7 @@ class RayData:
 
 class Parser:
 
-    def __init__(self, width, height):
+    def __init__(self, width, height) -> None:
         self.width = width
         self.height = height
         self.data_pointer = 0
@@ -26,7 +26,7 @@ class Parser:
 
         self.output = [None for _ in range(self.width * self.height)]
 
-    async def handle_camera_ray_data(self, data):
+    async def handle_camera_ray_data(self, data) -> None:
         self._rays = data
         self.data_pointer = 0
         self._sample_offset = 2 * data.sample_offset
@@ -34,7 +34,7 @@ class Parser:
             self._sample_offset -= 2 * self.width * self.height
         self._ray_lookback = [[0 for _ in range(3)] for _ in range(64)]
 
-    async def step(self):
+    async def step(self) -> None:
 
         if self._rays is None:
             return None
@@ -44,7 +44,7 @@ class Parser:
                 self._rays = None
                 break
 
-    async def process_rays_batch(self):
+    async def process_rays_batch(self) -> bool:
         if self._rays is None:
             return True
 
@@ -70,7 +70,7 @@ class Parser:
 
         return False
 
-    async def next_ray(self, ray_data):
+    async def next_ray(self, ray_data) -> List[float, float, int]:
         byte = ray_data[self.data_pointer]
         self.data_pointer += 1
 
@@ -143,7 +143,7 @@ class Parser:
 
         return [t / 1023, r / 63, i]
 
-    async def render(self):
+    async def render(self) -> Image.Image:
 
         # We have the output array filled with RayData objects
         # We can get the material at each pixel and use that to get the colour

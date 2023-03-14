@@ -1,3 +1,6 @@
+from typing import Any
+
+
 class CameraInfo:
 
     def __init__(self, camera_info_message) -> None:
@@ -10,7 +13,7 @@ class CameraInfo:
     def is_move_option_permissible(self, value: int) -> bool:
         return self.control_flags & value == value
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"CameraInfo(width={self.width}, height={self.height}, near_plane={self.near_plane}, " \
                f"far_plane={self.far_plane}, control_flags={self.control_flags})"
 
@@ -25,7 +28,7 @@ class Entity:
         self.size = entity_data.size
         self.name = entity_data.name
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Entity(entity_id={self.entity_id}, type={self.type}, position={self.position}, " \
                f"rotation={self.rotation}, size={self.size}, name={self.name})"
 
@@ -39,7 +42,7 @@ class RayPacket:
         self.distance = ray_packet.distance
         self.entities = [Entity(data) for data in ray_packet.entities]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"RayPacket(vertical_fov={self.vertical_fov}, sample_offset={self.sample_offset}, " \
                f"ray_data={self.ray_data}, distance={self.distance}, entities={self.entities})"
 
@@ -50,16 +53,16 @@ class LimitedQueue:
         self._length = length
         self._queue = []
 
-    def add(self, item):
+    def add(self, item) -> None:
         self._queue.append(item)
         if len(self._queue) > self._length:
             self._queue.pop(0)
 
-    def get(self, index=0):
+    def get(self, index=0) -> Any:
         return self._queue[index]
 
-    def pop(self):
+    def pop(self) -> Any:
         return self._queue.pop(0)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._queue)

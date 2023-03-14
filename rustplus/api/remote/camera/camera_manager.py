@@ -18,7 +18,7 @@ class CameraManager:
         self._open = True
         self.parser = Parser(self._cam_info_message.width, self._cam_info_message.height)
 
-    def add_packet(self, packet):
+    def add_packet(self, packet) -> None:
         self._last_packets.add(packet)
 
     def has_frame_data(self) -> bool:

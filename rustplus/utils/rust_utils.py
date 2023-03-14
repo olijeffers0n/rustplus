@@ -1,4 +1,5 @@
 from importlib import resources
+from typing import Tuple
 from PIL import Image
 import logging
 import string
@@ -48,7 +49,7 @@ def format_coord(x, y, map_size) -> tuple:
     return x, y
 
 
-def convert_marker(name, angle) -> Image:
+def convert_marker(name, angle) -> Image.Image:
     name_to_file = {
         "2": "explosion.png",
         "4": "chinook.png",
@@ -79,7 +80,7 @@ def convert_marker(name, angle) -> Image:
     return icon
 
 
-def convert_monument(name: str, override_images: dict) -> Image:
+def convert_monument(name: str, override_images: dict) -> Image.Image:
     name_to_file = {
         "train_tunnel_display_name": "train.png",
         "supermarket": "supermarket.png",
@@ -157,7 +158,7 @@ def entity_type_to_string(id) -> str:
 
 def convert_xy_to_grid(
     coords: tuple, map_size: float, catch_out_of_bounds: bool = True
-) -> tuple:
+) -> Tuple[int, int]:
     grid_size = 146.3
     grids = list(string.ascii_uppercase) + [
         f"A{letter}" for letter in list(string.ascii_uppercase)
