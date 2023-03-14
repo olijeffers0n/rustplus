@@ -1,5 +1,5 @@
 import dataclasses
-from typing import Union
+from typing import Union, Tuple
 from PIL import Image
 
 from .camera_constants import LOOKUP_CONSTANTS
@@ -149,7 +149,7 @@ class Parser:
         # We can get the material at each pixel and use that to get the colour
         # We can then use the alignment to get the alpha value
 
-        image = Image.new("RGBA", (self.width, self.height), (208, 230, 252))
+        image = Image.new("RGB", (self.width, self.height), (208, 230, 252))
 
         for i in range(len(self.output)):
             ray: Union[RayData, None] = self.output[i]
@@ -161,8 +161,20 @@ class Parser:
 
             colour = self.colours[material]
             image.putpixel((i % self.width, self.height - 1 - (i // self.width)),
-                           (int(colour[0] * 255), int(colour[1] * 255), int(colour[2] * 255), int(alignment * 255)))
+                           self._convert_colour((int(colour[0] * 255), int(colour[1] * 255), int(colour[2] * 255), int(alignment * 255))))
 
-        target = Image.new("RGBA", (self.width, self.height), (0, 0, 0, 255))
-        target.paste(image, (0, 0), image)
-        return target
+        return image
+
+    async def _convert_colour(colour: Tuple[int, int, int, int], background: Tuple[int, int, int] = (0, 0, 0)) -> Tuple[int, int, int]:
+        normalised_colour = (colour[0] / 255, colour[1] / 255, colour[2] / 255, colour[3] / 255)
+        target_colour = (
+            ((1 - normalised_colour[3]) * background[0]) + (normalised_colour[3] * normalised_colour[0]),
+            ((1 - normalised_colour[3]) * background[1]) + (normalised_colour[3] * normalised_colour[1]),
+            ((1 - normalised_colour[3]) * background[2]) + (normalised_colour[3] * normalised_colour.[2])
+        )
+
+        return (
+            min(255, target_colour[0] * 255),
+            min(255, target_colour[1] * 255),
+            min(255, target_colour[2] * 255)
+        )
