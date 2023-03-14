@@ -1,12 +1,12 @@
 import time
-from typing import Iterable, Union
+from typing import Iterable, Union, List
 
 from PIL import Image
 
 from .camera_parser import Parser
 from ..rustplus_proto import AppCameraInput, Vector2, AppEmpty
 from ...structures import Vector
-from .structures import CameraInfo, LimitedQueue
+from .structures import CameraInfo, LimitedQueue, Entity
 
 
 class CameraManager:
@@ -94,3 +94,12 @@ class CameraManager:
     async def resubscribe(self) -> None:
         await self.rust_socket.remote.subscribe_to_camera(self._cam_id, True)
         self.time_since_last_subscribe = time.time()
+
+    async def get_entities_in_frame(self) -> List[Entity]:
+        if self._last_packets is None:
+            return []
+
+        if len(self._last_packets) == 0:
+            return []
+
+        return self._last_packets.get_last().entities

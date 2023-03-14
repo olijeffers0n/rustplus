@@ -66,6 +66,9 @@ class LimitedQueue:
 
         return self._queue[index]
 
+    def get_last(self) -> Any:
+        return self.get(-1)
+
     def pop(self) -> Any:
         return self._queue.pop(0)
 
