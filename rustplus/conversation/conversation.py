@@ -54,7 +54,7 @@ class Conversation:
         self._register(self._target, self)
         await self.send_prompt(await self._prompts[0].prompt())
 
-    def run_coro(self, coro, args):
+    def run_coro(self, coro, args) -> None:
         return asyncio.run_coroutine_threadsafe(
             coro(*args), EventLoopManager.get_loop(self._api.server_id)
         ).result()

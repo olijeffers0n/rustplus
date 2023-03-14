@@ -7,6 +7,7 @@ from threading import Thread
 from typing import Optional
 import websocket
 
+from .camera.structures import RayPacket
 from .events import EventLoopManager
 from .rustplus_proto import AppMessage, AppRequest
 from ..structures import RustChatMessage
@@ -185,7 +186,9 @@ class RustWebsocket(websocket.WebSocket):
             self.remote.ignored_responses.remove(app_message.response.seq)
             return
 
-        prefix = self.get_prefix(str(app_message.broadcast.newTeamMessage.message.message))
+        prefix = self.get_prefix(
+            str(app_message.broadcast.newTeamMessage.message.message)
+        )
 
         if prefix is not None:
             # This means it is a command
@@ -202,6 +205,12 @@ class RustWebsocket(websocket.WebSocket):
                 app_message,
                 self.server_id,
             )
+
+        elif self.is_camera_broadcast(app_message):
+            if self.remote.camera_manager is not None:
+                self.remote.camera_manager.add_packet(
+                    RayPacket(app_message.broadcast.cameraRays)
+                )
 
         elif self.is_team_broadcast(app_message):
             # This means that the team of the current player has changed
@@ -270,6 +279,10 @@ class RustWebsocket(websocket.WebSocket):
         return str(app_message.broadcast.newTeamMessage.message.message) != ""
 
     @staticmethod
+    def is_camera_broadcast(app_message) -> bool:
+        return app_message.broadcast.HasField("cameraRays")
+
+    @staticmethod
     def is_entity_broadcast(app_message) -> bool:
         return str(app_message.broadcast.entityChanged) != ""
 
@@ -277,7 +290,7 @@ class RustWebsocket(websocket.WebSocket):
     def is_team_broadcast(app_message) -> bool:
         return str(app_message.broadcast.teamChanged) != ""
 
-    async def _retry_failed_request(self, app_request: AppRequest):
+    async def _retry_failed_request(self, app_request: AppRequest) -> None:
         """
         Resends an AppRequest to the server if it has failed
         """

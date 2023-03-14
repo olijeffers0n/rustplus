@@ -19,6 +19,6 @@ class ServerChecker:
             )
             for msg in req.json()["messages"]:
                 if "does not match your outgoing IP address" not in msg:
-                    self.logger.warning(f"Error from server Checker:{msg}")
+                    self.logger.warning(f"Error from server Checker: {msg}")
         except Exception:
             pass

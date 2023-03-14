@@ -8,7 +8,7 @@ class RegisteredListener:
             return self.data[0]
         return self.data
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         if isinstance(other, RegisteredListener):
 
             coro = self.data

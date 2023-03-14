@@ -47,7 +47,7 @@ class ChatEvent:
     handlers = HandlerList()
 
     def __init__(self, app_message) -> None:
-        self._message = RustChatMessage(app_message.broadcast.teamMessage.message)
+        self._message = RustChatMessage(app_message.broadcast.newTeamMessage.message)
 
     @property
     def message(self) -> RustChatMessage:

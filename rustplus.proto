@@ -153,6 +153,9 @@ message AppRequest {
 		optional AppEmpty getClanChat = 23;
 		optional AppSendMessage sendClanMessage = 24;
 		optional AppGetNexusAuth getNexusAuth = 25;
+		optional AppCameraSubscribe cameraSubscribe = 30;
+		optional AppEmpty cameraUnsubscribe = 31;
+		optional AppCameraInput cameraInput = 32;
 }
 
 message AppMessage {
@@ -175,6 +178,7 @@ message AppResponse {
 		optional AppClanInfo clanInfo = 15;
 		optional AppClanChat clanChat = 16;
 		optional AppNexusAuth nexusAuth = 17;
+		optional AppCameraInfo cameraSubscribeInfo = 20;
 }
 
 message AppBroadcast {
@@ -183,6 +187,7 @@ message AppBroadcast {
 		optional AppEntityChanged entityChanged = 6;
 		optional AppClanChanged clanChanged = 7;
 		optional AppNewClanMessage clanMessage = 8;
+		optional AppCameraRays cameraRays = 10;
 }
 
 message AppEmpty {
@@ -384,4 +389,43 @@ message AppClanChanged {
 message AppNewClanMessage {
 		required int64 clanId = 1;
 		required AppClanMessage message = 2;
+}
+
+message AppCameraSubscribe {
+	required string cameraId = 1;
+}
+
+message AppCameraInput {
+	required int32 buttons = 1;
+	required Vector2 mouseDelta = 2;
+}
+
+message AppCameraInfo {
+	required int32 width = 1;
+	required int32 height = 2;
+	required float nearPlane = 3;
+	required float farPlane = 4;
+	required int32 controlFlags = 5;
+}
+
+message AppCameraRays {
+	required float verticalFov = 1;
+	required int32 sampleOffset = 2;
+	required bytes rayData = 3;
+	required float distance = 4;
+	repeated AppCameraRays.Entity entities = 5;
+
+	enum EntityType {
+		Tree = 1;
+		Player = 2;
+	}
+
+	message Entity {
+		required uint32 entityId = 1;
+		required EntityType type = 2;
+		required Vector3 position = 3;
+		required Vector3 rotation = 4;
+		required Vector3 size = 5;
+		optional string name = 6;
+	}
 }

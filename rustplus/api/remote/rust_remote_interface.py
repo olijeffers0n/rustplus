@@ -2,10 +2,12 @@ import asyncio
 import logging
 
 from asyncio import Future
+from typing import Dict
 
+from .camera.camera_manager import CameraManager
 from .events import EventLoopManager, EntityEvent, RegisteredListener
 from .events.event_handler import EventHandler
-from .rustplus_proto import AppRequest, AppMessage, AppEmpty
+from .rustplus_proto import AppRequest, AppMessage, AppEmpty, AppCameraSubscribe
 from .rustws import RustWebsocket, CONNECTED, PENDING_CONNECTION
 from .ratelimiter import RateLimiter
 from .expo_bundle_handler import MagicValueGrabber
@@ -68,6 +70,7 @@ class RustRemote:
         self.conversation_factory = ConversationFactory(api)
         self.use_test_server = use_test_server
         self.pending_entity_subscriptions = []
+        self.camera_manager: CameraManager = None
 
     async def connect(self, retries, delay, on_failure=None) -> None:
 
@@ -202,7 +205,7 @@ class RustRemote:
 
             return await self.get_response(app_request.seq, app_request, False)
 
-        def entity_event_callback(future_inner: Future):
+        def entity_event_callback(future_inner: Future) -> None:
 
             entity_info = future_inner.result()
 
@@ -222,3 +225,31 @@ class RustRemote:
             get_entity_info(self, entity_id), EventLoopManager.get_loop(self.server_id)
         )
         future.add_done_callback(entity_event_callback)
+
+    async def subscribe_to_camera(self, entity_id: int, ignore: bool = False) -> AppRequest:
+        await self.api._handle_ratelimit()
+        app_request = self.api._generate_protobuf()
+        subscribe = AppCameraSubscribe()
+        subscribe.cameraId = entity_id
+        app_request.cameraSubscribe.CopyFrom(subscribe)
+
+        await self.send_message(app_request)
+
+        if ignore:
+            self.ignored_responses.append(app_request.seq)
+
+        return app_request
+
+    async def create_camera_manager(self, cam_id) -> CameraManager:
+
+        if self.camera_manager is not None:
+            if self.camera_manager._cam_id == cam_id:
+                return self.camera_manager
+
+        app_request = await self.subscribe_to_camera(cam_id)
+        app_message = await self.get_response(app_request.seq, app_request)
+
+        self.camera_manager = CameraManager(
+            self.api, cam_id, app_message.response.cameraSubscribeInfo
+        )
+        return self.camera_manager

@@ -41,6 +41,10 @@ from .rustplus_pb2 import AppNewTeamMessage as app_new_team_message
 from .rustplus_pb2 import AppEntityChanged as app_entity_changed
 from .rustplus_pb2 import AppClanChanged as app_clan_changed
 from .rustplus_pb2 import AppNewClanMessage as app_new_clan_message
+from .rustplus_pb2 import AppCameraSubscribe as app_camera_subscribe
+from .rustplus_pb2 import AppCameraInput as app_camera_input
+from .rustplus_pb2 import AppCameraInfo as app_camera_info
+from .rustplus_pb2 import AppCameraRays as app_camera_rays
 
 Vector2 = vector_2
 Vector3 = vector_3
@@ -85,3 +89,7 @@ AppNewTeamMessage = app_new_team_message
 AppEntityChanged = app_entity_changed
 AppClanChanged = app_clan_changed
 AppNewClanMessage = app_new_clan_message
+AppCameraSubscribe = app_camera_subscribe
+AppCameraInput = app_camera_input
+AppCameraInfo = app_camera_info
+AppCameraRays = app_camera_rays

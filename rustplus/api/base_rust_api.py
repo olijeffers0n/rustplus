@@ -6,6 +6,7 @@ from .remote.events.event_loop_manager import EventLoopManager
 from .structures import *
 from .remote.rustplus_proto import AppEmpty, AppRequest
 from .remote import RustRemote, HeartBeat, MapEventListener, ServerChecker, RateLimiter
+from .remote.camera import CameraManager
 from ..commands import CommandOptions, CommandHandler
 from ..commands.command_data import CommandData
 from ..exceptions import *
@@ -583,5 +584,17 @@ class BaseRustSocket:
         """
         Gets the Information about TC Upkeep and Contents.
         Do not use this for any other storage monitor than a TC
+        """
+        raise NotImplementedError("Not Implemented")
+
+    async def get_camera_manager(self, id: str) -> CameraManager:
+        """
+        Gets a camera manager for a given camera ID
+
+        NOTE: This will override the current camera manager if one exists for the given ID so you cannot have multiple
+
+        :param id: The ID of the camera
+        :return CameraManager: The camera manager
+        :raises RequestError: If the camera is not found or you cannot access it. See reason for more info
         """
         raise NotImplementedError("Not Implemented")
