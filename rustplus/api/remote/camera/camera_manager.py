@@ -89,11 +89,14 @@ class CameraManager:
         self.rust_socket.remote.ignored_responses.append(app_request.seq)
 
         self._open = False
-        self._last_packets = None
+        self._last_packets.clear()
 
     async def resubscribe(self) -> None:
         await self.rust_socket.remote.subscribe_to_camera(self._cam_id, True)
         self.time_since_last_subscribe = time.time()
+        self._open = True
+        self._last_packets.clear()
+        self.rust_socket.remote.camera_manager = self
 
     async def get_entities_in_frame(self) -> List[Entity]:
         if self._last_packets is None:

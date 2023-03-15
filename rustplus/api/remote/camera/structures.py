@@ -26,7 +26,7 @@ class Entity:
         self.position = entity_data.position
         self.rotation = entity_data.rotation
         self.size = entity_data.size
-        self.name = entity_data.name
+        self.name: str = entity_data.name
 
     def __str__(self) -> str:
         return (
@@ -71,6 +71,9 @@ class LimitedQueue:
 
     def pop(self) -> Any:
         return self._queue.pop(0)
+
+    def clear(self) -> None:
+        self._queue.clear()
 
     def __len__(self) -> int:
         return len(self._queue)
