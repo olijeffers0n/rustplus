@@ -3,11 +3,11 @@ from typing import Any
 
 class CameraInfo:
     def __init__(self, camera_info_message) -> None:
-        self.width = camera_info_message.width
-        self.height = camera_info_message.height
-        self.near_plane = camera_info_message.nearPlane
-        self.far_plane = camera_info_message.farPlane
-        self.control_flags = camera_info_message.controlFlags
+        self.width: int = camera_info_message.width
+        self.height: int = camera_info_message.height
+        self.near_plane: float = camera_info_message.nearPlane
+        self.far_plane: float = camera_info_message.farPlane
+        self.control_flags: int = camera_info_message.controlFlags
 
     def is_move_option_permissible(self, value: int) -> bool:
         return self.control_flags & value == value
@@ -21,18 +21,29 @@ class CameraInfo:
 
 class Entity:
     def __init__(self, entity_data) -> None:
-        self.entity_id = entity_data.entityId
-        self.type = entity_data.type
-        self.position = entity_data.position
-        self.rotation = entity_data.rotation
-        self.size = entity_data.size
-        self.name = entity_data.name
+        self.entity_id: int = entity_data.entityId
+        self.type: int = entity_data.type
+        self.position: Vector3 = Vector3(entity_data.position)
+        self.rotation: Vector3 = Vector3(entity_data.rotation)
+        self.size: Vector3 = Vector3(entity_data.size)
+        self.name: str = entity_data.name
 
     def __str__(self) -> str:
         return (
             f"Entity(entity_id={self.entity_id}, type={self.type}, position={self.position}, "
             f"rotation={self.rotation}, size={self.size}, name={self.name})"
         )
+
+
+class Vector3:
+
+    def __init__(self, vector3) -> None:
+        self.x: float = vector3.x
+        self.y: float = vector3.y
+        self.z: float = vector3.z
+
+    def __str__(self) -> str:
+        return f"Vector3(x={self.x}, y={self.y}, z={self.z})"
 
 
 class RayPacket:
@@ -71,6 +82,9 @@ class LimitedQueue:
 
     def pop(self) -> Any:
         return self._queue.pop(0)
+
+    def clear(self) -> None:
+        self._queue.clear()
 
     def __len__(self) -> int:
         return len(self._queue)

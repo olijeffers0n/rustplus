@@ -3,7 +3,6 @@ from typing import Union, Tuple, List
 from PIL import Image
 
 from .camera_constants import LOOKUP_CONSTANTS
-from .structures import RayPacket
 
 
 @dataclasses.dataclass
@@ -29,7 +28,7 @@ class Parser:
             [0.7, 0.7, 0.7],
             [0.8, 0.6, 0.4],
             [1, 0.4, 0.4],
-            [0.5, 0.5, 0.5],
+            [1, 0.1, 0.1],
         ]
 
         self.output = [None for _ in range(self.width * self.height)]
@@ -45,7 +44,7 @@ class Parser:
     async def step(self) -> None:
 
         if self._rays is None:
-            return None
+            return
 
         while True:
             if await self.process_rays_batch():
@@ -174,12 +173,7 @@ class Parser:
             image.putpixel(
                 (i % self.width, self.height - 1 - (i // self.width)),
                 await self._convert_colour(
-                    (
-                        int(colour[0] * 255),
-                        int(colour[1] * 255),
-                        int(colour[2] * 255),
-                        int(alignment * 255),
-                    )
+                    (colour[0], colour[1], colour[2], alignment)
                 ),
             )
 
@@ -187,22 +181,17 @@ class Parser:
 
     @staticmethod
     async def _convert_colour(
-        colour: Tuple[int, int, int, int], background: Tuple[int, int, int] = (0, 0, 0)
+        colour: Tuple[float, float, float, float],
+        background: Tuple[int, int, int] = (0, 0, 0),
     ) -> Tuple[int, int, int]:
-        normalised_colour = (
-            colour[0] / 255,
-            colour[1] / 255,
-            colour[2] / 255,
-            colour[3] / 255,
-        )
         target_colour = (
-            ((1 - normalised_colour[3]) * background[0]) + (normalised_colour[3] * normalised_colour[0]),
-            ((1 - normalised_colour[3]) * background[1]) + (normalised_colour[3] * normalised_colour[1]),
-            ((1 - normalised_colour[3]) * background[2]) + (normalised_colour[3] * normalised_colour[2])
+            ((1 - colour[3]) * background[0]) + (colour[3] * colour[0]),
+            ((1 - colour[3]) * background[1]) + (colour[3] * colour[1]),
+            ((1 - colour[3]) * background[2]) + (colour[3] * colour[2]),
         )
 
         return (
             min(255, int(target_colour[0] * 255)),
             min(255, int(target_colour[1] * 255)),
-            min(255, int(target_colour[2] * 255))
+            min(255, int(target_colour[2] * 255)),
         )

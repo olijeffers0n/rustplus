@@ -226,7 +226,9 @@ class RustRemote:
         )
         future.add_done_callback(entity_event_callback)
 
-    async def subscribe_to_camera(self, entity_id: int, ignore: bool = False) -> AppRequest:
+    async def subscribe_to_camera(
+        self, entity_id: int, ignore_response: bool = False
+    ) -> AppRequest:
         await self.api._handle_ratelimit()
         app_request = self.api._generate_protobuf()
         subscribe = AppCameraSubscribe()
@@ -235,7 +237,7 @@ class RustRemote:
 
         await self.send_message(app_request)
 
-        if ignore:
+        if ignore_response:
             self.ignored_responses.append(app_request.seq)
 
         return app_request
