@@ -1,9 +1,11 @@
 import time
-from typing import Iterable, Union, List
+from typing import Iterable, Union, List, Coroutine
 
 from PIL import Image
 
 from .camera_parser import Parser
+from .. import EventHandler
+from ..events import EventLoopManager
 from ..rustplus_proto import AppCameraInput, Vector2, AppEmpty
 from ...structures import Vector
 from .structures import CameraInfo, LimitedQueue, Entity
@@ -13,21 +15,38 @@ class CameraManager:
     def __init__(self, rust_socket, cam_id, cam_info_message) -> None:
         self.rust_socket = rust_socket
         self._cam_id = cam_id
-        self._last_packets: LimitedQueue = LimitedQueue(5)
+        self._last_packets: LimitedQueue = LimitedQueue(6)
         self._cam_info_message: CameraInfo = CameraInfo(cam_info_message)
         self._open = True
         self.parser = Parser(
             self._cam_info_message.width, self._cam_info_message.height
         )
         self.time_since_last_subscribe = time.time()
+        self.frame_callbacks = set()
 
     def add_packet(self, packet) -> None:
         self._last_packets.add(packet)
 
+        if len(self.frame_callbacks) == 0:
+            return
+
+        frame = self._create_frame()
+
+        for callback in self.frame_callbacks:
+            EventHandler.schedule_event(
+                EventLoopManager.get_loop(self.rust_socket.server_id),
+                callback,
+                frame,
+            )
+
+    def on_frame_received(self, coro) -> Coroutine:
+        self.frame_callbacks.add(coro)
+        return coro
+
     def has_frame_data(self) -> bool:
         return len(self._last_packets) > 0
 
-    async def get_frame(self) -> Union[Image.Image, None]:
+    def _create_frame(self) -> Union[Image.Image, None]:
         if self._last_packets is None:
             return None
 
@@ -35,10 +54,13 @@ class CameraManager:
             raise Exception("Camera is closed")
 
         for i in range(len(self._last_packets)):
-            await self.parser.handle_camera_ray_data(self._last_packets.get(i))
-            await self.parser.step()
+            self.parser.handle_camera_ray_data(self._last_packets.get(i))
+            self.parser.step()
 
-        return await self.parser.render()
+        return self.parser.render()
+
+    async def get_frame(self) -> Union[Image.Image, None]:
+        return self._create_frame()
 
     def can_move(self, control_type: int) -> bool:
         return self._cam_info_message.is_move_option_permissible(control_type)

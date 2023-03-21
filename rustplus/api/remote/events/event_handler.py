@@ -9,7 +9,7 @@ from .event_loop_manager import EventLoopManager
 
 class EventHandler:
     @staticmethod
-    def _schedule_event(loop, coro, arg) -> None:
+    def schedule_event(loop, coro, arg) -> None:
         def callback(inner_future: Future):
             inner_future.result()
 
@@ -28,7 +28,7 @@ class EventHandler:
         for handler in handlers.copy():
             coro, event_type = handler.data
 
-            self._schedule_event(
+            self.schedule_event(
                 EventLoopManager.get_loop(server_id),
                 coro,
                 EntityEvent(app_message, event_type),
@@ -40,7 +40,7 @@ class EventHandler:
         for handler in handlers.copy():
             coro = handler.data
 
-            self._schedule_event(
+            self.schedule_event(
                 EventLoopManager.get_loop(server_id), coro, TeamEvent(app_message)
             )
 
@@ -50,7 +50,7 @@ class EventHandler:
         for handler in handlers.copy():
             coro = handler.data
 
-            self._schedule_event(
+            self.schedule_event(
                 EventLoopManager.get_loop(server_id), coro, ChatEvent(app_message)
             )
 
@@ -62,6 +62,6 @@ class EventHandler:
         for handler in handlers.copy():
             coro = handler.data
 
-            self._schedule_event(
+            self.schedule_event(
                 EventLoopManager.get_loop(server_id), coro, ProtobufEvent(byte_data)
             )
