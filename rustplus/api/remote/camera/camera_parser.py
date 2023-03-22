@@ -1,8 +1,12 @@
 import dataclasses
+from math import radians, tan
 from typing import Union, Tuple, List
-from PIL import Image
+
+import numpy as np
+from PIL import Image, ImageDraw
 
 from .camera_constants import LOOKUP_CONSTANTS
+from .structures import Entity
 
 
 @dataclasses.dataclass
@@ -150,7 +154,62 @@ class Parser:
 
         return [t / 1023, r / 63, i]
 
-    def render(self) -> Image.Image:
+    @staticmethod
+    def handle_entities(image: Image.Image, entities: List[Entity]) -> Image.Image:
+
+        # Sort the entities from furthest to closest
+        entities.sort(key=lambda e: e.position.z, reverse=True)
+
+        for entity in entities:
+            entity_pos = np.array([entity.position.x, entity.position.y, entity.position.z, 0])
+            entity_rot = np.array([entity.rotation.x, entity.rotation.y, entity.rotation.z, 0])
+            entity_size = np.array([entity.size.x, entity.size.y, entity.size.z, 0])
+
+            # position, rotation, size of camera
+            cam_pos = np.array([0, 0, 0])
+            cam_rot = np.array([0, 0, 0])
+            cam_fov = 65
+            cam_near = 0.01
+            cam_far = 1000
+
+            # aspect ratio of the image
+            aspect_ratio = image.width / image.height
+
+            # Define the entity's vertices
+            vertices = np.array([[-0.4, 0, 0],
+                                 [-0.4, 1, 0],
+                                 [0.4, 1, 0],
+                                 [0.4, 0, 0]
+                                 ])
+
+            # Calculate the model-view-projection matrix
+            model_matrix = np.matmul(np.matmul(MathUtils.translation_matrix(entity_pos), MathUtils.rotation_matrix(entity_rot)),
+                                     MathUtils.scale_matrix(entity_size))
+            view_matrix = MathUtils.camera_matrix(cam_pos, cam_rot)
+            projection_matrix = MathUtils.perspective_matrix(cam_fov, aspect_ratio, cam_near, cam_far)
+            mvp_matrix = np.matmul(np.matmul(projection_matrix, view_matrix), model_matrix)
+
+            # Project the vertices onto the image plane
+            pixel_coords = []
+            for vertex in vertices:
+                # Apply the transformation matrices to the vertex
+                homog_vertex = np.append(vertex, 1)
+                transformed_vertex = np.matmul(mvp_matrix, homog_vertex)
+
+                # Normalize the transformed vertex to get 2D pixel coordinates
+                x = int(transformed_vertex[0] / transformed_vertex[3] * image.width / 2 + image.width / 2)
+                y = int(-transformed_vertex[1] / transformed_vertex[3] * image.height / 2 + image.height / 2)
+
+                pixel_coords.append((x, y))
+
+            # Draw the entity on the image
+            image_draw = ImageDraw.Draw(image)
+            image_draw.polygon(pixel_coords, outline="#ad0306" if entity.type == 2 else "#03ad15",
+                               fill="#ad0306" if entity.type == 2 else "#03ad15")
+
+        return image
+
+    def render(self, entities: List[Entity]) -> Image.Image:
 
         # We have the output array filled with RayData objects
         # We can get the material at each pixel and use that to get the colour
@@ -169,15 +228,80 @@ class Parser:
             if ray.distance == 1 and alignment == 0 and material == 0:
                 continue
 
-            colour = self.colours[material]
+            colour = self.colours[material] if material != 7 else (0, 0, 0)
             image.putpixel(
                 (i % self.width, self.height - 1 - (i // self.width)),
-                self._convert_colour(
+                MathUtils._convert_colour(
                     (colour[0], colour[1], colour[2], alignment)
                 ),
             )
 
-        return image
+        return self.handle_entities(image, entities)
+
+
+class MathUtils:
+
+    @staticmethod
+    def camera_matrix(position, rotation):
+        matrix = np.matmul(MathUtils.rotation_matrix(rotation), MathUtils.translation_matrix(-position))
+        return np.linalg.inv(matrix)
+
+    @staticmethod
+    def scale_matrix(size):
+        return np.array([
+            [size[0], 0, 0, 0],
+            [0, size[1], 0, 0],
+            [0, 0, size[2], 0],
+            [0, 0, 0, 1]
+        ])
+
+    @staticmethod
+    def rotation_matrix(rotation):
+        pitch = rotation[0]
+        yaw = rotation[1]
+        roll = rotation[2]
+
+        rotation_x = np.array([
+            [1, 0, 0, 0],
+            [0, np.cos(pitch), -np.sin(pitch), 0],
+            [0, np.sin(pitch), np.cos(pitch), 0],
+            [0, 0, 0, 1]
+        ])
+
+        rotation_y = np.array([
+            [np.cos(yaw), 0, np.sin(yaw), 0],
+            [0, 1, 0, 0],
+            [-np.sin(yaw), 0, np.cos(yaw), 0],
+            [0, 0, 0, 1]
+        ])
+
+        rotation_z = np.array([
+            [np.cos(roll), -np.sin(roll), 0, 0],
+            [np.sin(roll), np.cos(roll), 0, 0],
+            [0, 0, 1, 0],
+            [0, 0, 0, 1]
+        ])
+
+        return np.matmul(np.matmul(rotation_x, rotation_y), rotation_z)
+
+    @staticmethod
+    def translation_matrix(position):
+        return np.array([
+            [1, 0, 0, position[0]],
+            [0, 1, 0, position[1]],
+            [0, 0, 1, -position[2]],
+            [0, 0, 0, 1]
+        ])
+
+    @staticmethod
+    def perspective_matrix(fov, aspect_ratio, near, far):
+        f = 1 / tan(radians(fov) / 2)
+        return np.array([
+            [f / aspect_ratio, 0, 0, 0],
+            [0, f, 0, 0],
+            [0, 0, (far + near) / (near - far), 2 * far * near / (near - far)],
+            [0, 0, -1, 0]
+        ])
 
     @staticmethod
     def _convert_colour(

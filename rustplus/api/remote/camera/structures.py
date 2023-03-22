@@ -37,10 +37,10 @@ class Entity:
 
 class Vector3:
 
-    def __init__(self, vector3) -> None:
-        self.x: float = vector3.x
-        self.y: float = vector3.y
-        self.z: float = vector3.z
+    def __init__(self, vector3, x=None, y=None, z=None) -> None:
+        self.x: float = vector3.x if x is None else x
+        self.y: float = vector3.y if y is None else y
+        self.z: float = vector3.z if z is None else z
 
     def __str__(self) -> str:
         return f"Vector3(x={self.x}, y={self.y}, z={self.z})"

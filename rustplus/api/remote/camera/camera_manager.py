@@ -4,8 +4,7 @@ from typing import Iterable, Union, List, Coroutine
 from PIL import Image
 
 from .camera_parser import Parser
-from .. import EventHandler
-from ..events import EventLoopManager
+from ..events import EventLoopManager, EventHandler
 from ..rustplus_proto import AppCameraInput, Vector2, AppEmpty
 from ...structures import Vector
 from .structures import CameraInfo, LimitedQueue, Entity
@@ -57,7 +56,7 @@ class CameraManager:
             self.parser.handle_camera_ray_data(self._last_packets.get(i))
             self.parser.step()
 
-        return self.parser.render()
+        return self.parser.render(self._last_packets.get_last().entities)
 
     async def get_frame(self) -> Union[Image.Image, None]:
         return self._create_frame()
