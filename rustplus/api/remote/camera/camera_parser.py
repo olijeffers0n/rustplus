@@ -1,4 +1,5 @@
 import dataclasses
+import math
 from math import radians, tan
 from typing import Union, Tuple, List
 
@@ -161,7 +162,7 @@ class Parser:
         entities.sort(key=lambda e: e.position.z, reverse=True)
 
         for entity in entities:
-            entity_pos = np.array([entity.position.x, entity.position.y, entity.position.z, 0])
+            entity_pos = np.array([entity.position.x, entity.position.y + 0 if entity.type == 2 else 2, entity.position.z, 0])
             entity_rot = np.array([entity.rotation.x, entity.rotation.y, entity.rotation.z, 0])
             entity_size = np.array([entity.size.x, entity.size.y, entity.size.z, 0])
 
@@ -175,16 +176,32 @@ class Parser:
             # aspect ratio of the image
             aspect_ratio = image.width / image.height
 
-            # Define the entity's vertices
-            vertices = np.array([[-0.4, 0, 0],
-                                 [-0.4, 1, 0],
-                                 [0.4, 1, 0],
-                                 [0.4, 0, 0]
-                                 ])
+            vertex_list1 = []
+            vertex_list2 = []
 
-            # Calculate the model-view-projection matrix
-            model_matrix = np.matmul(np.matmul(MathUtils.translation_matrix(entity_pos), MathUtils.rotation_matrix(entity_rot)),
+            # The vertices of the pill
+            height = entity.size.y
+            x = -0.5 * entity.size.x ** entity.size.z
+            while x <= 0.5 * entity.size.x ** entity.size.z:
+                # Use the quadratic formula to find the y values of the top and bottom of the pill
+                y1 = MathUtils.solve_quadratic(1, -2 * 0.5, x ** 2 + 0.5 ** 2 - 0.5 ** 2, False)
+                y2 = MathUtils.solve_quadratic(1, -2 * (height - 0.5), x ** 2 + (height - 0.5) ** 2 - 0.5 ** 2, True)
+
+                if y1 == 0 or y2 == 0:
+                    x += 0.05
+                    continue
+
+                vertex_list1.append([x, y1 / 2, 0])
+                vertex_list2.append([x, y2 / 2, 0])
+
+                x += 0.05
+
+            vertices = np.array(vertex_list1 + vertex_list2[::-1])
+
+            model_matrix = np.matmul(np.matmul(MathUtils.translation_matrix(entity_pos),
+                                               MathUtils.rotation_matrix(entity_rot)),
                                      MathUtils.scale_matrix(entity_size))
+
             view_matrix = MathUtils.camera_matrix(cam_pos, cam_rot)
             projection_matrix = MathUtils.perspective_matrix(cam_fov, aspect_ratio, cam_near, cam_far)
             mvp_matrix = np.matmul(np.matmul(projection_matrix, view_matrix), model_matrix)
@@ -225,10 +242,12 @@ class Parser:
             material = ray.material
             alignment = ray.alignment
 
-            if ray.distance == 1 and alignment == 0 and material == 0:
+            if (ray.distance == 1 and alignment == 0 and material == 0) or material == 7:
                 continue
 
-            colour = self.colours[material] if material != 7 else (0, 0, 0)
+            # TODO Switch to blobs instead of single pixels
+
+            colour = self.colours[material]
             image.putpixel(
                 (i % self.width, self.height - 1 - (i // self.width)),
                 MathUtils._convert_colour(
@@ -236,7 +255,7 @@ class Parser:
                 ),
             )
 
-        return self.handle_entities(image, entities)
+        return self.handle_entities(image.resize((160 * 4, 90 * 4)), entities)
 
 
 class MathUtils:
@@ -319,3 +338,21 @@ class MathUtils:
             min(255, int(target_colour[1] * 255)),
             min(255, int(target_colour[2] * 255)),
         )
+
+    @staticmethod
+    def solve_quadratic(a: float, b: float, c: float, larger: bool) -> float:
+        """
+        Solves a quadratic equation but only returns either the larger or smaller root depending on the larger parameter
+        """
+        if a == 0:
+            return -c / b
+
+        discriminant = b ** 2 - 4 * a * c
+
+        if discriminant < 0:
+            return 0
+
+        if larger:
+            return (-b + math.sqrt(discriminant)) / (2 * a)
+        else:
+            return (-b - math.sqrt(discriminant)) / (2 * a)

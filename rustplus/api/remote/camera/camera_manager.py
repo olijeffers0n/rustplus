@@ -1,4 +1,5 @@
 import time
+import traceback
 from typing import Iterable, Union, List, Coroutine
 
 from PIL import Image
@@ -29,7 +30,10 @@ class CameraManager:
         if len(self.frame_callbacks) == 0:
             return
 
-        frame = self._create_frame()
+        try:
+            frame = self._create_frame()
+        except Exception:
+            traceback.print_exc()
 
         for callback in self.frame_callbacks:
             EventHandler.schedule_event(

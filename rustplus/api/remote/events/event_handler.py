@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from asyncio.futures import Future
 from typing import Set
 
@@ -11,7 +12,8 @@ class EventHandler:
     @staticmethod
     def schedule_event(loop, coro, arg) -> None:
         def callback(inner_future: Future):
-            inner_future.result()
+            if inner_future.exception() is not None:
+                logging.getLogger("rustplus.py").exception(inner_future.exception())
 
         future: Future = asyncio.run_coroutine_threadsafe(coro(arg), loop)
         future.add_done_callback(callback)
