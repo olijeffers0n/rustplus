@@ -39,6 +39,10 @@ class Parser:
         self.output = [None for _ in range(self.width * self.height)]
 
     def handle_camera_ray_data(self, data) -> None:
+
+        if data is None:
+            return
+
         self._rays = data
         self.data_pointer = 0
         self._sample_offset = 2 * data.sample_offset
@@ -181,8 +185,9 @@ class Parser:
 
             # The vertices of the pill
             height = entity.size.y
-            x = -0.5 * entity.size.x ** entity.size.z
-            while x <= 0.5 * entity.size.x ** entity.size.z:
+            width = 0.5 * entity.size.x ** entity.size.z
+            x = -width
+            while x <= width:
                 # Use the quadratic formula to find the y values of the top and bottom of the pill
                 y1 = MathUtils.solve_quadratic(1, -2 * 0.5, x ** 2 + 0.5 ** 2 - 0.5 ** 2, False)
                 y2 = MathUtils.solve_quadratic(1, -2 * (height - 0.5), x ** 2 + (height - 0.5) ** 2 - 0.5 ** 2, True)
@@ -201,6 +206,13 @@ class Parser:
             model_matrix = np.matmul(np.matmul(MathUtils.translation_matrix(entity_pos),
                                                MathUtils.rotation_matrix(entity_rot)),
                                      MathUtils.scale_matrix(entity_size))
+
+            # Add rotation to face the camera
+            cam_direction = cam_pos - entity_pos[:3]
+            cam_direction[1] = 0
+            cam_angle = np.arctan2(cam_direction[2], cam_direction[0])
+            cam_rotation_matrix = MathUtils.rotation_matrix([0, cam_angle, 0, 0])
+            model_matrix = np.matmul(model_matrix, cam_rotation_matrix)
 
             view_matrix = MathUtils.camera_matrix(cam_pos, cam_rot)
             projection_matrix = MathUtils.perspective_matrix(cam_fov, aspect_ratio, cam_near, cam_far)
