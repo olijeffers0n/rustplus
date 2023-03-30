@@ -4,8 +4,7 @@ from typing import Iterable, Union, List, Coroutine
 from PIL import Image
 
 from .camera_parser import Parser
-from .. import EventHandler
-from ..events import EventLoopManager
+from ..events import EventLoopManager, EventHandler
 from ..rustplus_proto import AppCameraInput, Vector2, AppEmpty
 from ...structures import Vector
 from .structures import CameraInfo, LimitedQueue, Entity
