@@ -2,12 +2,16 @@ import dataclasses
 import math
 from math import radians, tan
 from typing import Union, Tuple, List
-
 import numpy as np
 from PIL import Image, ImageDraw
 
 from .camera_constants import LOOKUP_CONSTANTS
 from .structures import Entity
+
+
+SCIENTIST_COLOUR = "#3098f2"
+PLAYER_COLOUR = "#fa2828"
+TREE_COLOUR = "#03ad15"
 
 
 @dataclasses.dataclass
@@ -166,7 +170,11 @@ class Parser:
         entities.sort(key=lambda e: e.position.z, reverse=True)
 
         for entity in entities:
-            entity_pos = np.array([entity.position.x, entity.position.y + 0 if entity.type == 2 else 2, entity.position.z, 0])
+
+            if entity.type == 1:
+                entity.size.y = min(entity.size.y, 5)
+
+            entity_pos = np.array([entity.position.x, entity.position.y, entity.position.z, 0])
             entity_rot = np.array([entity.rotation.x, entity.rotation.y, entity.rotation.z, 0])
             entity_size = np.array([entity.size.x, entity.size.y, entity.size.z, 0])
 
@@ -183,8 +191,10 @@ class Parser:
             vertex_list1 = []
             vertex_list2 = []
 
+            segment_angle = (2 * math.pi) / 16
+
             # The vertices of the pill
-            height = entity.size.y
+            height = entity.size.y + 0.2
             width = 0.5 * entity.size.x ** entity.size.z
             x = -width
             while x <= width:
@@ -196,8 +206,14 @@ class Parser:
                     x += 0.05
                     continue
 
-                vertex_list1.append([x, y1 / 2, 0])
-                vertex_list2.append([x, y2 / 2, 0])
+                for i in range(16):
+                    angle = segment_angle * i
+
+                    z = math.sin(angle) * abs(x)
+                    new_x = math.cos(angle) * abs(x)
+
+                    vertex_list1.append([new_x, y1 / 2, z])
+                    vertex_list2.append([new_x, y2 / 2, z])
 
                 x += 0.05
 
@@ -231,10 +247,11 @@ class Parser:
 
                 pixel_coords.append((x, y))
 
-            # Draw the entity on the image
+            colour = (
+                PLAYER_COLOUR if not entity.name.isdigit() else SCIENTIST_COLOUR) if entity.type == 2 else TREE_COLOUR
+
             image_draw = ImageDraw.Draw(image)
-            image_draw.polygon(pixel_coords, outline="#ad0306" if entity.type == 2 else "#03ad15",
-                               fill="#ad0306" if entity.type == 2 else "#03ad15")
+            image_draw.polygon(MathUtils.gift_wrap_algorithm(pixel_coords), outline=colour, fill=colour)
 
         return image
 
@@ -256,8 +273,6 @@ class Parser:
 
             if (ray.distance == 1 and alignment == 0 and material == 0) or material == 7:
                 continue
-
-            # TODO Switch to blobs instead of single pixels
 
             colour = self.colours[material]
             image.putpixel(
@@ -333,6 +348,38 @@ class MathUtils:
             [0, 0, (far + near) / (near - far), 2 * far * near / (near - far)],
             [0, 0, -1, 0]
         ])
+
+    @staticmethod
+    def gift_wrap_algorithm(vertices):
+        # Find the leftmost point
+        leftmost = vertices[0]
+        for vertex in vertices:
+            if vertex[0] < leftmost[0]:
+                leftmost = vertex
+
+        # Initialize variables
+        current_point = leftmost
+        hull = [leftmost]
+        next_point = None
+
+        # Find the next point in the hull until we loop back to the leftmost point
+        while next_point != leftmost:
+            next_point = vertices[0]
+            for vertex in vertices[1:]:
+                # Check if the vertex is to the left of the line between current_point and next_point
+                if (next_point == current_point or
+                        (vertex[0] - current_point[0]) * (next_point[1] - current_point[1]) -
+                        (vertex[1] - current_point[1]) * (next_point[0] - current_point[0]) > 0):
+                    next_point = vertex
+            hull.append(next_point)
+            current_point = next_point
+
+        output_vertices = []
+
+        for i in range(len(hull)):
+            output_vertices.append(hull[(i + 1) % len(hull)])
+
+        return output_vertices
 
     @staticmethod
     def _convert_colour(
