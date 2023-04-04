@@ -6,7 +6,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 from .camera_constants import LOOKUP_CONSTANTS
-from .structures import Entity, Vector3
+from .structures import Entity
 
 SCIENTIST_COLOUR = "#3098f2"
 PLAYER_COLOUR = "#fa2828"
