@@ -6,8 +6,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 from .camera_constants import LOOKUP_CONSTANTS
-from .structures import Entity
-
+from .structures import Entity, Vector3
 
 SCIENTIST_COLOUR = "#3098f2"
 PLAYER_COLOUR = "#fa2828"
@@ -180,51 +179,39 @@ class Parser:
         aspect_ratio = image.width / image.height
 
         view_matrix = MathUtils.camera_matrix(cam_pos, cam_rot)
-        projection_matrix = MathUtils.perspective_matrix(cam_fov, aspect_ratio, cam_near, cam_far)
+        projection_matrix = MathUtils.perspective_matrix(
+            cam_fov, aspect_ratio, cam_near, cam_far
+        )
 
         for entity in entities:
 
             if entity.type == 1:
+                entity.size.x = min(entity.size.x, 5)
                 entity.size.y = min(entity.size.y, 5)
+                entity.size.z = min(entity.size.z, 5)
 
-            entity_pos = np.array([entity.position.x, entity.position.y, entity.position.z, 0])
-            entity_rot = np.array([entity.rotation.x, entity.rotation.y, entity.rotation.z, 0])
+            entity_pos = np.array(
+                [
+                    entity.position.x,
+                    entity.position.y + (2 if entity.type == 1 else 0),
+                    entity.position.z,
+                    0,
+                ]
+            )
+            entity_rot = np.array(
+                [entity.rotation.x, entity.rotation.y, entity.rotation.z, 0]
+            )
             entity_size = np.array([entity.size.x, entity.size.y, entity.size.z, 0])
 
-            vertex_list1 = []
-            vertex_list2 = []
+            vertices = MathUtils.get_vertices(entity.size)
 
-            segment_angle = (2 * math.pi) / 14
-
-            # The vertices of the pill
-            height = entity.size.y + 0.2
-            width = 0.5 * entity.size.x ** entity.size.z
-            x = -width
-            while x <= width:
-                # Use the quadratic formula to find the y values of the top and bottom of the pill
-                y1 = MathUtils.solve_quadratic(1, -2 * 0.5, x ** 2 + 0.5 ** 2 - 0.5 ** 2, False)
-                y2 = MathUtils.solve_quadratic(1, -2 * (height - 0.5), x ** 2 + (height - 0.5) ** 2 - 0.5 ** 2, True)
-
-                if y1 == 0 or y2 == 0:
-                    x += 0.05
-                    continue
-
-                for i in range(14):
-                    angle = segment_angle * i
-
-                    z = math.sin(angle) * abs(x)
-                    new_x = math.cos(angle) * abs(x)
-
-                    vertex_list1.append([new_x, y1 / 2, z, 1])
-                    vertex_list2.append([new_x, y2 / 2, z, 1])
-
-                x += 0.05
-
-            vertices = np.array(vertex_list1 + vertex_list2[::-1])
-
-            model_matrix = np.matmul(np.matmul(MathUtils.translation_matrix(entity_pos),
-                                               MathUtils.rotation_matrix(entity_rot)),
-                                     MathUtils.scale_matrix(entity_size))
+            model_matrix = np.matmul(
+                np.matmul(
+                    MathUtils.translation_matrix(entity_pos),
+                    MathUtils.rotation_matrix(entity_rot),
+                ),
+                MathUtils.scale_matrix(entity_size),
+            )
 
             # Add rotation to face the camera
             cam_direction = cam_pos - entity_pos[:3]
@@ -233,21 +220,41 @@ class Parser:
             cam_rotation_matrix = MathUtils.rotation_matrix([0, cam_angle, 0, 0])
             model_matrix = np.matmul(model_matrix, cam_rotation_matrix)
 
-            mvp_matrix = np.matmul(np.matmul(projection_matrix, view_matrix), model_matrix)
+            mvp_matrix = np.matmul(
+                np.matmul(projection_matrix, view_matrix), model_matrix
+            )
 
             # Calculate the transformed vertices
             transformed_vertices = np.matmul(mvp_matrix, vertices.T).T
 
             # Normalize the transformed vertices and calculate pixel coordinates
-            pixel_coords = tuple(map(tuple, np.round(((transformed_vertices[:, :2] / transformed_vertices[:, 3,
-                                                                                     None]) * np.array(
-                [image.width, -image.height]) / 2) + np.array([image.width, image.height]) / 2).astype(np.int32)))
+            pixel_coords = tuple(
+                map(
+                    tuple,
+                    np.round(
+                        (
+                            (
+                                transformed_vertices[:, :2]
+                                / transformed_vertices[:, 3, None]
+                            )
+                            * np.array([image.width, -image.height])
+                            / 2
+                        )
+                        + np.array([image.width, image.height]) / 2
+                    ).astype(np.int32),
+                )
+            )
 
             colour = (
-                PLAYER_COLOUR if not entity.name.isdigit() else SCIENTIST_COLOUR) if entity.type == 2 else TREE_COLOUR
+                (PLAYER_COLOUR if not entity.name.isdigit() else SCIENTIST_COLOUR)
+                if entity.type == 2
+                else TREE_COLOUR
+            )
 
             image_draw = ImageDraw.Draw(image)
-            image_draw.polygon(MathUtils.gift_wrap_algorithm(pixel_coords), outline=colour, fill=colour)
+            image_draw.polygon(
+                MathUtils.gift_wrap_algorithm(pixel_coords), outline=colour, fill=colour
+            )
 
         return image
 
@@ -267,15 +274,15 @@ class Parser:
             material = ray.material
             alignment = ray.alignment
 
-            if (ray.distance == 1 and alignment == 0 and material == 0) or material == 7:
+            if (
+                ray.distance == 1 and alignment == 0 and material == 0
+            ) or material == 7:
                 continue
 
             colour = self.colours[material]
             image.putpixel(
                 (i % self.width, self.height - 1 - (i // self.width)),
-                MathUtils._convert_colour(
-                    (colour[0], colour[1], colour[2], alignment)
-                ),
+                MathUtils._convert_colour((colour[0], colour[1], colour[2], alignment)),
             )
 
         return self.handle_entities(image.resize((160 * 4, 90 * 4)), entities)
@@ -283,19 +290,20 @@ class Parser:
 
 class MathUtils:
 
+    VERTEX_CACHE = {}
+
     @staticmethod
     def camera_matrix(position, rotation):
-        matrix = np.matmul(MathUtils.rotation_matrix(rotation), MathUtils.translation_matrix(-position))
+        matrix = np.matmul(
+            MathUtils.rotation_matrix(rotation), MathUtils.translation_matrix(-position)
+        )
         return np.linalg.inv(matrix)
 
     @staticmethod
     def scale_matrix(size):
-        return np.array([
-            [size[0], 0, 0, 0],
-            [0, size[1], 0, 0],
-            [0, 0, size[2], 0],
-            [0, 0, 0, 1]
-        ])
+        return np.array(
+            [[size[0], 0, 0, 0], [0, size[1], 0, 0], [0, 0, size[2], 0], [0, 0, 0, 1]]
+        )
 
     @staticmethod
     def rotation_matrix(rotation):
@@ -303,47 +311,57 @@ class MathUtils:
         yaw = rotation[1]
         roll = rotation[2]
 
-        rotation_x = np.array([
-            [1, 0, 0, 0],
-            [0, np.cos(pitch), -np.sin(pitch), 0],
-            [0, np.sin(pitch), np.cos(pitch), 0],
-            [0, 0, 0, 1]
-        ])
+        rotation_x = np.array(
+            [
+                [1, 0, 0, 0],
+                [0, np.cos(pitch), -np.sin(pitch), 0],
+                [0, np.sin(pitch), np.cos(pitch), 0],
+                [0, 0, 0, 1],
+            ]
+        )
 
-        rotation_y = np.array([
-            [np.cos(yaw), 0, np.sin(yaw), 0],
-            [0, 1, 0, 0],
-            [-np.sin(yaw), 0, np.cos(yaw), 0],
-            [0, 0, 0, 1]
-        ])
+        rotation_y = np.array(
+            [
+                [np.cos(yaw), 0, np.sin(yaw), 0],
+                [0, 1, 0, 0],
+                [-np.sin(yaw), 0, np.cos(yaw), 0],
+                [0, 0, 0, 1],
+            ]
+        )
 
-        rotation_z = np.array([
-            [np.cos(roll), -np.sin(roll), 0, 0],
-            [np.sin(roll), np.cos(roll), 0, 0],
-            [0, 0, 1, 0],
-            [0, 0, 0, 1]
-        ])
+        rotation_z = np.array(
+            [
+                [np.cos(roll), -np.sin(roll), 0, 0],
+                [np.sin(roll), np.cos(roll), 0, 0],
+                [0, 0, 1, 0],
+                [0, 0, 0, 1],
+            ]
+        )
 
         return np.matmul(np.matmul(rotation_x, rotation_y), rotation_z)
 
     @staticmethod
     def translation_matrix(position):
-        return np.array([
-            [1, 0, 0, position[0]],
-            [0, 1, 0, position[1]],
-            [0, 0, 1, -position[2]],
-            [0, 0, 0, 1]
-        ])
+        return np.array(
+            [
+                [1, 0, 0, position[0]],
+                [0, 1, 0, position[1]],
+                [0, 0, 1, -position[2]],
+                [0, 0, 0, 1],
+            ]
+        )
 
     @staticmethod
     def perspective_matrix(fov, aspect_ratio, near, far):
         f = 1 / tan(radians(fov) / 2)
-        return np.array([
-            [f / aspect_ratio, 0, 0, 0],
-            [0, f, 0, 0],
-            [0, 0, (far + near) / (near - far), 2 * far * near / (near - far)],
-            [0, 0, -1, 0]
-        ])
+        return np.array(
+            [
+                [f / aspect_ratio, 0, 0, 0],
+                [0, f, 0, 0],
+                [0, 0, (far + near) / (near - far), 2 * far * near / (near - far)],
+                [0, 0, -1, 0],
+            ]
+        )
 
     @staticmethod
     def gift_wrap_algorithm(vertices):
@@ -363,9 +381,14 @@ class MathUtils:
             next_point = vertices[0]
             for vertex in vertices[1:]:
                 # Check if the vertex is to the left of the line between current_point and next_point
-                if (next_point == current_point or
-                        np.float64(vertex[0] - current_point[0]) * np.float64(next_point[1] - current_point[1]) -
-                        np.float64(vertex[1] - current_point[1]) * np.float64(next_point[0] - current_point[0]) > 0):
+                if (
+                    next_point == current_point
+                    or np.float64(vertex[0] - current_point[0])
+                    * np.float64(next_point[1] - current_point[1])
+                    - np.float64(vertex[1] - current_point[1])
+                    * np.float64(next_point[0] - current_point[0])
+                    > 0
+                ):
                     next_point = vertex
             hull.append(next_point)
             current_point = next_point
@@ -402,7 +425,7 @@ class MathUtils:
         if a == 0:
             return -c / b
 
-        discriminant = b ** 2 - 4 * a * c
+        discriminant = b**2 - 4 * a * c
 
         if discriminant < 0:
             return 0
@@ -411,3 +434,46 @@ class MathUtils:
             return (-b + math.sqrt(discriminant)) / (2 * a)
         else:
             return (-b - math.sqrt(discriminant)) / (2 * a)
+
+    @classmethod
+    def get_vertices(cls, size):
+
+        if size in cls.VERTEX_CACHE:
+            return cls.VERTEX_CACHE[size]
+
+        segment_angle = (2 * math.pi) / 14
+
+        vertex_list1 = []
+        vertex_list2 = []
+
+        # The vertices of the pill
+        height = size.y + 0.2
+        width = 0.5 * size.x**size.z
+        x = -width
+        while x <= width:
+            # Use the quadratic formula to find the y values of the top and bottom of the pill
+            y1 = MathUtils.solve_quadratic(
+                1, -2 * 0.5, x**2 + 0.5**2 - 0.5**2, False
+            )
+            y2 = MathUtils.solve_quadratic(
+                1, -2 * (height - 0.5), x**2 + (height - 0.5) ** 2 - 0.5**2, True
+            )
+
+            if y1 == 0 or y2 == 0:
+                x += 0.05
+                continue
+
+            for i in range(14):
+                angle = segment_angle * i
+
+                z = math.sin(angle) * abs(x)
+                new_x = math.cos(angle) * abs(x)
+
+                vertex_list1.append([new_x, y1 / 2, z, 1])
+                vertex_list2.append([new_x, y2 / 2, z, 1])
+
+            x += 0.05
+
+        vertices = np.array(vertex_list1 + vertex_list2[::-1])
+        cls.VERTEX_CACHE[size] = vertices
+        return vertices
