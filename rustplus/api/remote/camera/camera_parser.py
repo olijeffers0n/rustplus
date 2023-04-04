@@ -169,6 +169,19 @@ class Parser:
         # Sort the entities from furthest to closest
         entities.sort(key=lambda e: e.position.z, reverse=True)
 
+        # position, rotation, size of camera
+        cam_pos = np.array([0, 0, 0])
+        cam_rot = np.array([0, 0, 0])
+        cam_fov = 65
+        cam_near = 0.01
+        cam_far = 1000
+
+        # aspect ratio of the image
+        aspect_ratio = image.width / image.height
+
+        view_matrix = MathUtils.camera_matrix(cam_pos, cam_rot)
+        projection_matrix = MathUtils.perspective_matrix(cam_fov, aspect_ratio, cam_near, cam_far)
+
         for entity in entities:
 
             if entity.type == 1:
@@ -178,20 +191,10 @@ class Parser:
             entity_rot = np.array([entity.rotation.x, entity.rotation.y, entity.rotation.z, 0])
             entity_size = np.array([entity.size.x, entity.size.y, entity.size.z, 0])
 
-            # position, rotation, size of camera
-            cam_pos = np.array([0, 0, 0])
-            cam_rot = np.array([0, 0, 0])
-            cam_fov = 65
-            cam_near = 0.01
-            cam_far = 1000
-
-            # aspect ratio of the image
-            aspect_ratio = image.width / image.height
-
             vertex_list1 = []
             vertex_list2 = []
 
-            segment_angle = (2 * math.pi) / 16
+            segment_angle = (2 * math.pi) / 14
 
             # The vertices of the pill
             height = entity.size.y + 0.2
@@ -206,14 +209,14 @@ class Parser:
                     x += 0.05
                     continue
 
-                for i in range(16):
+                for i in range(14):
                     angle = segment_angle * i
 
                     z = math.sin(angle) * abs(x)
                     new_x = math.cos(angle) * abs(x)
 
-                    vertex_list1.append([new_x, y1 / 2, z])
-                    vertex_list2.append([new_x, y2 / 2, z])
+                    vertex_list1.append([new_x, y1 / 2, z, 1])
+                    vertex_list2.append([new_x, y2 / 2, z, 1])
 
                 x += 0.05
 
@@ -230,22 +233,15 @@ class Parser:
             cam_rotation_matrix = MathUtils.rotation_matrix([0, cam_angle, 0, 0])
             model_matrix = np.matmul(model_matrix, cam_rotation_matrix)
 
-            view_matrix = MathUtils.camera_matrix(cam_pos, cam_rot)
-            projection_matrix = MathUtils.perspective_matrix(cam_fov, aspect_ratio, cam_near, cam_far)
             mvp_matrix = np.matmul(np.matmul(projection_matrix, view_matrix), model_matrix)
 
-            # Project the vertices onto the image plane
-            pixel_coords = []
-            for vertex in vertices:
-                # Apply the transformation matrices to the vertex
-                homog_vertex = np.append(vertex, 1)
-                transformed_vertex = np.matmul(mvp_matrix, homog_vertex)
+            # Calculate the transformed vertices
+            transformed_vertices = np.matmul(mvp_matrix, vertices.T).T
 
-                # Normalize the transformed vertex to get 2D pixel coordinates
-                x = int(transformed_vertex[0] / transformed_vertex[3] * image.width / 2 + image.width / 2)
-                y = int(-transformed_vertex[1] / transformed_vertex[3] * image.height / 2 + image.height / 2)
-
-                pixel_coords.append((x, y))
+            # Normalize the transformed vertices and calculate pixel coordinates
+            pixel_coords = tuple(map(tuple, np.round(((transformed_vertices[:, :2] / transformed_vertices[:, 3,
+                                                                                     None]) * np.array(
+                [image.width, -image.height]) / 2) + np.array([image.width, image.height]) / 2).astype(np.int32)))
 
             colour = (
                 PLAYER_COLOUR if not entity.name.isdigit() else SCIENTIST_COLOUR) if entity.type == 2 else TREE_COLOUR
@@ -368,8 +364,8 @@ class MathUtils:
             for vertex in vertices[1:]:
                 # Check if the vertex is to the left of the line between current_point and next_point
                 if (next_point == current_point or
-                        (vertex[0] - current_point[0]) * (next_point[1] - current_point[1]) -
-                        (vertex[1] - current_point[1]) * (next_point[0] - current_point[0]) > 0):
+                        np.float64(vertex[0] - current_point[0]) * np.float64(next_point[1] - current_point[1]) -
+                        np.float64(vertex[1] - current_point[1]) * np.float64(next_point[0] - current_point[0]) > 0):
                     next_point = vertex
             hull.append(next_point)
             current_point = next_point
