@@ -3,6 +3,7 @@ import math
 from math import radians, tan
 from typing import Union, Tuple, List
 import numpy as np
+from scipy.spatial import ConvexHull
 from PIL import Image, ImageDraw, ImageFont
 
 from .camera_constants import LOOKUP_CONSTANTS
@@ -381,40 +382,11 @@ class MathUtils:
 
     @staticmethod
     def gift_wrap_algorithm(vertices):
-        # Find the leftmost point
-        leftmost = vertices[0]
-        for vertex in vertices:
-            if vertex[0] < leftmost[0]:
-                leftmost = vertex
-
-        # Initialize variables
-        current_point = leftmost
-        hull = [leftmost]
-        next_point = None
-
-        # Find the next point in the hull until we loop back to the leftmost point
-        while next_point != leftmost:
-            next_point = vertices[0]
-            for vertex in vertices[1:]:
-                # Check if the vertex is to the left of the line between current_point and next_point
-                if (
-                    next_point == current_point
-                    or np.float64(vertex[0] - current_point[0])
-                    * np.float64(next_point[1] - current_point[1])
-                    - np.float64(vertex[1] - current_point[1])
-                    * np.float64(next_point[0] - current_point[0])
-                    > 0
-                ):
-                    next_point = vertex
-            hull.append(next_point)
-            current_point = next_point
-
-        output_vertices = []
-
-        for i in range(len(hull)):
-            output_vertices.append(hull[(i + 1) % len(hull)])
-
-        return output_vertices
+        data = np.array(vertices)
+        # use convex hull algorithm to find the convex hull from scipy
+        hull = ConvexHull(data)
+        # get the vertices of the convex hull
+        return [tuple(data[i]) for i in hull.vertices]
 
     @staticmethod
     def _convert_colour(
@@ -457,7 +429,8 @@ class MathUtils:
         if size in cls.VERTEX_CACHE:
             return cls.VERTEX_CACHE[size]
 
-        segment_angle = (2 * math.pi) / 14
+        number_of_segments = 14
+        segment_angle = (2 * math.pi) / number_of_segments
 
         vertex_list1 = []
         vertex_list2 = []
@@ -465,30 +438,41 @@ class MathUtils:
         # The vertices of the pill
         height = size.y + 0.2
         width = 0.5 * size.x**size.z
-        x = -width
+        increment = 0.1
+
+        x = 0
         while x <= width:
-            # Use the quadratic formula to find the y values of the top and bottom of the pill
-            y1 = MathUtils.solve_quadratic(
-                1, -2 * 0.5, x**2 + 0.5**2 - 0.5**2, False
-            )
-            y2 = MathUtils.solve_quadratic(
-                1, -2 * (height - 0.5), x**2 + (height - 0.5) ** 2 - 0.5**2, True
-            )
 
-            if y1 == 0 or y2 == 0:
-                x += 0.05
-                continue
+            for offset in range(-1, 2, 2):
 
-            for i in range(14):
-                angle = segment_angle * i
+                x_value = x * offset
 
-                z = math.sin(angle) * abs(x)
-                new_x = math.cos(angle) * abs(x)
+                # Use the quadratic formula to find the y values of the top and bottom of the pill
+                y1 = MathUtils.solve_quadratic(
+                    1, -2 * 0.5, x_value**2 + 0.5**2 - 0.5**2, False
+                )
+                y2 = MathUtils.solve_quadratic(
+                    1, -2 * (height - 0.5), x_value**2 + (height - 0.5) ** 2 - 0.5**2, True
+                )
 
-                vertex_list1.append([new_x, y1 / 2, z, 1])
-                vertex_list2.append([new_x, y2 / 2, z, 1])
+                if y1 == 0 or y2 == 0:
+                    x_value += increment
+                    continue
 
-            x += 0.05
+                for i in range(number_of_segments):
+                    angle = segment_angle * i
+
+                    z = math.sin(angle) * abs(x_value)
+                    new_x = math.cos(angle) * abs(x_value)
+
+                    vertex_list1.append([new_x, y1 / 2, z, 1])
+                    vertex_list2.append([new_x, y2 / 2, z, 1])
+
+            # when x is greater than 4/5 of the width, decrease the increment
+            if x > 0.8 * width:
+                increment = 0.001
+
+            x += increment
 
         vertices = np.array(vertex_list1 + vertex_list2[::-1])
         cls.VERTEX_CACHE[size] = vertices
