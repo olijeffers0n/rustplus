@@ -34,6 +34,7 @@ class CameraManager:
             frame = self._create_frame()
         except Exception:
             traceback.print_exc()
+            return
 
         for callback in self.frame_callbacks:
             EventHandler.schedule_event(
@@ -60,7 +61,7 @@ class CameraManager:
             self.parser.handle_camera_ray_data(self._last_packets.get(i))
             self.parser.step()
 
-        return self.parser.render(self._last_packets.get_last().entities)
+        return self.parser.render(self._last_packets.get_last().entities, self._last_packets.get_last().vertical_fov)
 
     async def get_frame(self) -> Union[Image.Image, None]:
         return self._create_frame()
@@ -131,3 +132,12 @@ class CameraManager:
             return []
 
         return self._last_packets.get_last().entities
+
+    async def get_distance_from_player(self) -> float:
+        if self._last_packets is None:
+            return float("inf")
+
+        if len(self._last_packets) == 0:
+            return float("inf")
+
+        return self._last_packets.get_last().distance

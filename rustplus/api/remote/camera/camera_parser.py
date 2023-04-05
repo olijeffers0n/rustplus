@@ -3,10 +3,11 @@ import math
 from math import radians, tan
 from typing import Union, Tuple, List
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 from .camera_constants import LOOKUP_CONSTANTS
 from .structures import Entity
+
 
 SCIENTIST_COLOUR = "#3098f2"
 PLAYER_COLOUR = "#fa2828"
@@ -163,7 +164,7 @@ class Parser:
         return [t / 1023, r / 63, i]
 
     @staticmethod
-    def handle_entities(image: Image.Image, entities: List[Entity]) -> Image.Image:
+    def handle_entities(image: Image.Image, entities: List[Entity], cam_fov: float) -> Image.Image:
 
         # Sort the entities from furthest to closest
         entities.sort(key=lambda e: e.position.z, reverse=True)
@@ -171,7 +172,6 @@ class Parser:
         # position, rotation, size of camera
         cam_pos = np.array([0, 0, 0])
         cam_rot = np.array([0, 0, 0])
-        cam_fov = 65
         cam_near = 0.01
         cam_far = 1000
 
@@ -185,10 +185,9 @@ class Parser:
 
         for entity in entities:
 
-            if entity.type == 1:
-                entity.size.x = min(entity.size.x, 5)
-                entity.size.y = min(entity.size.y, 5)
-                entity.size.z = min(entity.size.z, 5)
+            entity.size.x = min(entity.size.x, 5)
+            entity.size.y = min(entity.size.y, 5)
+            entity.size.z = min(entity.size.z, 5)
 
             entity_pos = np.array(
                 [
@@ -204,6 +203,8 @@ class Parser:
             entity_size = np.array([entity.size.x, entity.size.y, entity.size.z, 0])
 
             vertices = MathUtils.get_vertices(entity.size)
+            # Add the entity_pos to the end of the vertices array
+            vertices = np.append(vertices, [np.array([0, 1.3, 0, 1])], axis=0)
 
             model_matrix = np.matmul(
                 np.matmul(
@@ -245,6 +246,10 @@ class Parser:
                 )
             )
 
+            # Remove the last element of the pixel_coords array
+            name_place = pixel_coords[-1]
+            pixel_coords = pixel_coords[:-1]
+
             colour = (
                 (PLAYER_COLOUR if not entity.name.isdigit() else SCIENTIST_COLOUR)
                 if entity.type == 2
@@ -256,9 +261,20 @@ class Parser:
                 MathUtils.gift_wrap_algorithm(pixel_coords), outline=colour, fill=colour
             )
 
+            if entity.type == 2:
+                font_size = max(
+                    MathUtils.get_font_size(entity.position.z, 250, cam_near, cam_far, aspect_ratio, cam_fov),
+                    1)
+                # The font size should be proportional to the size of the entity as it gets further away
+                font = ImageFont.truetype("PermanentMarker.ttf", font_size)
+                size = image_draw.textsize(entity.name, font=font)
+
+                name_place1 = (name_place[0] - size[0] // 2, name_place[1] - size[1] // 2)
+                image_draw.text(name_place1, entity.name, font=font, fill="black")
+
         return image
 
-    def render(self, entities: List[Entity]) -> Image.Image:
+    def render(self, entities: List[Entity], fov: float) -> Image.Image:
 
         # We have the output array filled with RayData objects
         # We can get the material at each pixel and use that to get the colour
@@ -285,7 +301,7 @@ class Parser:
                 MathUtils._convert_colour((colour[0], colour[1], colour[2], alignment)),
             )
 
-        return self.handle_entities(image.resize((160 * 4, 90 * 4)), entities)
+        return self.handle_entities(image.resize((160 * 4, 90 * 4)), entities, fov)
 
 
 class MathUtils:
@@ -477,3 +493,42 @@ class MathUtils:
         vertices = np.array(vertex_list1 + vertex_list2[::-1])
         cls.VERTEX_CACHE[size] = vertices
         return vertices
+
+    @staticmethod
+    def get_font_size(distance, font_size, near, far, aspect_ratio, fov):
+        """
+        Given the distance from the screen, uses perspective projection matrix to return a font size for some text.
+
+        Args:
+        distance (float): Distance from the screen in meters
+        text (str): Text to calculate font size for
+        font_size (int): Base font size in pixels
+        screen_width (int): Width of the screen in pixels
+        screen_height (int): Height of the screen in pixels
+
+        Returns:
+        int: Font size in pixels
+        """
+        f = 1.0 / np.tan(np.deg2rad(fov / 2.0))
+        projection_matrix = np.array([
+            [f / aspect_ratio, 0.0, 0.0, 0.0],
+            [0.0, f, 0.0, 0.0],
+            [0.0, 0.0, (far + near) / (near - far), 2.0 * far * near / (near - far)],
+            [0.0, 0.0, -1.0, 0.0]
+        ])
+
+        # Define the modelview matrix based on the distance from the screen
+        modelview_matrix = np.array([
+            [1.0, 0.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0, -distance],
+            [0.0, 0.0, 0.0, 1.0]
+        ])
+
+        # Calculate the projection of the text onto the screen
+        text_projection = projection_matrix @ modelview_matrix
+        projected_text = np.array([font_size, 0, 0, 1]) @ text_projection
+        projected_text /= projected_text[3]
+        projected_size = projected_text[0]
+
+        return int(projected_size)
