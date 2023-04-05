@@ -1,6 +1,8 @@
 import dataclasses
 import math
+from importlib import resources
 from math import radians, tan
+import random
 from typing import Union, Tuple, List
 import numpy as np
 from scipy.spatial import ConvexHull
@@ -13,6 +15,7 @@ from .structures import Entity
 SCIENTIST_COLOUR = "#3098f2"
 PLAYER_COLOUR = "#fa2828"
 TREE_COLOUR = "#03ad15"
+FONT_PATH = "rustplus.utils.fonts"
 
 
 @dataclasses.dataclass
@@ -204,7 +207,7 @@ class Parser:
             entity_size = np.array([entity.size.x, entity.size.y, entity.size.z, 0])
 
             vertices = MathUtils.get_vertices(entity.size)
-            # Add the entity_pos to the end of the vertices array
+            # Add the position for the name tag to the vertices
             vertices = np.append(vertices, [np.array([0, 1.3, 0, 1])], axis=0)
 
             model_matrix = np.matmul(
@@ -254,7 +257,7 @@ class Parser:
             colour = (
                 (PLAYER_COLOUR if not entity.name.isdigit() else SCIENTIST_COLOUR)
                 if entity.type == 2
-                else TREE_COLOUR
+                else MathUtils.get_slightly_random_colour(TREE_COLOUR, entity.entity_id)
             )
 
             image_draw = ImageDraw.Draw(image)
@@ -267,7 +270,8 @@ class Parser:
                     MathUtils.get_font_size(entity.position.z, 250, cam_near, cam_far, aspect_ratio, cam_fov),
                     1)
                 # The font size should be proportional to the size of the entity as it gets further away
-                font = ImageFont.truetype("PermanentMarker.ttf", font_size)
+                with resources.path(FONT_PATH, "PermanentMarker.ttf") as path:
+                    font = ImageFont.truetype(str(path), font_size)
                 size = image_draw.textsize(entity.name, font=font)
 
                 name_place1 = (name_place[0] - size[0] // 2, name_place[1] - size[1] // 2)
@@ -436,7 +440,7 @@ class MathUtils:
         vertex_list2 = []
 
         # The vertices of the pill
-        height = size.y + 0.2
+        height = size.y + 0.3
         width = 0.5 * size.x**size.z
         increment = 0.1
 
@@ -477,6 +481,20 @@ class MathUtils:
         vertices = np.array(vertex_list1 + vertex_list2[::-1])
         cls.VERTEX_CACHE[size] = vertices
         return vertices
+
+    @staticmethod
+    def get_slightly_random_colour(colour: str, entity_id: int) -> str:
+        """
+        Returns a slightly randomised version of the colour passed in
+        Must be the same colour for the same entity id
+        """
+
+        random.seed(entity_id)
+        r, g, b = int(colour[1:3], 16), int(colour[3:5], 16), int(colour[5:7], 16)
+        r = int(r * (1 + random.uniform(-0.1, 0.1)))
+        g = int(g * (1 + random.uniform(-0.1, 0.1)))
+        b = int(b * (1 + random.uniform(-0.1, 0.1)))
+        return f"#{r}{g}{b}"
 
     @staticmethod
     def get_font_size(distance, font_size, near, far, aspect_ratio, fov):
