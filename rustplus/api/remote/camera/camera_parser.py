@@ -170,7 +170,9 @@ class Parser:
         return [t / 1023, r / 63, i]
 
     @staticmethod
-    def handle_entities(image: Image.Image, entities: List[Entity], cam_fov: float, depth_data) -> Image.Image:
+    def handle_entities(
+        image: Image.Image, entities: List[Entity], cam_fov: float, depth_data
+    ) -> Image.Image:
 
         # Sort the entities from furthest to closest
         entities.sort(key=lambda e: e.position.z, reverse=True)
@@ -211,7 +213,11 @@ class Parser:
             )
             entity_size = np.array([entity.size.x, entity.size.y, entity.size.z, 0])
 
-            vertices = MathUtils.get_player_vertices(entity.size) if entity.type == 2 else MathUtils.get_tree_vertices(entity.size)
+            vertices = (
+                MathUtils.get_player_vertices(entity.size)
+                if entity.type == 2
+                else MathUtils.get_tree_vertices(entity.size)
+            )
             # Add the position for the name tag to the vertices
             vertices = np.append(vertices, [np.array([0, 1.3, 0, 1])], axis=0)
 
@@ -243,12 +249,12 @@ class Parser:
                     tuple,
                     np.round(
                         (
-                                (
-                                        transformed_vertices[:, :2]
-                                        / transformed_vertices[:, 3, None]
-                                )
-                                * np.array([image.width, -image.height])
-                                / 2
+                            (
+                                transformed_vertices[:, :2]
+                                / transformed_vertices[:, 3, None]
+                            )
+                            * np.array([image.width, -image.height])
+                            / 2
                         )
                         + np.array([image.width, image.height]) / 2
                     ).astype(np.int32),
@@ -266,17 +272,34 @@ class Parser:
             )
 
             MathUtils.set_polygon_with_depth(
-                MathUtils.gift_wrap_algorithm(pixel_coords), image_data, depth_data,
-                math.sqrt(entity.position.x ** 2 + entity.position.y ** 2 + entity.position.z ** 2), colour, *image.size)
+                MathUtils.gift_wrap_algorithm(pixel_coords),
+                image_data,
+                depth_data,
+                math.sqrt(
+                    entity.position.x**2
+                    + entity.position.y**2
+                    + entity.position.z**2
+                ),
+                colour,
+                *image.size,
+            )
 
             if entity.type == 2:
-                font_size = max(MathUtils.get_font_size(entity.position.z, 250, cam_near, cam_far, aspect_ratio, cam_fov), 1)
+                font_size = max(
+                    MathUtils.get_font_size(
+                        entity.position.z, 250, cam_near, cam_far, aspect_ratio, cam_fov
+                    ),
+                    1,
+                )
                 # The font size should be proportional to the size of the entity as it gets further away
                 with resources.path(FONT_PATH, "PermanentMarker.ttf") as path:
                     font = ImageFont.truetype(str(path), font_size)
                 size = ImageDraw.Draw(image).textsize(entity.name, font=font)
 
-                name_place1 = (name_place[0] - size[0] // 2, name_place[1] - size[1] // 2)
+                name_place1 = (
+                    name_place[0] - size[0] // 2,
+                    name_place[1] - size[1] // 2,
+                )
                 text.add((name_place1, entity.name, font))
 
         image.putdata(image_data)
@@ -304,7 +327,10 @@ class Parser:
             material = ray.material
             alignment = ray.alignment
 
-            if not ((ray.distance == 1 and alignment == 0 and material == 0) or material == 7):
+            if not (
+                (ray.distance == 1 and alignment == 0 and material == 0)
+                or material == 7
+            ):
                 colour = self.colours[material]
                 # Set a 4x4 pixel area to the colour
                 draw.rectangle(
@@ -314,7 +340,9 @@ class Parser:
                         (i % self.width) * 4 + 4,
                         (self.height - 1 - (i // self.width)) * 4 + 4,
                     ),
-                    fill=MathUtils._convert_colour((colour[0], colour[1], colour[2], alignment)),
+                    fill=MathUtils._convert_colour(
+                        (colour[0], colour[1], colour[2], alignment)
+                    ),
                 )
                 distance = ray.distance * far_plane
 
@@ -323,10 +351,11 @@ class Parser:
 
             # Set the 4x4 pixel area to the depth value
             depth_data[
-            (i % self.width) * 4: (i % self.width) * 4 + 4,
-            (self.height - 1 - (i // self.width)) * 4: (self.height - 1 - (i // self.width))
-                                                       * 4
-                                                       + 4,
+                (i % self.width) * 4 : (i % self.width) * 4 + 4,
+                (self.height - 1 - (i // self.width))
+                * 4 : (self.height - 1 - (i // self.width))
+                * 4
+                + 4,
             ] = distance
 
         im = self.handle_entities(image, entities, fov, depth_data)
@@ -417,8 +446,8 @@ class MathUtils:
 
     @staticmethod
     def _convert_colour(
-            colour: Tuple[float, float, float, float],
-            background: Tuple[int, int, int] = (0, 0, 0),
+        colour: Tuple[float, float, float, float],
+        background: Tuple[int, int, int] = (0, 0, 0),
     ) -> Tuple[int, int, int]:
         target_colour = (
             ((1 - colour[3]) * background[0]) + (colour[3] * colour[0]),
@@ -440,7 +469,7 @@ class MathUtils:
         if a == 0:
             return -c / b
 
-        discriminant = b ** 2 - 4 * a * c
+        discriminant = b**2 - 4 * a * c
 
         if discriminant < 0:
             return 0
@@ -491,7 +520,7 @@ class MathUtils:
 
         # The vertices of the pill
         height = size.y + 0.3
-        width = 0.5 * size.x ** size.z
+        width = 0.5 * size.x**size.z
         increment = 0.1
 
         x = 0
@@ -503,10 +532,13 @@ class MathUtils:
 
                 # Use the quadratic formula to find the y values of the top and bottom of the pill
                 y1 = MathUtils.solve_quadratic(
-                    1, -2 * 0.5, x_value ** 2 + 0.5 ** 2 - 0.5 ** 2, False
+                    1, -2 * 0.5, x_value**2 + 0.5**2 - 0.5**2, False
                 )
                 y2 = MathUtils.solve_quadratic(
-                    1, -2 * (height - 0.5), x_value ** 2 + (height - 0.5) ** 2 - 0.5 ** 2, True
+                    1,
+                    -2 * (height - 0.5),
+                    x_value**2 + (height - 0.5) ** 2 - 0.5**2,
+                    True,
                 )
 
                 if y1 == 0 or y2 == 0:
@@ -562,20 +594,29 @@ class MathUtils:
         int: Font size in pixels
         """
         f = 1.0 / np.tan(np.deg2rad(fov / 2.0))
-        projection_matrix = np.array([
-            [f / aspect_ratio, 0.0, 0.0, 0.0],
-            [0.0, f, 0.0, 0.0],
-            [0.0, 0.0, (far + near) / (near - far), 2.0 * far * near / (near - far)],
-            [0.0, 0.0, -1.0, 0.0]
-        ])
+        projection_matrix = np.array(
+            [
+                [f / aspect_ratio, 0.0, 0.0, 0.0],
+                [0.0, f, 0.0, 0.0],
+                [
+                    0.0,
+                    0.0,
+                    (far + near) / (near - far),
+                    2.0 * far * near / (near - far),
+                ],
+                [0.0, 0.0, -1.0, 0.0],
+            ]
+        )
 
         # Define the modelview matrix based on the distance from the screen
-        modelview_matrix = np.array([
-            [1.0, 0.0, 0.0, 0.0],
-            [0.0, 1.0, 0.0, 0.0],
-            [0.0, 0.0, 1.0, -distance],
-            [0.0, 0.0, 0.0, 1.0]
-        ])
+        modelview_matrix = np.array(
+            [
+                [1.0, 0.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0, 0.0],
+                [0.0, 0.0, 1.0, -distance],
+                [0.0, 0.0, 0.0, 1.0],
+            ]
+        )
 
         # Calculate the projection of the text onto the screen
         text_projection = projection_matrix @ modelview_matrix
@@ -586,7 +627,9 @@ class MathUtils:
         return int(projected_size)
 
     @staticmethod
-    def set_polygon_with_depth(vertices, image_data, depth_data, depth, colour, width, height):
+    def set_polygon_with_depth(
+        vertices, image_data, depth_data, depth, colour, width, height
+    ):
 
         colour = MathUtils.convert_colour_to_tuple(colour)
 
@@ -619,7 +662,7 @@ class MathUtils:
         width and height specify the size of the bounding box around the polygon
         """
         # Create an image mask for the polygon
-        mask = Image.new('L', (width, height), 0)
+        mask = Image.new("L", (width, height), 0)
         ImageDraw.Draw(mask).polygon(vertices, outline=1, fill=1)
 
         # Convert the mask to a NumPy array

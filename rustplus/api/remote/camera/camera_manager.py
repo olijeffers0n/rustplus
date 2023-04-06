@@ -63,7 +63,11 @@ class CameraManager:
 
         last_packet = self._last_packets.get_last()
 
-        return self.parser.render(last_packet.entities, last_packet.vertical_fov, self._cam_info_message.far_plane)
+        return self.parser.render(
+            last_packet.entities,
+            last_packet.vertical_fov,
+            self._cam_info_message.far_plane,
+        )
 
     async def get_frame(self) -> Union[Image.Image, None]:
         return self._create_frame()
