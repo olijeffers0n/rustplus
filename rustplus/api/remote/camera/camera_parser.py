@@ -1,12 +1,9 @@
 import dataclasses
 import math
-import time
 from importlib import resources
 from math import radians, tan
 import random
 from typing import Union, Tuple, List
-
-import cv2
 import numpy as np
 from scipy.spatial import ConvexHull
 from PIL import Image, ImageDraw, ImageFont
