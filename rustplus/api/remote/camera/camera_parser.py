@@ -3,7 +3,7 @@ import math
 from importlib import resources
 from math import radians, tan
 import random
-from typing import Union, Tuple, List
+from typing import Union, Tuple, List, Any
 import numpy as np
 from scipy.spatial import ConvexHull
 from PIL import Image, ImageDraw, ImageFont
@@ -32,18 +32,18 @@ class Parser:
         self._rays = None
         self._ray_lookback = [[0 for _ in range(3)] for _ in range(64)]
         self._sample_offset = 0
-        self.colours = [
-            (int(0.5 * 255), int(0.5 * 255), int(0.5 * 255)),
-            (int(0.8 * 255), int(0.7 * 255), int(0.7 * 255)),
-            (int(0.3 * 255), int(0.7 * 255), int(1 * 255)),
-            (int(0.6 * 255), int(0.6 * 255), int(0.6 * 255)),
-            (int(0.7 * 255), int(0.7 * 255), int(0.7 * 255)),
-            (int(0.8 * 255), int(0.6 * 255), int(0.4 * 255)),
-            (int(1 * 255), int(0.4 * 255), int(0.4 * 255)),
-            (int(1 * 255), int(0.1 * 255), int(0.1 * 255)),
-        ]
+        self.colours = [(127, 127, 127), (204, 178, 178), (76, 178, 255), (153, 153, 153),
+                        (178, 178, 178), (204, 153, 102), (255, 102, 102), (255, 25, 25)]
 
-        self.output = [None for _ in range(self.width * self.height)]
+        self.scale_factor = 6
+        self.colour_output = None
+        self.depth_output = None
+
+        self.reset_output()
+
+    def reset_output(self) -> None:
+        self.colour_output = np.full((self.width * self.scale_factor, self.height * self.scale_factor, 3), np.array([208, 230, 252]))
+        self.depth_output = np.zeros((self.width * self.scale_factor, self.height * self.scale_factor))
 
     def handle_camera_ray_data(self, data) -> None:
 
@@ -89,7 +89,22 @@ class Parser:
             self._sample_offset += 1
             index2 = int(LOOKUP_CONSTANTS[self._sample_offset] * self.width + index1)
             self._sample_offset += 1
-            self.output[index2] = RayData(distance, alignment, material)
+
+            x = (index2 % self.width) * self.scale_factor
+            y = ((self.width * self.height - 1 - index2) // self.width) * self.scale_factor
+
+            if not (distance == 1 and alignment == 0 and material == 0) and material != 7:
+
+                self.colour_output[x: x + self.scale_factor, y: y + self.scale_factor] = \
+                    MathUtils._convert_colour(
+                        ((colour := self.colours[material])[0], colour[1], colour[2], alignment)
+                    )
+
+            else:
+                self.colour_output[x: x + self.scale_factor, y: y + self.scale_factor] = (208, 230, 252)
+                distance = float("inf")
+
+            self.depth_output[x: x + self.scale_factor, y: y + self.scale_factor] = distance
 
         return False
 
@@ -168,8 +183,10 @@ class Parser:
 
     @staticmethod
     def handle_entities(
-        image: Image.Image, entities: List[Entity], cam_fov: float, depth_data
-    ) -> Image.Image:
+        image_draw: ImageDraw, image_data: Any, entities: List[Entity], cam_fov: float, depth_data: Any, far_plane: float, width: int, height: int
+    ) -> Any:
+
+        image_data = np.array(image_data)
 
         # Sort the entities from furthest to closest
         entities.sort(key=lambda e: e.position.z, reverse=True)
@@ -181,14 +198,13 @@ class Parser:
         cam_far = 1000
 
         # aspect ratio of the image
-        aspect_ratio = image.width / image.height
+        aspect_ratio = width / height
 
         view_matrix = MathUtils.camera_matrix(cam_pos, cam_rot)
         projection_matrix = MathUtils.perspective_matrix(
             cam_fov, aspect_ratio, cam_near, cam_far
         )
 
-        image_data = list(image.getdata())
         text = set()
 
         for entity in entities:
@@ -250,10 +266,10 @@ class Parser:
                                 transformed_vertices[:, :2]
                                 / transformed_vertices[:, 3, None]
                             )
-                            * np.array([image.width, -image.height])
+                            * np.array([width, -height])
                             / 2
                         )
-                        + np.array([image.width, image.height]) / 2
+                        + np.array([width, height]) / 2
                     ).astype(np.int32),
                 )
             )
@@ -278,7 +294,7 @@ class Parser:
                     + entity.position.z**2
                 ),
                 colour,
-                *image.size,
+                width, height, far_plane
             )
 
             if entity.type == 2:
@@ -291,7 +307,7 @@ class Parser:
                 # The font size should be proportional to the size of the entity as it gets further away
                 with resources.path(FONT_PATH, "PermanentMarker.ttf") as path:
                     font = ImageFont.truetype(str(path), font_size)
-                size = ImageDraw.Draw(image).textsize(entity.name, font=font)
+                size = image_draw.textsize(entity.name, font=font)
 
                 name_place1 = (
                     name_place[0] - size[0] // 2,
@@ -299,12 +315,7 @@ class Parser:
                 )
                 text.add((name_place1, entity.name, font))
 
-        image.putdata(image_data)
-        draw = ImageDraw.Draw(image)
-        for pos, name, font in text:
-            draw.text(pos, name, font=font, fill="black")
-
-        return image
+        return text, image_data
 
     def render(self, entities: List[Entity], fov: float, far_plane) -> Image.Image:
 
@@ -312,55 +323,28 @@ class Parser:
         # We can get the material at each pixel and use that to get the colour
         # We can then use the alignment to get the alpha value
 
-        image = Image.new("RGBA", (self.width * 4, self.height * 4), (208, 230, 252))
-        depth_data = np.zeros((self.width * 4, self.height * 4))
+        image = Image.new("RGBA", (self.width * self.scale_factor, self.height * self.scale_factor), (0, 0, 0))
         draw = ImageDraw.Draw(image)
 
-        for i in range(len(self.output)):
-            ray: Union[RayData, None] = self.output[i]
-            if ray is None:
-                continue
+        text, image_data = self.handle_entities(draw, self.colour_output, entities, fov, self.depth_output, far_plane, *image.size)
+        image_data = image_data.astype('uint8')
 
-            material = ray.material
-            alignment = ray.alignment
+        # transpose the array
+        transposed_arr = image_data.transpose((1, 0, 2))
 
-            if not (
-                (ray.distance == 1 and alignment == 0 and material == 0)
-                or material == 7
-            ):
-                colour = self.colours[material]
-                # Set a 4x4 pixel area to the colour
-                draw.rectangle(
-                    (
-                        (i % self.width) * 4,
-                        (self.height - 1 - (i // self.width)) * 4,
-                        (i % self.width) * 4 + 4,
-                        (self.height - 1 - (i // self.width)) * 4 + 4,
-                    ),
-                    fill=MathUtils._convert_colour(
-                        (colour[0], colour[1], colour[2], alignment)
-                    ),
-                )
-                distance = ray.distance * far_plane
+        # This doesn't work:
+        image = Image.fromarray(transposed_arr, "RGB")
 
-            else:
-                distance = float("inf")
+        draw = ImageDraw.Draw(image)
+        for pos, name, font in text:
+            draw.text(pos, name, font=font, fill="black")
 
-            # Set the 4x4 pixel area to the depth value
-            depth_data[
-                (i % self.width) * 4 : (i % self.width) * 4 + 4,
-                (self.height - 1 - (i // self.width))
-                * 4 : (self.height - 1 - (i // self.width))
-                * 4
-                + 4,
-            ] = distance
-
-        im = self.handle_entities(image, entities, fov, depth_data)
-        return im
+        return image
 
 
 class MathUtils:
     VERTEX_CACHE = {}
+    COLOUR_CACHE = {}
 
     @staticmethod
     def camera_matrix(position, rotation):
@@ -436,27 +420,33 @@ class MathUtils:
     @staticmethod
     def gift_wrap_algorithm(vertices):
         data = np.array(vertices)
+
+        # Check that the min and max are not the same
+        if data.max(axis=0)[0] == data.min(axis=0)[0] or data.max(axis=0)[1] == data.min(axis=0)[1]:
+            return []
+
         # use convex hull algorithm to find the convex hull from scipy
         hull = ConvexHull(data)
         # get the vertices of the convex hull
         return [tuple(data[i]) for i in hull.vertices]
 
-    @staticmethod
+    @classmethod
     def _convert_colour(
+        cls,
         colour: Tuple[float, float, float, float],
-        background: Tuple[int, int, int] = (0, 0, 0),
     ) -> Tuple[int, int, int]:
-        target_colour = (
-            ((1 - colour[3]) * background[0]) + (colour[3] * colour[0]),
-            ((1 - colour[3]) * background[1]) + (colour[3] * colour[1]),
-            ((1 - colour[3]) * background[2]) + (colour[3] * colour[2]),
+
+        if colour in cls.COLOUR_CACHE:
+            return cls.COLOUR_CACHE[colour]
+
+        colour = (
+            int(colour[3] * colour[0]),
+            int(colour[3] * colour[1]),
+            int(colour[3] * colour[2]),
         )
 
-        return (
-            min(255, int(target_colour[0])),
-            min(255, int(target_colour[1])),
-            min(255, int(target_colour[2])),
-        )
+        cls.COLOUR_CACHE[colour] = colour
+        return colour
 
     @staticmethod
     def solve_quadratic(a: float, b: float, c: float, larger: bool) -> float:
@@ -625,21 +615,26 @@ class MathUtils:
 
     @staticmethod
     def set_polygon_with_depth(
-        vertices, image_data, depth_data, depth, colour, width, height
+            vertices, image_data, depth_data, depth, colour, width, height, far_plane
     ):
+        if len(vertices) <= 1:
+            return
 
         colour = MathUtils.convert_colour_to_tuple(colour)
 
-        for pixel in MathUtils.get_vertices_in_polygon(vertices, width, height):
-            x, y = pixel
-            # If the pixel is closer to the camera than the current depth, set the pixel to the colour
-            # depth data is a numpy array
-            if x < 0 or x >= depth_data.shape[0] or y < 0 or y >= depth_data.shape[1]:
-                continue
+        pixels = MathUtils.get_vertices_in_polygon(vertices, width, height)
 
-            if depth_data[x, y] > depth:
-                image_data[x + y * width] = colour
-                depth_data[x, y] = depth
+        if len(pixels) == 0:
+            return
+
+        pixels = pixels[(pixels[:, 0] >= 0) & (pixels[:, 0] < depth_data.shape[0]) & (pixels[:, 1] >= 0) & (
+                    pixels[:, 1] < depth_data.shape[1])]
+
+        # Get all pixels where depth_data[x, y] * far_plane > depth is true
+        pixels = pixels[depth_data[pixels[:, 0], pixels[:, 1]] * far_plane > depth + 0.5]
+
+        # Set the pixels to the colour
+        image_data[pixels[:, 0], pixels[:, 1]] = colour
 
     @staticmethod
     def convert_colour_to_tuple(colour):
@@ -669,4 +664,4 @@ class MathUtils:
         y, x = np.nonzero(mask_arr)
 
         # Return the vertices that correspond to the non-zero indices
-        return list(zip(x, y))
+        return np.array(list(zip(x, y)))

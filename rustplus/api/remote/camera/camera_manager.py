@@ -27,6 +27,9 @@ class CameraManager:
     def add_packet(self, packet) -> None:
         self._last_packets.add(packet)
 
+        self.parser.handle_camera_ray_data(packet)
+        self.parser.step()
+
         if len(self.frame_callbacks) == 0:
             return
 
@@ -56,10 +59,6 @@ class CameraManager:
 
         if not self._open:
             raise Exception("Camera is closed")
-
-        for i in range(len(self._last_packets)):
-            self.parser.handle_camera_ray_data(self._last_packets.get(i))
-            self.parser.step()
 
         last_packet = self._last_packets.get_last()
 
