@@ -631,7 +631,7 @@ class MathUtils:
                     pixels[:, 1] < depth_data.shape[1])]
 
         # Get all pixels where depth_data[x, y] * far_plane > depth is true
-        pixels = pixels[depth_data[pixels[:, 0], pixels[:, 1]] * far_plane > depth + 0.5]
+        pixels = pixels[depth_data[pixels[:, 0], pixels[:, 1]] * far_plane > depth - 0.5]
 
         # Set the pixels to the colour
         image_data[pixels[:, 0], pixels[:, 1]] = colour
