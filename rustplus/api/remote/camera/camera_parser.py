@@ -1,4 +1,3 @@
-import dataclasses
 import math
 from importlib import resources
 from math import radians, tan
