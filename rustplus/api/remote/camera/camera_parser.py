@@ -32,8 +32,16 @@ class Parser:
         self._rays = None
         self._ray_lookback = [[0 for _ in range(3)] for _ in range(64)]
         self._sample_offset = 0
-        self.colours = [(127, 127, 127), (204, 178, 178), (76, 178, 255), (153, 153, 153),
-                        (178, 178, 178), (204, 153, 102), (255, 102, 102), (255, 25, 25)]
+        self.colours = [
+            (127, 127, 127),
+            (204, 178, 178),
+            (76, 178, 255),
+            (153, 153, 153),
+            (178, 178, 178),
+            (204, 153, 102),
+            (255, 102, 102),
+            (255, 25, 25),
+        ]
 
         self.scale_factor = 6
         self.colour_output = None
@@ -41,9 +49,17 @@ class Parser:
 
         self.reset_output()
 
+        self.entities = []
+        self.last_fov = 0
+
     def reset_output(self) -> None:
-        self.colour_output = np.full((self.width * self.scale_factor, self.height * self.scale_factor, 3), np.array([208, 230, 252]))
-        self.depth_output = np.zeros((self.width * self.scale_factor, self.height * self.scale_factor))
+        self.colour_output = np.full(
+            (self.width * self.scale_factor, self.height * self.scale_factor, 3),
+            np.array([208, 230, 252]),
+        )
+        self.depth_output = np.zeros(
+            (self.width * self.scale_factor, self.height * self.scale_factor)
+        )
 
     def handle_camera_ray_data(self, data) -> None:
 
@@ -91,20 +107,35 @@ class Parser:
             self._sample_offset += 1
 
             x = (index2 % self.width) * self.scale_factor
-            y = ((self.width * self.height - 1 - index2) // self.width) * self.scale_factor
+            y = (
+                (self.width * self.height - 1 - index2) // self.width
+            ) * self.scale_factor
 
-            if not (distance == 1 and alignment == 0 and material == 0) and material != 7:
+            if (
+                not (distance == 1 and alignment == 0 and material == 0)
+                and material != 7
+            ):
 
-                self.colour_output[x: x + self.scale_factor, y: y + self.scale_factor] = \
-                    MathUtils._convert_colour(
-                        ((colour := self.colours[material])[0], colour[1], colour[2], alignment)
+                self.colour_output[
+                    x : x + self.scale_factor, y : y + self.scale_factor
+                ] = MathUtils._convert_colour(
+                    (
+                        (colour := self.colours[material])[0],
+                        colour[1],
+                        colour[2],
+                        alignment,
                     )
+                )
 
             else:
-                self.colour_output[x: x + self.scale_factor, y: y + self.scale_factor] = (208, 230, 252)
+                self.colour_output[
+                    x : x + self.scale_factor, y : y + self.scale_factor
+                ] = (208, 230, 252)
                 distance = float("inf")
 
-            self.depth_output[x: x + self.scale_factor, y: y + self.scale_factor] = distance
+            self.depth_output[
+                x : x + self.scale_factor, y : y + self.scale_factor
+            ] = distance
 
         return False
 
@@ -181,14 +212,48 @@ class Parser:
 
         return [t / 1023, r / 63, i]
 
-    @staticmethod
     def handle_entities(
-        image_draw: ImageDraw, image_data: Any, entities: List[Entity], cam_fov: float, depth_data: Any, far_plane: float, width: int, height: int
+        self,
+        image_draw: ImageDraw,
+        image_data: Any,
+        entities: List[Entity],
+        cam_fov: float,
+        depth_data: Any,
+        far_plane: float,
+        width: int,
+        height: int,
+        entity_render_distance: float,
+        max_entity_amount: int,
     ) -> Any:
 
         image_data = np.array(image_data)
 
-        # Sort the entities from furthest to closest
+        players = [player for player in entities if player.type == 2]
+        trees = [tree for tree in entities if tree.type == 1]
+
+        tree_amount = max_entity_amount - len(players)
+        target_trees = []
+
+        if len(trees) < tree_amount:
+            target_trees = trees
+
+        else:
+            if self.last_fov == cam_fov:
+                for entity in self.entities:
+                    # Entity is an entity id and we should try and find it in the trees list
+                    for tree in trees:
+                        if tree.entity_id == entity:
+                            target_trees.append(tree)
+                            break
+
+            if len(target_trees) < tree_amount:
+                random.shuffle(trees)
+                target_trees += trees[: tree_amount - len(target_trees)]
+
+        self.entities = [tree.entity_id for tree in target_trees]
+        self.last_fov = cam_fov
+
+        entities = players + target_trees
         entities.sort(key=lambda e: e.position.z, reverse=True)
 
         # position, rotation, size of camera
@@ -209,125 +274,186 @@ class Parser:
 
         for entity in entities:
 
-            entity.size.x = min(entity.size.x, 5)
-            entity.size.y = min(entity.size.y, 5)
-            entity.size.z = min(entity.size.z, 5)
+            if entity.position.z > entity_render_distance and entity.type == 1:
+                continue
 
-            entity_pos = np.array(
-                [
-                    entity.position.x,
-                    entity.position.y + (2 if entity.type == 1 else 0),
-                    entity.position.z,
-                    0,
-                ]
-            )
-            entity_rot = np.array(
-                [entity.rotation.x, entity.rotation.y, entity.rotation.z, 0]
-            )
-            entity_size = np.array([entity.size.x, entity.size.y, entity.size.z, 0])
-
-            vertices = (
-                MathUtils.get_player_vertices(entity.size)
-                if entity.type == 2
-                else MathUtils.get_tree_vertices(entity.size)
-            )
-            # Add the position for the name tag to the vertices
-            vertices = np.append(vertices, [np.array([0, 1.3, 0, 1])], axis=0)
-
-            model_matrix = np.matmul(
-                np.matmul(
-                    MathUtils.translation_matrix(entity_pos),
-                    MathUtils.rotation_matrix(entity_rot),
-                ),
-                MathUtils.scale_matrix(entity_size),
-            )
-
-            # Add rotation to face the camera
-            cam_direction = cam_pos - entity_pos[:3]
-            cam_direction[1] = 0
-            cam_angle = np.arctan2(cam_direction[2], cam_direction[0])
-            cam_rotation_matrix = MathUtils.rotation_matrix([0, cam_angle, 0, 0])
-            model_matrix = np.matmul(model_matrix, cam_rotation_matrix)
-
-            mvp_matrix = np.matmul(
-                np.matmul(projection_matrix, view_matrix), model_matrix
-            )
-
-            # Calculate the transformed vertices
-            transformed_vertices = np.matmul(mvp_matrix, vertices.T).T
-
-            # Normalize the transformed vertices and calculate pixel coordinates
-            pixel_coords = tuple(
-                map(
-                    tuple,
-                    np.round(
-                        (
-                            (
-                                transformed_vertices[:, :2]
-                                / transformed_vertices[:, 3, None]
-                            )
-                            * np.array([width, -height])
-                            / 2
-                        )
-                        + np.array([width, height]) / 2
-                    ).astype(np.int32),
-                )
-            )
-
-            # Remove the last element of the pixel_coords array
-            name_place = pixel_coords[-1]
-            pixel_coords = pixel_coords[:-1]
-
-            colour = (
-                (PLAYER_COLOUR if not entity.name.isdigit() else SCIENTIST_COLOUR)
-                if entity.type == 2
-                else MathUtils.get_slightly_random_colour(TREE_COLOUR, entity.entity_id)
-            )
-
-            MathUtils.set_polygon_with_depth(
-                MathUtils.gift_wrap_algorithm(pixel_coords),
+            Parser.handle_entity(
+                entity,
+                image_draw,
+                cam_pos,
+                projection_matrix,
+                view_matrix,
                 image_data,
                 depth_data,
-                math.sqrt(
-                    entity.position.x**2
-                    + entity.position.y**2
-                    + entity.position.z**2
-                ),
-                colour,
-                width, height, far_plane
+                width,
+                height,
+                cam_near,
+                cam_far,
+                far_plane,
+                cam_fov,
+                aspect_ratio,
+                text,
             )
-
-            if entity.type == 2:
-                font_size = max(
-                    MathUtils.get_font_size(
-                        entity.position.z, 250, cam_near, cam_far, aspect_ratio, cam_fov
-                    ),
-                    1,
-                )
-                # The font size should be proportional to the size of the entity as it gets further away
-                with resources.path(FONT_PATH, "PermanentMarker.ttf") as path:
-                    font = ImageFont.truetype(str(path), font_size)
-                size = image_draw.textsize(entity.name, font=font)
-
-                name_place1 = (
-                    name_place[0] - size[0] // 2,
-                    name_place[1] - size[1] // 2,
-                )
-                text.add((name_place1, entity.name, font))
 
         return text, image_data
 
-    def render(self, entities: List[Entity], fov: float, far_plane) -> Image.Image:
+    @staticmethod
+    def handle_entity(
+        entity,
+        image_draw,
+        cam_pos,
+        projection_matrix,
+        view_matrix,
+        image_data,
+        depth_data,
+        width,
+        height,
+        cam_near,
+        cam_far,
+        far_plane,
+        cam_fov,
+        aspect_ratio,
+        text,
+    ):
+
+        entity.size.x = min(entity.size.x, 5)
+        entity.size.y = min(entity.size.y, 5)
+        entity.size.z = min(entity.size.z, 5)
+
+        entity_pos = np.array(
+            [
+                entity.position.x,
+                entity.position.y + (2 if entity.type == 1 else 0),
+                entity.position.z,
+                0,
+            ]
+        )
+        entity_rot = np.array(
+            [entity.rotation.x, entity.rotation.y, entity.rotation.z, 0]
+        )
+        entity_size = np.array([entity.size.x, entity.size.y, entity.size.z, 0])
+
+        vertices = (
+            MathUtils.get_player_vertices(entity.size)
+            if entity.type == 2
+            else MathUtils.get_tree_vertices(entity.size)
+        )
+        # Add the position for the name tag to the vertices
+        vertices = np.append(vertices, [np.array([0, 1.3, 0, 1])], axis=0)
+
+        model_matrix = np.matmul(
+            np.matmul(
+                MathUtils.translation_matrix(entity_pos),
+                MathUtils.rotation_matrix(entity_rot),
+            ),
+            MathUtils.scale_matrix(entity_size),
+        )
+
+        # Add rotation to face the camera
+        cam_direction = cam_pos - entity_pos[:3]
+        cam_direction[1] = 0
+        cam_angle = np.arctan2(cam_direction[2], cam_direction[0])
+        cam_rotation_matrix = MathUtils.rotation_matrix([0, cam_angle, 0, 0])
+        model_matrix = np.matmul(model_matrix, cam_rotation_matrix)
+
+        mvp_matrix = np.matmul(np.matmul(projection_matrix, view_matrix), model_matrix)
+
+        # Calculate the transformed vertices
+        transformed_vertices = np.matmul(mvp_matrix, vertices.T).T
+
+        # Normalize the transformed vertices and calculate pixel coordinates
+        pixel_coords = tuple(
+            map(
+                tuple,
+                np.round(
+                    (
+                        (transformed_vertices[:, :2] / transformed_vertices[:, 3, None])
+                        * np.array([width, -height])
+                        / 2
+                    )
+                    + np.array([width, height]) / 2
+                ).astype(np.int32),
+            )
+        )
+
+        # Remove the last element of the pixel_coords array
+        name_place = pixel_coords[-1]
+        pixel_coords = pixel_coords[:-1]
+
+        colour = (
+            (PLAYER_COLOUR if not entity.name.isdigit() else SCIENTIST_COLOUR)
+            if entity.type == 2
+            else MathUtils.get_slightly_random_colour(TREE_COLOUR, entity.entity_id)
+        )
+
+        MathUtils.set_polygon_with_depth(
+            MathUtils.gift_wrap_algorithm(pixel_coords),
+            image_data,
+            depth_data,
+            math.sqrt(
+                entity.position.x**2 + entity.position.y**2 + entity.position.z**2
+            ),
+            colour,
+            width,
+            height,
+            far_plane,
+        )
+
+        if entity.type == 2:
+            font_size = max(
+                MathUtils.get_font_size(
+                    entity.position.z, 250, cam_near, cam_far, aspect_ratio, cam_fov
+                ),
+                1,
+            )
+            # The font size should be proportional to the size of the entity as it gets further away
+            with resources.path(FONT_PATH, "PermanentMarker.ttf") as path:
+                font = ImageFont.truetype(str(path), font_size)
+            size = image_draw.textsize(entity.name, font=font)
+
+            name_place1 = (
+                name_place[0] - size[0] // 2,
+                name_place[1] - size[1] // 2,
+            )
+            text.add((name_place1, entity.name, font))
+
+    def render(
+        self,
+        render_entities: bool,
+        entities: List[Entity],
+        fov: float,
+        far_plane: float,
+        entity_render_distance: float,
+        max_entity_amount: int,
+    ) -> Image.Image:
 
         # We have the output array filled with RayData objects
         # We can get the material at each pixel and use that to get the colour
         # We can then use the alignment to get the alpha value
 
-        image = Image.new("RGBA", (self.width * self.scale_factor, self.height * self.scale_factor), (0, 0, 0))
+        image = Image.new(
+            "RGBA",
+            (self.width * self.scale_factor, self.height * self.scale_factor),
+            (0, 0, 0),
+        )
         draw = ImageDraw.Draw(image)
 
-        text, image_data = self.handle_entities(draw, self.colour_output, entities, fov, self.depth_output, far_plane, *image.size)
-        image_data = image_data.astype('uint8')
+        if not render_entities:
+            entities = []
+
+        text, image_data = self.handle_entities(
+            draw,
+            self.colour_output,
+            entities,
+            fov,
+            self.depth_output,
+            far_plane,
+            image.size[0],
+            image.size[1],
+            entity_render_distance,
+            max_entity_amount,
+        )
+        image_data = image_data.astype("uint8")
 
         # transpose the array
         transposed_arr = image_data.transpose((1, 0, 2))
@@ -422,7 +548,10 @@ class MathUtils:
         data = np.array(vertices)
 
         # Check that the min and max are not the same
-        if data.max(axis=0)[0] == data.min(axis=0)[0] or data.max(axis=0)[1] == data.min(axis=0)[1]:
+        if (
+            data.max(axis=0)[0] == data.min(axis=0)[0]
+            or data.max(axis=0)[1] == data.min(axis=0)[1]
+        ):
             return []
 
         # use convex hull algorithm to find the convex hull from scipy
@@ -615,7 +744,7 @@ class MathUtils:
 
     @staticmethod
     def set_polygon_with_depth(
-            vertices, image_data, depth_data, depth, colour, width, height, far_plane
+        vertices, image_data, depth_data, depth, colour, width, height, far_plane
     ):
         if len(vertices) <= 1:
             return
@@ -627,11 +756,17 @@ class MathUtils:
         if len(pixels) == 0:
             return
 
-        pixels = pixels[(pixels[:, 0] >= 0) & (pixels[:, 0] < depth_data.shape[0]) & (pixels[:, 1] >= 0) & (
-                    pixels[:, 1] < depth_data.shape[1])]
+        pixels = pixels[
+            (pixels[:, 0] >= 0)
+            & (pixels[:, 0] < depth_data.shape[0])
+            & (pixels[:, 1] >= 0)
+            & (pixels[:, 1] < depth_data.shape[1])
+        ]
 
         # Get all pixels where depth_data[x, y] * far_plane > depth is true
-        pixels = pixels[depth_data[pixels[:, 0], pixels[:, 1]] * far_plane > depth - 0.5]
+        pixels = pixels[
+            depth_data[pixels[:, 0], pixels[:, 1]] * far_plane > depth - 0.5
+        ]
 
         # Set the pixels to the colour
         image_data[pixels[:, 0], pixels[:, 1]] = colour

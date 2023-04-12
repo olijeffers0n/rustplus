@@ -34,6 +34,9 @@ class Entity:
             f"rotation={self.rotation}, size={self.size}, name={self.name})"
         )
 
+    def __repr__(self):
+        return self.__str__()
+
 
 class Vector3:
     def __init__(self, vector3=None, x=None, y=None, z=None) -> None:

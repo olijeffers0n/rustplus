@@ -53,7 +53,7 @@ class CameraManager:
     def has_frame_data(self) -> bool:
         return len(self._last_packets) > 0
 
-    def _create_frame(self) -> Union[Image.Image, None]:
+    def _create_frame(self, render_entities: bool = True, entity_render_distance: float = float("inf"), max_entity_amount: int = float("inf")) -> Union[Image.Image, None]:
         if self._last_packets is None:
             return None
 
@@ -63,13 +63,16 @@ class CameraManager:
         last_packet = self._last_packets.get_last()
 
         return self.parser.render(
+            render_entities,
             last_packet.entities,
             last_packet.vertical_fov,
             self._cam_info_message.far_plane,
+            entity_render_distance,
+            max_entity_amount if max_entity_amount is not None else len(last_packet.entities),
         )
 
-    async def get_frame(self) -> Union[Image.Image, None]:
-        return self._create_frame()
+    async def get_frame(self, render_entities: bool = True, entity_render_distance: float = float("inf"), max_entity_amount: int = float("inf")) -> Union[Image.Image, None]:
+        return self._create_frame(render_entities, entity_render_distance, max_entity_amount)
 
     def can_move(self, control_type: int) -> bool:
         return self._cam_info_message.is_move_option_permissible(control_type)
@@ -145,3 +148,6 @@ class CameraManager:
             return float("inf")
 
         return self._last_packets.get_last().distance
+
+    async def get_max_distance(self) -> float:
+        return self._cam_info_message.far_plane
