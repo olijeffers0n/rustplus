@@ -17,13 +17,6 @@ TREE_COLOUR = "#03ad15"
 FONT_PATH = "rustplus.utils.fonts"
 
 
-@dataclasses.dataclass
-class RayData:
-    distance: float
-    alignment: float
-    material: int
-
-
 class Parser:
     def __init__(self, width, height) -> None:
         self.width = width
