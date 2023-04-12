@@ -1,4 +1,5 @@
 import time
+import traceback
 from typing import Iterable, Union, List, Coroutine
 
 from PIL import Image
@@ -26,10 +27,17 @@ class CameraManager:
     def add_packet(self, packet) -> None:
         self._last_packets.add(packet)
 
+        self.parser.handle_camera_ray_data(packet)
+        self.parser.step()
+
         if len(self.frame_callbacks) == 0:
             return
 
-        frame = self._create_frame()
+        try:
+            frame = self._create_frame()
+        except Exception:
+            traceback.print_exc()
+            return
 
         for callback in self.frame_callbacks:
             EventHandler.schedule_event(
@@ -45,21 +53,26 @@ class CameraManager:
     def has_frame_data(self) -> bool:
         return len(self._last_packets) > 0
 
-    def _create_frame(self) -> Union[Image.Image, None]:
+    def _create_frame(self, render_entities: bool = True, entity_render_distance: float = float("inf"), max_entity_amount: int = float("inf")) -> Union[Image.Image, None]:
         if self._last_packets is None:
             return None
 
         if not self._open:
             raise Exception("Camera is closed")
 
-        for i in range(len(self._last_packets)):
-            self.parser.handle_camera_ray_data(self._last_packets.get(i))
-            self.parser.step()
+        last_packet = self._last_packets.get_last()
 
-        return self.parser.render()
+        return self.parser.render(
+            render_entities,
+            last_packet.entities,
+            last_packet.vertical_fov,
+            self._cam_info_message.far_plane,
+            entity_render_distance,
+            max_entity_amount if max_entity_amount is not None else len(last_packet.entities),
+        )
 
-    async def get_frame(self) -> Union[Image.Image, None]:
-        return self._create_frame()
+    async def get_frame(self, render_entities: bool = True, entity_render_distance: float = float("inf"), max_entity_amount: int = float("inf")) -> Union[Image.Image, None]:
+        return self._create_frame(render_entities, entity_render_distance, max_entity_amount)
 
     def can_move(self, control_type: int) -> bool:
         return self._cam_info_message.is_move_option_permissible(control_type)
@@ -116,7 +129,6 @@ class CameraManager:
         await self.rust_socket.remote.subscribe_to_camera(self._cam_id, True)
         self.time_since_last_subscribe = time.time()
         self._open = True
-        self._last_packets.clear()
         self.rust_socket.remote.camera_manager = self
 
     async def get_entities_in_frame(self) -> List[Entity]:
@@ -127,3 +139,15 @@ class CameraManager:
             return []
 
         return self._last_packets.get_last().entities
+
+    async def get_distance_from_player(self) -> float:
+        if self._last_packets is None:
+            return float("inf")
+
+        if len(self._last_packets) == 0:
+            return float("inf")
+
+        return self._last_packets.get_last().distance
+
+    async def get_max_distance(self) -> float:
+        return self._cam_info_message.far_plane

@@ -31,7 +31,9 @@ setup(
         "asyncio",
         "rustPlusPushReceiver==0.4.1",
         "http-ece",
-        "requests"
+        "requests",
+        "numpy",
+        "scipy",
     ],
     python_requires='>=3.8.0',
 )
