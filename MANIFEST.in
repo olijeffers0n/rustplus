@@ -1,1 +1,2 @@
 recursive-include rustplus *.png
+recursive-include rustplus *.ttf
