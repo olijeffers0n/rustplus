@@ -35,5 +35,15 @@ setup(
         "numpy",
         "scipy",
     ],
+    extras_require={
+        'test': [
+            'coverage[toml]',
+            'pytest',
+            'pytest-asyncio',
+            'pytest-cov',
+            'pytest-mock',
+            'typing-extensions>=4.3,<5',
+        ],
+    },
     python_requires='>=3.8.0',
 )
