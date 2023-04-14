@@ -56,6 +56,7 @@ class BaseRustSocket:
         self.marker_listener = MapEventListener(self)
         self.use_test_server = use_test_server
         self.event_loop = event_loop
+        self.lock = asyncio.Lock()
 
         self.remote = RustRemote(
             server_id=self.server_id,
@@ -174,7 +175,9 @@ class BaseRustSocket:
 
         self.remote.ignored_responses.append(app_request.seq)
 
+        await self.lock.acquire()
         await self.remote.send_message(app_request)
+        self.lock.release()
 
     async def switch_server(
         self,

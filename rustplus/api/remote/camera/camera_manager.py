@@ -106,16 +106,20 @@ class CameraManager:
         cam_input.mouseDelta.CopyFrom(vector)
         app_request.cameraInput.CopyFrom(cam_input)
 
+        await self.rust_socket.lock.acquire()
         await self.rust_socket.remote.send_message(app_request)
         self.rust_socket.remote.ignored_responses.append(app_request.seq)
+        self.rust_socket.lock.release()
 
     async def exit_camera(self) -> None:
         await self.rust_socket._handle_ratelimit()
         app_request = self.rust_socket._generate_protobuf()
         app_request.cameraUnsubscribe.CopyFrom(AppEmpty())
 
+        await self.rust_socket.lock.acquire()
         await self.rust_socket.remote.send_message(app_request)
         self.rust_socket.remote.ignored_responses.append(app_request.seq)
+        self.rust_socket.lock.release()
 
         self._open = False
         self._last_packet = None

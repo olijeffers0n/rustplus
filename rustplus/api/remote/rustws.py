@@ -4,7 +4,7 @@ import logging
 import time
 from datetime import datetime
 from threading import Thread
-from typing import Optional
+from typing import Optional, TypeVar
 import websocket
 
 from .camera.structures import RayPacket
@@ -21,11 +21,14 @@ CLOSING = 4
 CLOSED = 3
 
 
+RMI = TypeVar("RMI", bound="RustRemoteInterface")
+
+
 class RustWebsocket(websocket.WebSocket):
     def __init__(
         self,
         server_id: ServerID,
-        remote,
+        remote: RMI,
         use_proxy,
         magic_value,
         use_test_server,
@@ -289,12 +292,6 @@ class RustWebsocket(websocket.WebSocket):
     @staticmethod
     def is_team_broadcast(app_message) -> bool:
         return str(app_message.broadcast.teamChanged) != ""
-
-    async def _retry_failed_request(self, app_request: AppRequest) -> None:
-        """
-        Resends an AppRequest to the server if it has failed
-        """
-        await self.send_message(app_request)
 
     @staticmethod
     def get_proto_cost(app_request) -> int:

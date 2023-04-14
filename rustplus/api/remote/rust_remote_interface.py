@@ -132,7 +132,9 @@ class RustRemote:
 
                 else:
 
+                    await self.api.lock.acquire()
                     await self.send_message(app_request)
+                    self.api.lock.release()
                     await asyncio.sleep(0.1)
                     attempts = 0
 
@@ -141,7 +143,9 @@ class RustRemote:
                 attempts += 1
 
             else:
+                await self.api.lock.acquire()
                 await self.send_message(app_request)
+                self.api.lock.release()
                 await asyncio.sleep(1)
                 attempts = 0
 
@@ -179,7 +183,9 @@ class RustRemote:
                     self.ratelimiter.get_estimated_delay_time(self.server_id, cost)
                 )
 
+            await self.api.lock.acquire()
             await self.send_message(app_request)
+            self.api.lock.release()
             response = await self.get_response(seq, app_request)
 
         elif self.ws.error_present(response.response.error.error) and error_check:
@@ -201,7 +207,9 @@ class RustRemote:
             app_request.entityId = eid
             app_request.getEntityInfo.CopyFrom(AppEmpty())
 
+            await self.api.lock.acquire()
             await self.send_message(app_request)
+            self.api.lock.release()
 
             return await self.get_response(app_request.seq, app_request, False)
 
@@ -235,7 +243,9 @@ class RustRemote:
         subscribe.cameraId = entity_id
         app_request.cameraSubscribe.CopyFrom(subscribe)
 
+        await self.api.lock.acquire()
         await self.send_message(app_request)
+        self.api.lock.release()
 
         if ignore_response:
             self.ignored_responses.append(app_request.seq)
@@ -248,8 +258,10 @@ class RustRemote:
             if self.camera_manager._cam_id == cam_id:
                 return self.camera_manager
 
+        await self.api.lock.acquire()
         app_request = await self.subscribe_to_camera(cam_id)
         app_message = await self.get_response(app_request.seq, app_request)
+        self.api.lock.release()
 
         self.camera_manager = CameraManager(
             self.api, cam_id, app_message.response.cameraSubscribeInfo

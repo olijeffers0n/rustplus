@@ -73,7 +73,9 @@ class RustSocket(BaseRustSocket):
         app_request = self._generate_protobuf()
         app_request.getTime.CopyFrom(AppEmpty())
 
+        await self.lock.acquire()
         await self.remote.send_message(app_request)
+        self.lock.release()
 
         response = await self.remote.get_response(app_request.seq, app_request)
 
@@ -91,7 +93,9 @@ class RustSocket(BaseRustSocket):
 
         self.remote.ignored_responses.append(app_request.seq)
 
+        await self.lock.acquire()
         await self.remote.send_message(app_request)
+        self.lock.release()
 
     async def get_info(self) -> RustInfo:
 
@@ -100,7 +104,9 @@ class RustSocket(BaseRustSocket):
         app_request = self._generate_protobuf()
         app_request.getInfo.CopyFrom(AppEmpty())
 
+        await self.lock.acquire()
         await self.remote.send_message(app_request)
+        self.lock.release()
 
         response = await self.remote.get_response(app_request.seq, app_request)
 
@@ -113,7 +119,9 @@ class RustSocket(BaseRustSocket):
         app_request = self._generate_protobuf()
         app_request.getTeamChat.CopyFrom(AppEmpty())
 
+        await self.lock.acquire()
         await self.remote.send_message(app_request)
+        self.lock.release()
 
         messages = (
             await self.remote.get_response(app_request.seq, app_request)
@@ -128,7 +136,9 @@ class RustSocket(BaseRustSocket):
         app_request = self._generate_protobuf()
         app_request.getTeamInfo.CopyFrom(AppEmpty())
 
+        await self.lock.acquire()
         await self.remote.send_message(app_request)
+        self.lock.release()
 
         app_message = await self.remote.get_response(app_request.seq, app_request)
 
@@ -141,7 +151,9 @@ class RustSocket(BaseRustSocket):
         app_request = self._generate_protobuf()
         app_request.getMapMarkers.CopyFrom(AppEmpty())
 
+        await self.lock.acquire()
         await self.remote.send_message(app_request)
+        self.lock.release()
 
         app_message = await self.remote.get_response(app_request.seq, app_request)
 
@@ -156,7 +168,9 @@ class RustSocket(BaseRustSocket):
         app_request = self._generate_protobuf()
         app_request.getMap.CopyFrom(AppEmpty())
 
+        await self.lock.acquire()
         await self.remote.send_message(app_request)
+        self.lock.release()
 
         app_message = await self.remote.get_response(app_request.seq, app_request)
 
@@ -188,7 +202,9 @@ class RustSocket(BaseRustSocket):
         app_request = self._generate_protobuf()
         app_request.getMap.CopyFrom(AppEmpty())
 
+        await self.lock.acquire()
         await self.remote.send_message(app_request)
+        self.lock.release()
 
         app_message = await self.remote.get_response(app_request.seq, app_request)
 
@@ -293,7 +309,9 @@ class RustSocket(BaseRustSocket):
         app_request.entityId = eid
         app_request.getEntityInfo.CopyFrom(AppEmpty())
 
+        await self.lock.acquire()
         await self.remote.send_message(app_request)
+        self.lock.release()
 
         app_message = await self.remote.get_response(app_request.seq, app_request)
 
@@ -313,7 +331,9 @@ class RustSocket(BaseRustSocket):
 
         self.remote.ignored_responses.append(app_request.seq)
 
+        await self.lock.acquire()
         await self.remote.send_message(app_request)
+        self.lock.release()
 
     async def turn_on_smart_switch(self, eid: int = None) -> None:
 
@@ -344,7 +364,9 @@ class RustSocket(BaseRustSocket):
 
         self.remote.ignored_responses.append(app_request.seq)
 
+        await self.lock.acquire()
         await self.remote.send_message(app_request)
+        self.lock.release()
 
     async def get_current_events(self) -> List[RustMarker]:
 
