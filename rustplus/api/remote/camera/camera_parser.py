@@ -2,13 +2,13 @@ import math
 from importlib import resources
 from math import radians, tan
 import random
-from typing import Union, Tuple, List, Any
+from typing import Union, Tuple, List, Any, Dict
 import numpy as np
 from scipy.spatial import ConvexHull
 from PIL import Image, ImageDraw, ImageFont
 
 from .camera_constants import LOOKUP_CONSTANTS
-from .structures import Entity
+from .structures import Entity, Vector3
 
 SCIENTIST_COLOUR = "#3098f2"
 PLAYER_COLOUR = "#fa2828"
@@ -17,7 +17,7 @@ FONT_PATH = "rustplus.utils.fonts"
 
 
 class Parser:
-    def __init__(self, width, height) -> None:
+    def __init__(self, width: int, height: int) -> None:
         self.width = width
         self.height = height
         self.data_pointer = 0
@@ -306,7 +306,7 @@ class Parser:
         cam_fov,
         aspect_ratio,
         text,
-    ):
+    ) -> None:
 
         entity.size.x = min(entity.size.x, 5)
         entity.size.y = min(entity.size.y, 5)
@@ -461,24 +461,24 @@ class Parser:
 
 
 class MathUtils:
-    VERTEX_CACHE = {}
-    COLOUR_CACHE = {}
+    VERTEX_CACHE: Dict[Vector3, np.ndarray] = {}
+    COLOUR_CACHE: Dict[Tuple[float, float, float, float], Tuple[int, int, int]] = {}
 
     @staticmethod
-    def camera_matrix(position, rotation):
+    def camera_matrix(position, rotation) -> np.ndarray:
         matrix = np.matmul(
             MathUtils.rotation_matrix(rotation), MathUtils.translation_matrix(-position)
         )
         return np.linalg.inv(matrix)
 
     @staticmethod
-    def scale_matrix(size):
+    def scale_matrix(size) -> np.ndarray:
         return np.array(
             [[size[0], 0, 0, 0], [0, size[1], 0, 0], [0, 0, size[2], 0], [0, 0, 0, 1]]
         )
 
     @staticmethod
-    def rotation_matrix(rotation):
+    def rotation_matrix(rotation) -> np.ndarray:
         pitch = rotation[0]
         yaw = rotation[1]
         roll = rotation[2]
@@ -513,7 +513,7 @@ class MathUtils:
         return np.matmul(np.matmul(rotation_x, rotation_y), rotation_z)
 
     @staticmethod
-    def translation_matrix(position):
+    def translation_matrix(position) -> np.ndarray:
         return np.array(
             [
                 [1, 0, 0, position[0]],
@@ -524,7 +524,7 @@ class MathUtils:
         )
 
     @staticmethod
-    def perspective_matrix(fov, aspect_ratio, near, far):
+    def perspective_matrix(fov, aspect_ratio, near, far) -> np.ndarray:
         f = 1 / tan(radians(fov) / 2)
         return np.array(
             [
@@ -536,7 +536,7 @@ class MathUtils:
         )
 
     @staticmethod
-    def gift_wrap_algorithm(vertices):
+    def gift_wrap_algorithm(vertices) -> List[Tuple[float, float]]:
         data = np.array(vertices)
 
         # Check that the min and max are not the same
@@ -588,7 +588,7 @@ class MathUtils:
             return (-b - math.sqrt(discriminant)) / (2 * a)
 
     @classmethod
-    def get_tree_vertices(cls, size):
+    def get_tree_vertices(cls, size) -> np.ndarray:
 
         if size in cls.VERTEX_CACHE:
             return cls.VERTEX_CACHE[size]
@@ -615,7 +615,7 @@ class MathUtils:
         return vertices
 
     @classmethod
-    def get_player_vertices(cls, size):
+    def get_player_vertices(cls, size) -> np.ndarray:
 
         if size in cls.VERTEX_CACHE:
             return cls.VERTEX_CACHE[size]
@@ -687,7 +687,7 @@ class MathUtils:
         return f"#{r}{g}{b}"
 
     @staticmethod
-    def get_font_size(distance, font_size, near, far, aspect_ratio, fov):
+    def get_font_size(distance, font_size, near, far, aspect_ratio, fov) -> int:
         """
         Given the distance from the screen, uses perspective projection matrix to return a font size for some text.
 
@@ -737,7 +737,7 @@ class MathUtils:
     @staticmethod
     def set_polygon_with_depth(
         vertices, image_data, depth_data, depth, colour, width, height, far_plane
-    ):
+    ) -> None:
         if len(vertices) <= 1:
             return
 
@@ -764,7 +764,7 @@ class MathUtils:
         image_data[pixels[:, 0], pixels[:, 1]] = colour
 
     @staticmethod
-    def convert_colour_to_tuple(colour):
+    def convert_colour_to_tuple(colour) -> Tuple[int, int, int]:
         """
         Converts a colour in the form
         #RRGGBB
@@ -774,7 +774,7 @@ class MathUtils:
         return int(colour[1:3], 16), int(colour[3:5], 16), int(colour[5:7], 16)
 
     @staticmethod
-    def get_vertices_in_polygon(vertices, width, height):
+    def get_vertices_in_polygon(vertices, width, height) -> np.ndarray:
         """
         Takes a list of vertices and returns the vertices that are inside the polygon defined by the vertices
         vertices is a list of vertices in the form [x, y]

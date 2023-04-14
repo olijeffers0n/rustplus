@@ -1,5 +1,6 @@
 from typing import List
 
+from ..rustplus_proto import AppMessage
 from ...structures import RustChatMessage
 from ...structures.rust_team_info import RustTeamInfo
 from ...structures.rust_marker import RustMarker
@@ -7,7 +8,7 @@ from .handler_list import HandlerList, EntityHandlerList
 
 
 class Item:
-    def __init__(self, app_message) -> None:
+    def __init__(self, app_message: AppMessage) -> None:
         self._item_id: int = app_message.itemId
         self._quantity: int = app_message.quantity
         self._item_is_blueprint: bool = app_message.itemIsBlueprint
@@ -29,7 +30,7 @@ class TeamEvent:
 
     handlers = HandlerList()
 
-    def __init__(self, app_message) -> None:
+    def __init__(self, app_message: AppMessage) -> None:
         self._player_id: int = app_message.broadcast.teamChanged.playerId
         self._team_info = RustTeamInfo(app_message.broadcast.teamChanged.teamInfo)
 
@@ -46,7 +47,7 @@ class ChatEvent:
 
     handlers = HandlerList()
 
-    def __init__(self, app_message) -> None:
+    def __init__(self, app_message: AppMessage) -> None:
         self._message = RustChatMessage(app_message.broadcast.newTeamMessage.message)
 
     @property

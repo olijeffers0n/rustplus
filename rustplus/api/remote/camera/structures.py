@@ -70,32 +70,3 @@ class RayPacket:
             f"RayPacket(vertical_fov={self.vertical_fov}, sample_offset={self.sample_offset}, "
             f"ray_data={self.ray_data}, distance={self.distance}, entities={self.entities})"
         )
-
-
-class LimitedQueue:
-    def __init__(self, length) -> None:
-        self._length = length
-        self._queue = []
-
-    def add(self, item) -> None:
-        self._queue.append(item)
-        if len(self._queue) > self._length:
-            self._queue.pop(0)
-
-    def get(self, index=0) -> Any:
-        if index >= len(self._queue) or index < 0:
-            return None
-
-        return self._queue[index]
-
-    def get_last(self) -> Any:
-        return self._queue[-1]
-
-    def pop(self) -> Any:
-        return self._queue.pop(0)
-
-    def clear(self) -> None:
-        self._queue.clear()
-
-    def __len__(self) -> int:
-        return len(self._queue)

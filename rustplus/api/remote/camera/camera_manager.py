@@ -1,6 +1,5 @@
 import time
-import traceback
-from typing import Iterable, Union, List, Coroutine
+from typing import Iterable, Union, List, Coroutine, TypeVar, Set
 
 from PIL import Image
 
@@ -8,24 +7,26 @@ from .camera_parser import Parser
 from ..events import EventLoopManager, EventHandler
 from ..rustplus_proto import AppCameraInput, Vector2, AppEmpty
 from ...structures import Vector
-from .structures import CameraInfo, LimitedQueue, Entity
+from .structures import CameraInfo, Entity, RayPacket
+
+RS = TypeVar("RS", bound="RustSocket")
 
 
 class CameraManager:
-    def __init__(self, rust_socket, cam_id, cam_info_message) -> None:
-        self.rust_socket = rust_socket
-        self._cam_id = cam_id
-        self._last_packets: LimitedQueue = LimitedQueue(6)
+    def __init__(self, rust_socket: RS, cam_id: str, cam_info_message: CameraInfo) -> None:
+        self.rust_socket: RS = rust_socket
+        self._cam_id: str = cam_id
+        self._last_packet: RayPacket = None
         self._cam_info_message: CameraInfo = CameraInfo(cam_info_message)
-        self._open = True
-        self.parser = Parser(
+        self._open: bool = True
+        self.parser: Parser = Parser(
             self._cam_info_message.width, self._cam_info_message.height
         )
-        self.time_since_last_subscribe = time.time()
-        self.frame_callbacks = set()
+        self.time_since_last_subscribe: float = time.time()
+        self.frame_callbacks: Set[Coroutine] = set()
 
-    def add_packet(self, packet) -> None:
-        self._last_packets.add(packet)
+    def add_packet(self, packet: RayPacket) -> None:
+        self._last_packet = packet
 
         self.parser.handle_camera_ray_data(packet)
         self.parser.step()
@@ -33,11 +34,7 @@ class CameraManager:
         if len(self.frame_callbacks) == 0:
             return
 
-        try:
-            frame = self._create_frame()
-        except Exception:
-            traceback.print_exc()
-            return
+        frame = self._create_frame()
 
         for callback in self.frame_callbacks:
             EventHandler.schedule_event(
@@ -46,29 +43,27 @@ class CameraManager:
                 frame,
             )
 
-    def on_frame_received(self, coro) -> Coroutine:
+    def on_frame_received(self, coro: Coroutine) -> Coroutine:
         self.frame_callbacks.add(coro)
         return coro
 
     def has_frame_data(self) -> bool:
-        return len(self._last_packets) > 0
+        return self._last_packet is not None
 
     def _create_frame(self, render_entities: bool = True, entity_render_distance: float = float("inf"), max_entity_amount: int = float("inf")) -> Union[Image.Image, None]:
-        if self._last_packets is None:
+        if self._last_packet is None:
             return None
 
         if not self._open:
             raise Exception("Camera is closed")
 
-        last_packet = self._last_packets.get_last()
-
         return self.parser.render(
             render_entities,
-            last_packet.entities,
-            last_packet.vertical_fov,
+            self._last_packet.entities,
+            self._last_packet.vertical_fov,
             self._cam_info_message.far_plane,
             entity_render_distance,
-            max_entity_amount if max_entity_amount is not None else len(last_packet.entities),
+            max_entity_amount if max_entity_amount is not None else len(self._last_packet.entities),
         )
 
     async def get_frame(self, render_entities: bool = True, entity_render_distance: float = float("inf"), max_entity_amount: int = float("inf")) -> Union[Image.Image, None]:
@@ -123,7 +118,7 @@ class CameraManager:
         self.rust_socket.remote.ignored_responses.append(app_request.seq)
 
         self._open = False
-        self._last_packets.clear()
+        self._last_packet = None
 
     async def resubscribe(self) -> None:
         await self.rust_socket.remote.subscribe_to_camera(self._cam_id, True)
@@ -132,22 +127,16 @@ class CameraManager:
         self.rust_socket.remote.camera_manager = self
 
     async def get_entities_in_frame(self) -> List[Entity]:
-        if self._last_packets is None:
+        if self._last_packet is None:
             return []
 
-        if len(self._last_packets) == 0:
-            return []
-
-        return self._last_packets.get_last().entities
+        return self._last_packet.entities
 
     async def get_distance_from_player(self) -> float:
-        if self._last_packets is None:
+        if self._last_packet is None:
             return float("inf")
 
-        if len(self._last_packets) == 0:
-            return float("inf")
-
-        return self._last_packets.get_last().distance
+        return self._last_packet.distance
 
     async def get_max_distance(self) -> float:
         return self._cam_info_message.far_plane

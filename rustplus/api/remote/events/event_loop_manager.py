@@ -1,10 +1,12 @@
 import asyncio
+from typing import Dict
+
 from ....utils import ServerID
 
 
 class EventLoopManager:
 
-    _loop = {}
+    _loop: Dict[ServerID, asyncio.AbstractEventLoop] = {}
 
     @staticmethod
     def get_loop(server_id: ServerID) -> asyncio.AbstractEventLoop:
