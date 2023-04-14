@@ -7,6 +7,11 @@ with open("rustplus/__init__.py") as input_file:
             version = line.strip("__version__ =").strip().strip('"')
             break
 
+requirements = []
+with open("requirements.txt") as input_file:
+    for line in input_file.readlines():
+        requirements.append(line.strip())
+
 with open("README.md", errors='ignore') as input_file:
     readme = input_file.read()
 
@@ -24,26 +29,6 @@ setup(
     long_description=readme,
     include_package_data=True,
     long_description_content_type='text/markdown',
-    install_requires=[
-        "websocket_client",
-        "Pillow",
-        "protobuf==4.21.6",
-        "asyncio",
-        "rustPlusPushReceiver==0.4.1",
-        "http-ece",
-        "requests",
-        "numpy",
-        "scipy",
-    ],
-    extras_require={
-        'test': [
-            'coverage[toml]',
-            'pytest',
-            'pytest-asyncio',
-            'pytest-cov',
-            'pytest-mock',
-            'typing-extensions>=4.3,<5',
-        ],
-    },
+    install_requires=requirements,
     python_requires='>=3.8.0',
 )
