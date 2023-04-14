@@ -217,6 +217,8 @@ class BaseRustSocket:
             raise ValueError("PlayerToken cannot be None")
 
         # disconnect before redefining
+        await self.lock.acquire()
+
         await self.disconnect()
 
         # Reset basic credentials
@@ -248,6 +250,7 @@ class BaseRustSocket:
             1,
             self.ratelimit_refill,
         )
+        del self.remote.conversation_factory
         self.remote.conversation_factory = ConversationFactory(self)
         # remove entity events
         EntityEvent.handlers.unregister_all()
@@ -257,6 +260,8 @@ class BaseRustSocket:
 
         if connect:
             await self.connect()
+
+        self.lock.release()
 
     def command(
         self,
