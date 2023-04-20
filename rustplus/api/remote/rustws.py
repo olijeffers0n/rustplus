@@ -154,9 +154,9 @@ class RustWebsocket(websocket.WebSocket):
 
                 app_message = AppMessage()
                 if self.use_test_server:
-                    app_message.ParseFromString(base64.b64decode(data))
+                    app_message.parse(base64.b64decode(data))
                 else:
-                    app_message.ParseFromString(data)
+                    app_message.parse(data)
 
             except Exception:
                 if self.connection_status == CONNECTED:
@@ -187,13 +187,13 @@ class RustWebsocket(websocket.WebSocket):
             return
 
         prefix = self.get_prefix(
-            str(app_message.broadcast.newTeamMessage.message.message)
+            str(app_message.broadcast.team_message.message.message)
         )
 
         if prefix is not None:
             # This means it is a command
 
-            message = RustChatMessage(app_message.broadcast.newTeamMessage.message)
+            message = RustChatMessage(app_message.broadcast.team_message.message)
 
             self.remote.command_handler.run_command(message, prefix)
 
@@ -201,7 +201,7 @@ class RustWebsocket(websocket.WebSocket):
             # This means that an entity has changed state
 
             self.remote.event_handler.run_entity_event(
-                app_message.broadcast.entityChanged.entityId,
+                app_message.broadcast.entity_changed.entity_id,
                 app_message,
                 self.server_id,
             )
@@ -209,7 +209,7 @@ class RustWebsocket(websocket.WebSocket):
         elif self.is_camera_broadcast(app_message):
             if self.remote.camera_manager is not None:
                 self.remote.camera_manager.add_packet(
-                    RayPacket(app_message.broadcast.cameraRays)
+                    RayPacket(app_message.broadcast.camera_rays)
                 )
 
         elif self.is_team_broadcast(app_message):
@@ -219,8 +219,8 @@ class RustWebsocket(websocket.WebSocket):
         elif self.is_message(app_message):
             # This means that a message has been sent to the team chat
 
-            steam_id = int(app_message.broadcast.newTeamMessage.message.steamId)
-            message = str(app_message.broadcast.newTeamMessage.message.message)
+            steam_id = int(app_message.broadcast.team_message.message.steam_id)
+            message = str(app_message.broadcast.team_message.message.message)
 
             # Conversation API
             if self.remote.conversation_factory.has_conversation(steam_id):
@@ -314,6 +314,7 @@ class RustWebsocket(websocket.WebSocket):
             "promoteToLeader": 1,
         }
         for request, cost in costs.items():
+            # TODO: FIX This
             if app_request.HasField(request):
                 return cost
 

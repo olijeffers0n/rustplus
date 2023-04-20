@@ -7,3 +7,4 @@ http-ece
 requests
 numpy
 scipy
+betterproto

@@ -19,7 +19,7 @@ from .structures import (
     RustContents,
     RustItem,
 )
-from .remote.rustplus_proto import *
+from .remote.rustplus_proto import AppEmpty, AppSendMessage, AppSetEntityValue, AppPromoteToLeader
 from .remote import HeartBeat, RateLimiter
 from ..commands import CommandOptions
 from ..exceptions import *
@@ -71,7 +71,7 @@ class RustSocket(BaseRustSocket):
         await self._handle_ratelimit()
 
         app_request = self._generate_protobuf()
-        app_request.getTime.CopyFrom(AppEmpty())
+        app_request.get_time = AppEmpty()
 
         await self.remote.send_message(app_request)
 
@@ -87,7 +87,7 @@ class RustSocket(BaseRustSocket):
         app_send_message.message = message
 
         app_request = self._generate_protobuf()
-        app_request.sendTeamMessage.CopyFrom(app_send_message)
+        app_request.send_team_message = app_send_message
 
         self.remote.ignored_responses.append(app_request.seq)
 
@@ -98,7 +98,7 @@ class RustSocket(BaseRustSocket):
         await self._handle_ratelimit()
 
         app_request = self._generate_protobuf()
-        app_request.getInfo.CopyFrom(AppEmpty())
+        app_request.get_info = AppEmpty()
 
         await self.remote.send_message(app_request)
 
@@ -111,7 +111,7 @@ class RustSocket(BaseRustSocket):
         await self._handle_ratelimit()
 
         app_request = self._generate_protobuf()
-        app_request.getTeamChat.CopyFrom(AppEmpty())
+        app_request.get_team_chat = AppEmpty()
 
         await self.remote.send_message(app_request)
 
@@ -126,7 +126,7 @@ class RustSocket(BaseRustSocket):
         await self._handle_ratelimit()
 
         app_request = self._generate_protobuf()
-        app_request.getTeamInfo.CopyFrom(AppEmpty())
+        app_request.get_team_info = AppEmpty()
 
         await self.remote.send_message(app_request)
 
@@ -139,7 +139,7 @@ class RustSocket(BaseRustSocket):
         await self._handle_ratelimit()
 
         app_request = self._generate_protobuf()
-        app_request.getMapMarkers.CopyFrom(AppEmpty())
+        app_request.get_map_markers = AppEmpty()
 
         await self.remote.send_message(app_request)
 
@@ -154,7 +154,7 @@ class RustSocket(BaseRustSocket):
         await self._handle_ratelimit(5)
 
         app_request = self._generate_protobuf()
-        app_request.getMap.CopyFrom(AppEmpty())
+        app_request.get_map = AppEmpty()
 
         await self.remote.send_message(app_request)
 
@@ -186,7 +186,7 @@ class RustSocket(BaseRustSocket):
         )
 
         app_request = self._generate_protobuf()
-        app_request.getMap.CopyFrom(AppEmpty())
+        app_request.get_map = AppEmpty()
 
         await self.remote.send_message(app_request)
 
@@ -290,8 +290,8 @@ class RustSocket(BaseRustSocket):
             raise ValueError("EID cannot be None")
 
         app_request = self._generate_protobuf()
-        app_request.entityId = eid
-        app_request.getEntityInfo.CopyFrom(AppEmpty())
+        app_request.entity_id = eid
+        app_request.get_entity_info = AppEmpty()
 
         await self.remote.send_message(app_request)
 
@@ -308,8 +308,8 @@ class RustSocket(BaseRustSocket):
 
         app_request = self._generate_protobuf()
 
-        app_request.entityId = eid
-        app_request.setEntityValue.CopyFrom(entity_value)
+        app_request.entity_id = eid
+        app_request.set_entity_value = entity_value
 
         self.remote.ignored_responses.append(app_request.seq)
 
@@ -337,10 +337,10 @@ class RustSocket(BaseRustSocket):
         await self._handle_ratelimit()
 
         leader_packet = AppPromoteToLeader()
-        leader_packet.steamId = steam_id
+        leader_packet.steam_id = steam_id
 
         app_request = self._generate_protobuf()
-        app_request.promoteToLeader.CopyFrom(leader_packet)
+        app_request.promote_to_leader = leader_packet
 
         self.remote.ignored_responses.append(app_request.seq)
 
@@ -415,5 +415,5 @@ class RustSocket(BaseRustSocket):
     ) -> RustContents:
         return await self.get_contents(eid=eid, combine_stacks=combine_stacks)
 
-    async def get_camera_manager(self, id: str) -> CameraManager:
-        return await self.remote.create_camera_manager(id)
+    async def get_camera_manager(self, cam_id: str) -> CameraManager:
+        return await self.remote.create_camera_manager(cam_id)

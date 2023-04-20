@@ -102,8 +102,8 @@ class BaseRustSocket:
         """
         app_request = AppRequest()
         app_request.seq = self.seq
-        app_request.playerId = self.server_id.player_id
-        app_request.playerToken = self.server_id.player_token
+        app_request.player_id = self.server_id.player_id
+        app_request.player_token = self.server_id.player_token
 
         self.seq += 1
 
@@ -170,7 +170,7 @@ class BaseRustSocket:
         await self._handle_ratelimit()
 
         app_request = self._generate_protobuf()
-        app_request.getTime.CopyFrom(AppEmpty())
+        app_request.get_time = AppEmpty()
 
         self.remote.ignored_responses.append(app_request.seq)
 
