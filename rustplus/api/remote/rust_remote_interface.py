@@ -183,7 +183,6 @@ class RustRemote:
             response = await self.get_response(seq, app_request)
 
         elif self.ws.error_present(response.response.error.error) and error_check:
-            print(response)
             raise RequestError(response.response.error.error)
 
         return response
