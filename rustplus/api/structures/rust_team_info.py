@@ -1,16 +1,18 @@
 from typing import List
 
+from ..remote.rustplus_proto import AppTeamInfoMember, AppTeamInfoNote, AppTeamInfo
+
 
 class RustTeamMember:
-    def __init__(self, data) -> None:
-        self._steam_id: int = data.steamId
+    def __init__(self, data: AppTeamInfoMember) -> None:
+        self._steam_id: int = data.steam_id
         self._name: str = data.name
         self._x: float = data.x
         self._y: float = data.y
-        self._is_online: bool = data.isOnline
-        self._spawn_time: int = data.spawnTime
-        self._is_alive: bool = data.isAlive
-        self._death_time: int = data.deathTime
+        self._is_online: bool = data.is_online
+        self._spawn_time: int = data.spawn_time
+        self._is_alive: bool = data.is_alive
+        self._death_time: int = data.death_time
 
     @property
     def steam_id(self) -> int:
@@ -58,7 +60,7 @@ class RustTeamMember:
 
 
 class RustTeamNote:
-    def __init__(self, data) -> None:
+    def __init__(self, data: AppTeamInfoNote) -> None:
         self._type: int = data.type
         self._x: float = data.x
         self._y: float = data.y
@@ -80,11 +82,11 @@ class RustTeamNote:
 
 
 class RustTeamInfo:
-    def __init__(self, data) -> None:
-        self._leader_steam_id: int = data.leaderSteamId
+    def __init__(self, data: AppTeamInfo) -> None:
+        self._leader_steam_id: int = data.leader_steam_id
         self._members = [RustTeamMember(member) for member in data.members]
-        self._map_notes = [RustTeamNote(note) for note in data.mapNotes]
-        self._leader_map_notes = [RustTeamNote(note) for note in data.leaderMapNotes]
+        self._map_notes = [RustTeamNote(note) for note in data.map_notes]
+        self._leader_map_notes = [RustTeamNote(note) for note in data.leader_map_notes]
 
     @property
     def leader_steam_id(self) -> int:

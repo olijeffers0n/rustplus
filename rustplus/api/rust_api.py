@@ -297,7 +297,7 @@ class RustSocket(BaseRustSocket):
 
         app_message = await self.remote.get_response(app_request.seq, app_request)
 
-        return RustEntityInfo(app_message.response.entityInfo)
+        return RustEntityInfo(app_message.response.entity_info)
 
     async def _update_smart_device(self, eid: int, value: bool) -> None:
 

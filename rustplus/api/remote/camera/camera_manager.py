@@ -5,7 +5,7 @@ from PIL import Image
 
 from .camera_parser import Parser
 from ..events import EventLoopManager, EventHandler
-from ..rustplus_proto import AppCameraInput, Vector2, AppEmpty
+from ..rustplus_proto import AppCameraInput, Vector2, AppEmpty, AppRequest
 from ...structures import Vector
 from .structures import CameraInfo, Entity, LimitedQueue
 
@@ -105,23 +105,23 @@ class CameraManager:
             value = value | movement
 
         await self.rust_socket._handle_ratelimit(0.01)
-        app_request = self.rust_socket._generate_protobuf()
+        app_request: AppRequest = self.rust_socket._generate_protobuf()
         cam_input = AppCameraInput()
 
         cam_input.buttons = value
         vector = Vector2()
         vector.x = joystick_vector.x
         vector.y = joystick_vector.y
-        cam_input.mouseDelta.CopyFrom(vector)
-        app_request.cameraInput.CopyFrom(cam_input)
+        cam_input.mouse_delta = vector
+        app_request.camera_input = cam_input
 
         await self.rust_socket.remote.send_message(app_request)
         self.rust_socket.remote.ignored_responses.append(app_request.seq)
 
     async def exit_camera(self) -> None:
         await self.rust_socket._handle_ratelimit()
-        app_request = self.rust_socket._generate_protobuf()
-        app_request.cameraUnsubscribe.CopyFrom(AppEmpty())
+        app_request: AppRequest = self.rust_socket._generate_protobuf()
+        app_request.camera_unsubscribe = AppEmpty()
 
         await self.rust_socket.remote.send_message(app_request)
         self.rust_socket.remote.ignored_responses.append(app_request.seq)

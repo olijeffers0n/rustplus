@@ -1,11 +1,13 @@
 from typing import List
 
+from ..remote import AppEntityInfo, AppEntityPayloadItem
+
 
 class RustEntityInfoItem:
-    def __init__(self, data) -> None:
-        self._item_id: int = data.itemId
+    def __init__(self, data: AppEntityPayloadItem) -> None:
+        self._item_id: int = data.item_id
         self._quantity: int = data.quantity
-        self._item_is_blueprint: bool = data.itemIsBlueprint
+        self._item_is_blueprint: bool = data.item_is_blueprint
 
     @property
     def item_id(self) -> int:
@@ -28,13 +30,13 @@ class RustEntityInfoItem:
 
 
 class RustEntityInfo:
-    def __init__(self, data) -> None:
+    def __init__(self, data: AppEntityInfo) -> None:
         self._type: int = data.type
         self._value: bool = data.payload.value
         self._items = [RustEntityInfoItem(item) for item in data.payload.items]
         self._capacity: int = data.payload.capacity
-        self._has_protection: bool = data.payload.hasProtection
-        self._protection_expiry: int = data.payload.protectionExpiry
+        self._has_protection: bool = data.payload.has_protection
+        self._protection_expiry: int = data.payload.protection_expiry
 
     @property
     def type(self) -> int:
