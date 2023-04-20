@@ -5,7 +5,7 @@ from PIL import Image
 
 from .camera_parser import Parser
 from ..events import EventLoopManager, EventHandler
-from ..rustplus_proto import AppCameraInput, Vector2, AppEmpty, AppRequest
+from ..rustplus_proto import AppCameraInput, Vector2, AppEmpty, AppRequest, AppCameraInfo
 from ...structures import Vector
 from .structures import CameraInfo, Entity, LimitedQueue
 
@@ -13,7 +13,7 @@ RS = TypeVar("RS", bound="RustSocket")
 
 
 class CameraManager:
-    def __init__(self, rust_socket: RS, cam_id: str, cam_info_message: CameraInfo) -> None:
+    def __init__(self, rust_socket: RS, cam_id: str, cam_info_message: AppCameraInfo) -> None:
         self.rust_socket: RS = rust_socket
         self._cam_id: str = cam_id
         self._last_packets: LimitedQueue = LimitedQueue(6)
@@ -122,6 +122,7 @@ class CameraManager:
         await self.rust_socket._handle_ratelimit()
         app_request: AppRequest = self.rust_socket._generate_protobuf()
         app_request.camera_unsubscribe = AppEmpty()
+        app_request.camera_unsubscribe._serialized_on_wire = True
 
         await self.rust_socket.remote.send_message(app_request)
         self.rust_socket.remote.ignored_responses.append(app_request.seq)

@@ -72,6 +72,7 @@ class RustSocket(BaseRustSocket):
 
         app_request = self._generate_protobuf()
         app_request.get_time = AppEmpty()
+        app_request.get_time._serialized_on_wire = True
 
         await self.remote.send_message(app_request)
 
@@ -99,6 +100,7 @@ class RustSocket(BaseRustSocket):
 
         app_request = self._generate_protobuf()
         app_request.get_info = AppEmpty()
+        app_request.get_info._serialized_on_wire = True
 
         await self.remote.send_message(app_request)
 
@@ -112,6 +114,7 @@ class RustSocket(BaseRustSocket):
 
         app_request = self._generate_protobuf()
         app_request.get_team_chat = AppEmpty()
+        app_request.get_team_chat._serialized_on_wire = True
 
         await self.remote.send_message(app_request)
 
@@ -127,12 +130,13 @@ class RustSocket(BaseRustSocket):
 
         app_request = self._generate_protobuf()
         app_request.get_team_info = AppEmpty()
+        app_request.get_team_info._serialized_on_wire = True
 
         await self.remote.send_message(app_request)
 
         app_message = await self.remote.get_response(app_request.seq, app_request)
 
-        return RustTeamInfo(app_message.response.teamInfo)
+        return RustTeamInfo(app_message.response.team_info)
 
     async def get_markers(self) -> List[RustMarker]:
 
@@ -140,6 +144,7 @@ class RustSocket(BaseRustSocket):
 
         app_request = self._generate_protobuf()
         app_request.get_map_markers = AppEmpty()
+        app_request.get_map_markers._serialized_on_wire = True
 
         await self.remote.send_message(app_request)
 
@@ -155,6 +160,7 @@ class RustSocket(BaseRustSocket):
 
         app_request = self._generate_protobuf()
         app_request.get_map = AppEmpty()
+        app_request.get_map._serialized_on_wire = True
 
         await self.remote.send_message(app_request)
 
@@ -187,6 +193,7 @@ class RustSocket(BaseRustSocket):
 
         app_request = self._generate_protobuf()
         app_request.get_map = AppEmpty()
+        app_request.get_map._serialized_on_wire = True
 
         await self.remote.send_message(app_request)
 
@@ -292,6 +299,7 @@ class RustSocket(BaseRustSocket):
         app_request = self._generate_protobuf()
         app_request.entity_id = eid
         app_request.get_entity_info = AppEmpty()
+        app_request.get_entity_info._serialized_on_wire = True
 
         await self.remote.send_message(app_request)
 

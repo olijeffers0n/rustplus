@@ -183,6 +183,7 @@ class RustRemote:
             response = await self.get_response(seq, app_request)
 
         elif self.ws.error_present(response.response.error.error) and error_check:
+            print(response)
             raise RequestError(response.response.error.error)
 
         return response
@@ -197,9 +198,10 @@ class RustRemote:
 
             await self.api._handle_ratelimit()
 
-            app_request = self.api._generate_protobuf()
+            app_request: AppRequest = self.api._generate_protobuf()
             app_request.entityId = eid
-            app_request.getEntityInfo.CopyFrom(AppEmpty())
+            app_request.get_entity_info = AppEmpty()
+            app_request.get_entity_info._serialized_on_wire = True
 
             await self.send_message(app_request)
 
@@ -230,10 +232,10 @@ class RustRemote:
         self, entity_id: int, ignore_response: bool = False
     ) -> AppRequest:
         await self.api._handle_ratelimit()
-        app_request = self.api._generate_protobuf()
+        app_request: AppRequest = self.api._generate_protobuf()
         subscribe = AppCameraSubscribe()
-        subscribe.cameraId = entity_id
-        app_request.cameraSubscribe.CopyFrom(subscribe)
+        subscribe.camera_id = entity_id
+        app_request.camera_subscribe = subscribe
 
         await self.send_message(app_request)
 
@@ -252,6 +254,6 @@ class RustRemote:
         app_message = await self.get_response(app_request.seq, app_request)
 
         self.camera_manager = CameraManager(
-            self.api, cam_id, app_message.response.cameraSubscribeInfo
+            self.api, cam_id, app_message.response.camera_subscribe_info
         )
         return self.camera_manager

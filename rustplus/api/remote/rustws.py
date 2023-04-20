@@ -5,6 +5,7 @@ import time
 from datetime import datetime
 from threading import Thread
 from typing import Optional
+import betterproto
 import websocket
 
 from .camera.structures import RayPacket
@@ -70,7 +71,7 @@ class RustWebsocket(websocket.WebSocket):
                         (
                             f"wss://{self.server_id.ip}"
                             if self.server_id.port is None
-                            else f"wss://{self.server_id.ip}:{self.server_id.port}"
+                            else f"ws://{self.server_id.ip}:{self.server_id.port}"
                         )
                         if self.use_test_server
                         else (
@@ -135,11 +136,11 @@ class RustWebsocket(websocket.WebSocket):
 
         try:
             if self.use_test_server:
-                self.send(base64.b64encode(message.SerializeToString()))
+                self.send(base64.b64encode(bytes(message)).decode("utf-8"))
             else:
-                self.send_binary(message.SerializeToString())
+                self.send_binary(bytes(message))
             self.remote.pending_for_response[message.seq] = message
-        except Exception:
+        except Exception as e:
             while self.remote.is_pending():
                 await asyncio.sleep(0.5)
             return await self.remote.send_message(message)
@@ -275,47 +276,40 @@ class RustWebsocket(websocket.WebSocket):
         return None
 
     @staticmethod
-    def is_message(app_message) -> bool:
-        return str(app_message.broadcast.newTeamMessage.message.message) != ""
+    def is_message(app_message: AppMessage) -> bool:
+        return betterproto.serialized_on_wire(app_message.broadcast.team_message.message)
 
     @staticmethod
-    def is_camera_broadcast(app_message) -> bool:
-        return app_message.broadcast.HasField("cameraRays")
+    def is_camera_broadcast(app_message: AppMessage) -> bool:
+        return betterproto.serialized_on_wire(app_message.broadcast.camera_rays)
 
     @staticmethod
-    def is_entity_broadcast(app_message) -> bool:
-        return str(app_message.broadcast.entityChanged) != ""
+    def is_entity_broadcast(app_message: AppMessage) -> bool:
+        return betterproto.serialized_on_wire(app_message.broadcast.entity_changed)
 
     @staticmethod
-    def is_team_broadcast(app_message) -> bool:
-        return str(app_message.broadcast.teamChanged) != ""
-
-    async def _retry_failed_request(self, app_request: AppRequest) -> None:
-        """
-        Resends an AppRequest to the server if it has failed
-        """
-        await self.send_message(app_request)
+    def is_team_broadcast(app_message: AppMessage) -> bool:
+        return betterproto.serialized_on_wire(app_message.broadcast.team_changed)
 
     @staticmethod
-    def get_proto_cost(app_request) -> int:
+    def get_proto_cost(app_request: AppRequest) -> int:
         """
         Gets the cost of an AppRequest
         """
         costs = {
-            "getTime": 1,
-            "sendTeamMessage": 2,
-            "getInfo": 1,
-            "getTeamChat": 1,
-            "getTeamInfo": 1,
-            "getMapMarkers": 1,
-            "getMap": 5,
-            "setEntityValue": 1,
-            "getEntityInfo": 1,
-            "promoteToLeader": 1,
+            app_request.get_time: 1,
+            app_request.send_team_message: 2,
+            app_request.get_info: 1,
+            app_request.get_team_chat: 1,
+            app_request.get_team_info: 1,
+            app_request.get_map_markers: 1,
+            app_request.get_map: 5,
+            app_request.set_entity_value: 1,
+            app_request.get_entity_info: 1,
+            app_request.promote_to_leader: 1,
         }
         for request, cost in costs.items():
-            # TODO: FIX This
-            if app_request.HasField(request):
+            if betterproto.serialized_on_wire(request):
                 return cost
 
         raise ValueError()

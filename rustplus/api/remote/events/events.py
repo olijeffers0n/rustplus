@@ -1,6 +1,6 @@
 from typing import List
 
-from ..rustplus_proto import AppMessage
+from ..rustplus_proto import AppMessage, AppEntityPayloadItem
 from ...structures import RustChatMessage
 from ...structures.rust_team_info import RustTeamInfo
 from ...structures.rust_marker import RustMarker
@@ -8,10 +8,10 @@ from .handler_list import HandlerList, EntityHandlerList
 
 
 class Item:
-    def __init__(self, app_message: AppMessage) -> None:
-        self._item_id: int = app_message.itemId
+    def __init__(self, app_message: AppEntityPayloadItem) -> None:
+        self._item_id: int = app_message.item_id
         self._quantity: int = app_message.quantity
-        self._item_is_blueprint: bool = app_message.itemIsBlueprint
+        self._item_is_blueprint: bool = app_message.item_is_blueprint
 
     @property
     def item_id(self) -> int:
@@ -31,8 +31,8 @@ class TeamEvent:
     handlers = HandlerList()
 
     def __init__(self, app_message: AppMessage) -> None:
-        self._player_id: int = app_message.broadcast.teamChanged.playerId
-        self._team_info = RustTeamInfo(app_message.broadcast.teamChanged.teamInfo)
+        self._player_id: int = app_message.broadcast.team_changed.player_id
+        self._team_info = RustTeamInfo(app_message.broadcast.team_changed.team_info)
 
     @property
     def player_id(self) -> int:
@@ -48,7 +48,7 @@ class ChatEvent:
     handlers = HandlerList()
 
     def __init__(self, app_message: AppMessage) -> None:
-        self._message = RustChatMessage(app_message.broadcast.newTeamMessage.message)
+        self._message = RustChatMessage(app_message.broadcast.team_message.message)
 
     @property
     def message(self) -> RustChatMessage:
@@ -59,20 +59,20 @@ class EntityEvent:
 
     handlers = EntityHandlerList()
 
-    def __init__(self, app_message, entity_type) -> None:
+    def __init__(self, app_message: AppMessage, entity_type) -> None:
         self._type = int(entity_type)
-        self._entity_id: int = app_message.broadcast.entityChanged.entityId
-        self._value: bool = app_message.broadcast.entityChanged.payload.value
-        self._capacity: int = app_message.broadcast.entityChanged.payload.capacity
+        self._entity_id: int = app_message.broadcast.entity_changed.entity_id
+        self._value: bool = app_message.broadcast.entity_changed.payload.value
+        self._capacity: int = app_message.broadcast.entity_changed.payload.capacity
         self._has_protection: bool = (
-            app_message.broadcast.entityChanged.payload.hasProtection
+            app_message.broadcast.entity_changed.payload.has_protection
         )
         self._protection_expiry: int = (
-            app_message.broadcast.entityChanged.payload.protectionExpiry
+            app_message.broadcast.entity_changed.payload.protection_expiry
         )
 
         self._items: List[Item] = [
-            Item(item) for item in app_message.broadcast.entityChanged.payload.items
+            Item(item) for item in app_message.broadcast.entity_changed.payload.items
         ]
 
     @property

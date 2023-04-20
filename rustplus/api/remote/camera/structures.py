@@ -1,13 +1,15 @@
 from typing import Any
 
+from ..rustplus_proto import AppCameraInfo, AppCameraRaysEntity, AppCameraRays
+
 
 class CameraInfo:
-    def __init__(self, camera_info_message) -> None:
+    def __init__(self, camera_info_message: AppCameraInfo) -> None:
         self.width: int = camera_info_message.width
         self.height: int = camera_info_message.height
-        self.near_plane: float = camera_info_message.nearPlane
-        self.far_plane: float = camera_info_message.farPlane
-        self.control_flags: int = camera_info_message.controlFlags
+        self.near_plane: float = camera_info_message.near_plane
+        self.far_plane: float = camera_info_message.far_plane
+        self.control_flags: int = camera_info_message.control_flags
 
     def is_move_option_permissible(self, value: int) -> bool:
         return self.control_flags & value == value
@@ -20,8 +22,8 @@ class CameraInfo:
 
 
 class Entity:
-    def __init__(self, entity_data) -> None:
-        self.entity_id: int = entity_data.entityId
+    def __init__(self, entity_data: AppCameraRaysEntity) -> None:
+        self.entity_id: int = entity_data.entity_id
         self.type: int = entity_data.type
         self.position: Vector3 = Vector3(entity_data.position)
         self.rotation: Vector3 = Vector3(entity_data.rotation)
@@ -58,10 +60,10 @@ class Vector3:
 
 
 class RayPacket:
-    def __init__(self, ray_packet) -> None:
-        self.vertical_fov = ray_packet.verticalFov
-        self.sample_offset = ray_packet.sampleOffset
-        self.ray_data = ray_packet.rayData
+    def __init__(self, ray_packet: AppCameraRays) -> None:
+        self.vertical_fov = ray_packet.vertical_fov
+        self.sample_offset = ray_packet.sample_offset
+        self.ray_data = ray_packet.ray_data
         self.distance = ray_packet.distance
         self.entities = [Entity(data) for data in ray_packet.entities]
 
