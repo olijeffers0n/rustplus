@@ -12,7 +12,9 @@ from ..rustplus_proto import AppMessage
 
 class EventHandler:
     @staticmethod
-    def schedule_event(loop: asyncio.AbstractEventLoop, coro: Coroutine, arg: Any) -> None:
+    def schedule_event(
+        loop: asyncio.AbstractEventLoop, coro: Coroutine, arg: Any
+    ) -> None:
         def callback(inner_future: Future):
             if inner_future.exception() is not None:
                 logging.getLogger("rustplus.py").exception(inner_future.exception())
@@ -20,7 +22,9 @@ class EventHandler:
         future: Future = asyncio.run_coroutine_threadsafe(coro(arg), loop)
         future.add_done_callback(callback)
 
-    def run_entity_event(self, name: str, app_message: AppMessage, server_id: ServerID) -> None:
+    def run_entity_event(
+        self, name: str, app_message: AppMessage, server_id: ServerID
+    ) -> None:
 
         handlers: Set[RegisteredListener] = EntityEvent.handlers.get_handlers(
             server_id

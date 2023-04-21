@@ -5,7 +5,13 @@ from PIL import Image
 
 from .camera_parser import Parser
 from ..events import EventLoopManager, EventHandler
-from ..rustplus_proto import AppCameraInput, Vector2, AppEmpty, AppRequest, AppCameraInfo
+from ..rustplus_proto import (
+    AppCameraInput,
+    Vector2,
+    AppEmpty,
+    AppRequest,
+    AppCameraInfo,
+)
 from ...structures import Vector
 from .structures import CameraInfo, Entity, LimitedQueue
 
@@ -13,7 +19,9 @@ RS = TypeVar("RS", bound="RustSocket")
 
 
 class CameraManager:
-    def __init__(self, rust_socket: RS, cam_id: str, cam_info_message: AppCameraInfo) -> None:
+    def __init__(
+        self, rust_socket: RS, cam_id: str, cam_info_message: AppCameraInfo
+    ) -> None:
         self.rust_socket: RS = rust_socket
         self._cam_id: str = cam_id
         self._last_packets: LimitedQueue = LimitedQueue(6)
@@ -47,7 +55,12 @@ class CameraManager:
     def has_frame_data(self) -> bool:
         return self._last_packets is not None and len(self._last_packets) > 0
 
-    def _create_frame(self, render_entities: bool = True, entity_render_distance: float = float("inf"), max_entity_amount: int = float("inf")) -> Union[Image.Image, None]:
+    def _create_frame(
+        self,
+        render_entities: bool = True,
+        entity_render_distance: float = float("inf"),
+        max_entity_amount: int = float("inf"),
+    ) -> Union[Image.Image, None]:
         if self._last_packets is None:
             return None
 
@@ -72,11 +85,20 @@ class CameraManager:
             last_packet.vertical_fov,
             self._cam_info_message.far_plane,
             entity_render_distance,
-            max_entity_amount if max_entity_amount is not None else len(self._last_packets.get_last().entities),
+            max_entity_amount
+            if max_entity_amount is not None
+            else len(self._last_packets.get_last().entities),
         )
 
-    async def get_frame(self, render_entities: bool = True, entity_render_distance: float = float("inf"), max_entity_amount: int = float("inf")) -> Union[Image.Image, None]:
-        return self._create_frame(render_entities, entity_render_distance, max_entity_amount)
+    async def get_frame(
+        self,
+        render_entities: bool = True,
+        entity_render_distance: float = float("inf"),
+        max_entity_amount: int = float("inf"),
+    ) -> Union[Image.Image, None]:
+        return self._create_frame(
+            render_entities, entity_render_distance, max_entity_amount
+        )
 
     def can_move(self, control_type: int) -> bool:
         return self._cam_info_message.is_move_option_permissible(control_type)

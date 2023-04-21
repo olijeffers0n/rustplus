@@ -19,7 +19,12 @@ from .structures import (
     RustContents,
     RustItem,
 )
-from .remote.rustplus_proto import AppEmpty, AppSendMessage, AppSetEntityValue, AppPromoteToLeader
+from .remote.rustplus_proto import (
+    AppEmpty,
+    AppSendMessage,
+    AppSetEntityValue,
+    AppPromoteToLeader,
+)
 from .remote import HeartBeat, RateLimiter
 from ..commands import CommandOptions
 from ..exceptions import *

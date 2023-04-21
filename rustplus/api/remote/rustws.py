@@ -277,7 +277,9 @@ class RustWebsocket(websocket.WebSocket):
 
     @staticmethod
     def is_message(app_message: AppMessage) -> bool:
-        return betterproto.serialized_on_wire(app_message.broadcast.team_message.message)
+        return betterproto.serialized_on_wire(
+            app_message.broadcast.team_message.message
+        )
 
     @staticmethod
     def is_camera_broadcast(app_message: AppMessage) -> bool:

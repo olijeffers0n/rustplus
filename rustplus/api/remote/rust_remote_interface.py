@@ -1,9 +1,6 @@
 import asyncio
 import logging
-
 from asyncio import Future
-from typing import Dict
-
 from .camera.camera_manager import CameraManager
 from .events import EventLoopManager, EntityEvent, RegisteredListener
 from .events.event_handler import EventHandler
