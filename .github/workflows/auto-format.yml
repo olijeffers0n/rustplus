@@ -2,7 +2,7 @@ name: Format code
 
 on:
   pull_request:
-    branches: [ master ]
+    branches: [ master, test-123 ]
 
 jobs:
   format:
