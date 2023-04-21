@@ -1,6 +1,9 @@
 name: Format code
 
-on: [pull_request]
+on:
+  pull_request: 
+    branches:
+     - master
 
 jobs:
   format:
