@@ -108,7 +108,7 @@ class RustWebsocket(websocket.WebSocket):
                             f"[RustPlus.py] Cannot Connect to server. Retrying in {str(self.delay)} second/s"
                         )
                     attempts += 1
-                    time.sleep(self.delay)
+                    await asyncio.sleep(self.delay)
 
             self.connection_status = CONNECTED
 
