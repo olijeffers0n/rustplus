@@ -120,7 +120,7 @@ class RustSocket(BaseRustSocket):
 
         messages = (
             await self.remote.get_response(app_request.seq, app_request)
-        ).response.teamChat.messages
+        ).response.team_chat.messages
 
         return [RustChatMessage(message) for message in messages]
 
@@ -151,7 +151,7 @@ class RustSocket(BaseRustSocket):
         app_message = await self.remote.get_response(app_request.seq, app_request)
 
         return [
-            RustMarker(marker) for marker in app_message.response.mapMarkers.markers
+            RustMarker(marker) for marker in app_message.response.map_markers.markers
         ]
 
     async def get_raw_map_data(self) -> RustMap:
@@ -203,7 +203,7 @@ class RustSocket(BaseRustSocket):
         monuments = list(game_map.monuments)
 
         try:
-            image = Image.open(BytesIO(game_map.jpgImage))
+            image = Image.open(BytesIO(game_map.jpg_image))
         except Exception:
             raise ImageError("Invalid bytes for the image")
 
