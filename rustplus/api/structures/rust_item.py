@@ -1,9 +1,12 @@
+from typing import Union
+
+
 class RustItem:
     def __init__(
-        self, name: str, item_id: int, quantity: int, is_blueprint: bool
+        self, name: str, item_id: Union[str, int], quantity: int, is_blueprint: bool
     ) -> None:
         self._name: str = name
-        self._item_id: int = item_id
+        self._item_id: int = int(item_id)
         self._quantity: int = quantity
         self._is_blueprint: bool = is_blueprint
 

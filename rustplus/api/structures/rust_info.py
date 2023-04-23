@@ -1,16 +1,19 @@
+from ..remote.rustplus_proto import AppInfo
+
+
 class RustInfo:
-    def __init__(self, data) -> None:
+    def __init__(self, data: AppInfo) -> None:
         self._name: str = data.name
         self._url: str = data.url
-        self._header_image: str = data.headerImage
+        self._header_image: str = data.header_image
         self._map: str = data.map
-        self._size: int = data.mapSize
-        self._wipe_time: int = data.wipeTime
+        self._size: int = data.map_size
+        self._wipe_time: int = data.wipe_time
         self._players: int = data.players
-        self._max_players: int = data.maxPlayers
-        self._queued_players: int = data.queuedPlayers
+        self._max_players: int = data.max_players
+        self._queued_players: int = data.queued_players
         self._seed: int = data.seed
-        self._logo_image: str = data.logoImage
+        self._logo_image: str = data.logo_image
 
     @property
     def url(self) -> str:
