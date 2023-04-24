@@ -1,6 +1,7 @@
 from typing import List
 
-from ..remote.rustplus_proto import AppTeamInfoMember, AppTeamInfoNote, AppTeamInfo
+from ..remote.rustplus_proto import (AppTeamInfo, AppTeamInfoMember,
+                                     AppTeamInfoNote)
 
 
 class RustTeamMember:

@@ -2,11 +2,11 @@ import asyncio
 from asyncio.futures import Future
 from datetime import datetime
 
-from . import Command, CommandTime
+from ..api.remote.events import EventLoopManager, RegisteredListener
 from ..api.structures import RustChatMessage
-from ..commands.command_options import CommandOptions
 from ..commands.command_data import CommandData
-from ..api.remote.events import RegisteredListener, EventLoopManager
+from ..commands.command_options import CommandOptions
+from . import Command, CommandTime
 
 
 class CommandHandler:
@@ -16,7 +16,6 @@ class CommandHandler:
         self.api = api
 
     def register_command(self, data: CommandData) -> None:
-
         if not asyncio.iscoroutinefunction(data.coro):
             raise TypeError("The event registered must be a coroutine")
 
@@ -31,7 +30,6 @@ class CommandHandler:
         future.add_done_callback(callback)
 
     def run_command(self, message: RustChatMessage, prefix) -> None:
-
         if prefix == self.command_options.prefix:
             command = message.message.split(" ")[0][len(prefix) :]
         else:
