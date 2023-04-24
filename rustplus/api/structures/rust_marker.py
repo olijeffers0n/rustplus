@@ -1,6 +1,6 @@
 from typing import List
 
-from ..remote.rustplus_proto import AppMarker, AppMarkerSellOrder, Vector4
+from ..remote.rustplus_proto import Vector4, AppMarkerSellOrder, AppMarker
 
 
 class RustColour:
@@ -85,6 +85,7 @@ class RustSellOrder:
 
 
 class RustMarker:
+
     PlayerMarker = 1
     ExplosionMarker = 2
     VendingMachineMarker = 3

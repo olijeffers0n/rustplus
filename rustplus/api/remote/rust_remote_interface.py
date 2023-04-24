@@ -1,21 +1,22 @@
 import asyncio
 import logging
 from asyncio import Future
-
-from ...commands import CommandHandler
-from ...conversation import ConversationFactory
-from ...exceptions import (ClientNotConnectedError, RequestError,
-                           ResponseNotReceivedError,
-                           SmartDeviceRegistrationError)
-from ...utils import ServerID
 from .camera.camera_manager import CameraManager
-from .events import EntityEvent, EventLoopManager, RegisteredListener
+from .events import EventLoopManager, EntityEvent, RegisteredListener
 from .events.event_handler import EventHandler
-from .expo_bundle_handler import MagicValueGrabber
+from .rustplus_proto import AppRequest, AppMessage, AppEmpty, AppCameraSubscribe
+from .rustws import RustWebsocket, CONNECTED, PENDING_CONNECTION
 from .ratelimiter import RateLimiter
-from .rustplus_proto import (AppCameraSubscribe, AppEmpty, AppMessage,
-                             AppRequest)
-from .rustws import CONNECTED, PENDING_CONNECTION, RustWebsocket
+from .expo_bundle_handler import MagicValueGrabber
+from ...utils import ServerID
+from ...conversation import ConversationFactory
+from ...commands import CommandHandler
+from ...exceptions import (
+    ClientNotConnectedError,
+    ResponseNotReceivedError,
+    RequestError,
+    SmartDeviceRegistrationError,
+)
 
 
 class RustRemote:
@@ -31,6 +32,7 @@ class RustRemote:
         use_test_server: bool = False,
         rate_limiter: RateLimiter = None,
     ) -> None:
+
         self.server_id = server_id
         self.api = api
         self.command_options = command_options
@@ -68,6 +70,7 @@ class RustRemote:
         self.camera_manager: CameraManager = None
 
     async def connect(self, retries, delay, on_failure=None) -> None:
+
         self.ws = RustWebsocket(
             server_id=self.server_id,
             remote=self,
@@ -83,6 +86,7 @@ class RustRemote:
             self.handle_subscribing_entity(entity_id, coroutine)
 
     def close(self) -> None:
+
         if self.ws is not None:
             self.ws.close()
             del self.ws
@@ -99,6 +103,7 @@ class RustRemote:
         return False
 
     async def send_message(self, request: AppRequest) -> None:
+
         if self.ws is None:
             raise ClientNotConnectedError("No Current Websocket Connection")
 
@@ -114,12 +119,16 @@ class RustRemote:
         attempts = 0
 
         while seq in self.pending_for_response and seq not in self.responses:
+
             if seq in self.sent_requests:
+
                 if attempts <= 40:
+
                     attempts += 1
                     await asyncio.sleep(0.1)
 
                 else:
+
                     await self.send_message(app_request)
                     await asyncio.sleep(0.1)
                     attempts = 0
@@ -158,6 +167,7 @@ class RustRemote:
             cost = self.ws.get_proto_cost(app_request)
 
             while True:
+
                 if self.ratelimiter.can_consume(self.server_id, cost):
                     self.ratelimiter.consume(self.server_id, cost)
                     break
@@ -175,11 +185,13 @@ class RustRemote:
         return response
 
     def handle_subscribing_entity(self, entity_id: int, coroutine) -> None:
+
         if not self.is_open():
             self.pending_entity_subscriptions.append((entity_id, coroutine))
             return
 
         async def get_entity_info(self: RustRemote, eid):
+
             await self.api._handle_ratelimit()
 
             app_request: AppRequest = self.api._generate_protobuf()
@@ -192,6 +204,7 @@ class RustRemote:
             return await self.get_response(app_request.seq, app_request, False)
 
         def entity_event_callback(future_inner: Future) -> None:
+
             entity_info = future_inner.result()
 
             if entity_info.response.HasField("error"):
@@ -228,6 +241,7 @@ class RustRemote:
         return app_request
 
     async def create_camera_manager(self, cam_id) -> CameraManager:
+
         if self.camera_manager is not None:
             if self.camera_manager._cam_id == cam_id:
                 return self.camera_manager

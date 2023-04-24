@@ -1,6 +1,5 @@
-from threading import Thread
-
 from push_receiver import PushReceiver
+from threading import Thread
 
 
 class FCMListener:
@@ -16,6 +15,7 @@ class FCMListener:
         self.thread = Thread(target=self.__fcm_listen, daemon=daemon).start()
 
     def __fcm_listen(self) -> None:
+
         if self.data is None:
             raise ValueError("Data is None")
 

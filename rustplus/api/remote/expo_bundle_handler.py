@@ -1,13 +1,13 @@
-import json
-import logging
-from datetime import datetime
-
 import requests
+import logging
+import json
+from datetime import datetime
 
 
 class MagicValueGrabber:
     @staticmethod
     def get_magic_value() -> int:
+
         try:
             data = requests.get(
                 "https://exp.host/@facepunch/RustCompanion",

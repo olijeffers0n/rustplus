@@ -36,14 +36,18 @@ class MapEventListener:
         self.gc.start()
 
     def _run(self) -> None:
+
         while True:
+
             try:
+
                 future = asyncio.run_coroutine_threadsafe(
                     self.api.get_markers(),
                     EventLoopManager.get_loop(self.api.server_id),
                 )
                 new_highest_id = 0
                 for marker in future.result():
+
                     new = False
 
                     if marker.id in self.persistent_ids:

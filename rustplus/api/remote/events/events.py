@@ -1,10 +1,10 @@
 from typing import List
 
+from ..rustplus_proto import AppMessage, AppEntityPayloadItem
 from ...structures import RustChatMessage
-from ...structures.rust_marker import RustMarker
 from ...structures.rust_team_info import RustTeamInfo
-from ..rustplus_proto import AppEntityPayloadItem, AppMessage
-from .handler_list import EntityHandlerList, HandlerList
+from ...structures.rust_marker import RustMarker
+from .handler_list import HandlerList, EntityHandlerList
 
 
 class Item:
@@ -27,6 +27,7 @@ class Item:
 
 
 class TeamEvent:
+
     handlers = HandlerList()
 
     def __init__(self, app_message: AppMessage) -> None:
@@ -43,6 +44,7 @@ class TeamEvent:
 
 
 class ChatEvent:
+
     handlers = HandlerList()
 
     def __init__(self, app_message: AppMessage) -> None:
@@ -54,6 +56,7 @@ class ChatEvent:
 
 
 class EntityEvent:
+
     handlers = EntityHandlerList()
 
     def __init__(self, app_message: AppMessage, entity_type) -> None:
@@ -116,6 +119,7 @@ class MarkerEvent:
 
 
 class ProtobufEvent:
+
     handlers = HandlerList()
 
     def __init__(self, byte_data) -> None:
