@@ -1,18 +1,13 @@
 import time
-from typing import Iterable, Union, List, Coroutine, TypeVar, Set
+from typing import Coroutine, Iterable, List, Set, TypeVar, Union
 
 from PIL import Image
 
-from .camera_parser import Parser
-from ..events import EventLoopManager, EventHandler
-from ..rustplus_proto import (
-    AppCameraInput,
-    Vector2,
-    AppEmpty,
-    AppRequest,
-    AppCameraInfo,
-)
 from ...structures import Vector
+from ..events import EventHandler, EventLoopManager
+from ..rustplus_proto import (AppCameraInfo, AppCameraInput, AppEmpty,
+                              AppRequest, Vector2)
+from .camera_parser import Parser
 from .structures import CameraInfo, Entity, LimitedQueue
 
 RS = TypeVar("RS", bound="RustSocket")
@@ -115,7 +110,6 @@ class CameraManager:
     async def send_combined_movement(
         self, movements: Iterable[int] = None, joystick_vector: Vector = None
     ) -> None:
-
         if joystick_vector is None:
             joystick_vector = Vector()
 

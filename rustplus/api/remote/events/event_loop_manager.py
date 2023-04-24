@@ -5,7 +5,6 @@ from ....utils import ServerID
 
 
 class EventLoopManager:
-
     _loop: Dict[ServerID, asyncio.AbstractEventLoop] = {}
 
     @staticmethod
