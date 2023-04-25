@@ -1,11 +1,12 @@
 import math
+import random
 from importlib import resources
 from math import radians, tan
-import random
-from typing import Union, Tuple, List, Any, Dict
+from typing import Any, Dict, List, Tuple, Union
+
 import numpy as np
-from scipy.spatial import ConvexHull
 from PIL import Image, ImageDraw, ImageFont
+from scipy.spatial import ConvexHull
 
 from .camera_constants import LOOKUP_CONSTANTS
 from .structures import Entity, Vector3
@@ -54,7 +55,6 @@ class Parser:
         )
 
     def handle_camera_ray_data(self, data) -> None:
-
         if data is None:
             return
 
@@ -66,7 +66,6 @@ class Parser:
         self._ray_lookback = [[0 for _ in range(3)] for _ in range(64)]
 
     def step(self) -> None:
-
         if self._rays is None:
             return
 
@@ -80,7 +79,6 @@ class Parser:
             return True
 
         for h in range(100):
-
             if self.data_pointer >= len(self._rays.ray_data) - 1:
                 return True
 
@@ -107,7 +105,6 @@ class Parser:
                 not (distance == 1 and alignment == 0 and material == 0)
                 and material != 7
             ):
-
                 self.colour_output[
                     x : x + self.scale_factor, y : y + self.scale_factor
                 ] = MathUtils._convert_colour(
@@ -153,7 +150,6 @@ class Parser:
             self._ray_lookback[u][2] = i
 
         else:
-
             c = 192 & byte
 
             if c == 0:
@@ -217,7 +213,6 @@ class Parser:
         entity_render_distance: float,
         max_entity_amount: int,
     ) -> Any:
-
         image_data = np.array(image_data)
 
         players = [player for player in entities if player.type == 2]
@@ -265,7 +260,6 @@ class Parser:
         text = set()
 
         for entity in entities:
-
             if entity.position.z > entity_render_distance and entity.type == 1:
                 continue
 
@@ -307,7 +301,6 @@ class Parser:
         aspect_ratio,
         text,
     ) -> None:
-
         entity.size.x = min(entity.size.x, 5)
         entity.size.y = min(entity.size.y, 5)
         entity.size.z = min(entity.size.z, 5)
@@ -418,7 +411,6 @@ class Parser:
         entity_render_distance: float,
         max_entity_amount: int,
     ) -> Image.Image:
-
         # We have the output array filled with RayData objects
         # We can get the material at each pixel and use that to get the colour
         # We can then use the alignment to get the alpha value
@@ -556,7 +548,6 @@ class MathUtils:
         cls,
         colour: Tuple[float, float, float, float],
     ) -> Tuple[int, int, int]:
-
         if colour in cls.COLOUR_CACHE:
             return cls.COLOUR_CACHE[colour]
 
@@ -589,7 +580,6 @@ class MathUtils:
 
     @classmethod
     def get_tree_vertices(cls, size) -> np.ndarray:
-
         if size in cls.VERTEX_CACHE:
             return cls.VERTEX_CACHE[size]
 
@@ -599,7 +589,6 @@ class MathUtils:
         vertex_list = []
 
         for x_value in [size.y / 8, -size.y / 8]:
-
             for i in range(number_of_segments):
                 angle = segment_angle * i
 
@@ -616,7 +605,6 @@ class MathUtils:
 
     @classmethod
     def get_player_vertices(cls, size) -> np.ndarray:
-
         if size in cls.VERTEX_CACHE:
             return cls.VERTEX_CACHE[size]
 
@@ -633,9 +621,7 @@ class MathUtils:
 
         x = 0
         while x <= width:
-
             for offset in range(-1, 2, 2):
-
                 x_value = x * offset
 
                 # Use the quadratic formula to find the y values of the top and bottom of the pill

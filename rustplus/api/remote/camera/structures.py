@@ -1,6 +1,6 @@
 from typing import Any
 
-from ..rustplus_proto import AppCameraInfo, AppCameraRaysEntity, AppCameraRays
+from ..rustplus_proto import AppCameraInfo, AppCameraRays, AppCameraRaysEntity
 
 
 class CameraInfo:
