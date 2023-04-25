@@ -1,9 +1,6 @@
 import asyncio
 import logging
-
 from asyncio import Future
-from typing import Dict
-
 from .camera.camera_manager import CameraManager
 from .events import EventLoopManager, EntityEvent, RegisteredListener
 from .events.event_handler import EventHandler
@@ -203,9 +200,10 @@ class RustRemote:
 
             await self.api._handle_ratelimit()
 
-            app_request = self.api._generate_protobuf()
+            app_request: AppRequest = self.api._generate_protobuf()
             app_request.entityId = eid
-            app_request.getEntityInfo.CopyFrom(AppEmpty())
+            app_request.get_entity_info = AppEmpty()
+            app_request.get_entity_info._serialized_on_wire = True
 
             await self.api.lock.acquire()
             await self.send_message(app_request)
@@ -238,10 +236,10 @@ class RustRemote:
         self, entity_id: int, ignore_response: bool = False
     ) -> AppRequest:
         await self.api._handle_ratelimit()
-        app_request = self.api._generate_protobuf()
+        app_request: AppRequest = self.api._generate_protobuf()
         subscribe = AppCameraSubscribe()
-        subscribe.cameraId = entity_id
-        app_request.cameraSubscribe.CopyFrom(subscribe)
+        subscribe.camera_id = entity_id
+        app_request.camera_subscribe = subscribe
 
         await self.api.lock.acquire()
         await self.send_message(app_request)
@@ -264,6 +262,6 @@ class RustRemote:
         self.api.lock.release()
 
         self.camera_manager = CameraManager(
-            self.api, cam_id, app_message.response.cameraSubscribeInfo
+            self.api, cam_id, app_message.response.camera_subscribe_info
         )
         return self.camera_manager

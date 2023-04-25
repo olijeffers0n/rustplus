@@ -21,4 +21,4 @@ class ServerChecker:
                 if "does not match your outgoing IP address" not in msg:
                     self.logger.warning(f"Error from server Checker: {msg}")
         except Exception:
-            pass
+            self.logger.exception(f"Unable to test connection to server - {self.ip}:{self.port}")

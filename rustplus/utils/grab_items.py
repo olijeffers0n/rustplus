@@ -1,3 +1,5 @@
+from typing import Union
+
 import requests
 import json
 
@@ -725,7 +727,7 @@ item_ids = {
 }
 
 
-def translate_id_to_stack(value_id: int) -> str:
+def translate_id_to_stack(value_id: Union[str, int]) -> str:
     global item_ids
     try:
         return item_ids[str(value_id)]

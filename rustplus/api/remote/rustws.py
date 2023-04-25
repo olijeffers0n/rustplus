@@ -4,6 +4,7 @@ import logging
 import time
 from datetime import datetime
 from threading import Thread
+import betterproto
 from typing import Optional, TypeVar
 import websocket
 
@@ -73,7 +74,7 @@ class RustWebsocket(websocket.WebSocket):
                         (
                             f"wss://{self.server_id.ip}"
                             if self.server_id.port is None
-                            else f"wss://{self.server_id.ip}:{self.server_id.port}"
+                            else f"ws://{self.server_id.ip}:{self.server_id.port}"
                         )
                         if self.use_test_server
                         else (
@@ -111,7 +112,7 @@ class RustWebsocket(websocket.WebSocket):
                             f"[RustPlus.py] Cannot Connect to server. Retrying in {str(self.delay)} second/s"
                         )
                     attempts += 1
-                    time.sleep(self.delay)
+                    await asyncio.sleep(self.delay)
 
             self.connection_status = CONNECTED
 
@@ -138,9 +139,9 @@ class RustWebsocket(websocket.WebSocket):
 
         try:
             if self.use_test_server:
-                self.send(base64.b64encode(message.SerializeToString()))
+                self.send(base64.b64encode(bytes(message)).decode("utf-8"))
             else:
-                self.send_binary(message.SerializeToString())
+                self.send_binary(bytes(message))
             self.remote.pending_for_response[message.seq] = message
         except Exception:
             while self.remote.is_pending():
@@ -157,9 +158,9 @@ class RustWebsocket(websocket.WebSocket):
 
                 app_message = AppMessage()
                 if self.use_test_server:
-                    app_message.ParseFromString(base64.b64decode(data))
+                    app_message.parse(base64.b64decode(data))
                 else:
-                    app_message.ParseFromString(data)
+                    app_message.parse(data)
 
             except Exception:
                 if self.connection_status == CONNECTED:
@@ -190,13 +191,13 @@ class RustWebsocket(websocket.WebSocket):
             return
 
         prefix = self.get_prefix(
-            str(app_message.broadcast.newTeamMessage.message.message)
+            str(app_message.broadcast.team_message.message.message)
         )
 
         if prefix is not None:
             # This means it is a command
 
-            message = RustChatMessage(app_message.broadcast.newTeamMessage.message)
+            message = RustChatMessage(app_message.broadcast.team_message.message)
 
             self.remote.command_handler.run_command(message, prefix)
 
@@ -204,7 +205,7 @@ class RustWebsocket(websocket.WebSocket):
             # This means that an entity has changed state
 
             self.remote.event_handler.run_entity_event(
-                app_message.broadcast.entityChanged.entityId,
+                app_message.broadcast.entity_changed.entity_id,
                 app_message,
                 self.server_id,
             )
@@ -212,7 +213,7 @@ class RustWebsocket(websocket.WebSocket):
         elif self.is_camera_broadcast(app_message):
             if self.remote.camera_manager is not None:
                 self.remote.camera_manager.add_packet(
-                    RayPacket(app_message.broadcast.cameraRays)
+                    RayPacket(app_message.broadcast.camera_rays)
                 )
 
         elif self.is_team_broadcast(app_message):
@@ -222,8 +223,8 @@ class RustWebsocket(websocket.WebSocket):
         elif self.is_message(app_message):
             # This means that a message has been sent to the team chat
 
-            steam_id = int(app_message.broadcast.newTeamMessage.message.steamId)
-            message = str(app_message.broadcast.newTeamMessage.message.message)
+            steam_id = int(app_message.broadcast.team_message.message.steam_id)
+            message = str(app_message.broadcast.team_message.message.message)
 
             # Conversation API
             if self.remote.conversation_factory.has_conversation(steam_id):
@@ -278,40 +279,42 @@ class RustWebsocket(websocket.WebSocket):
         return None
 
     @staticmethod
-    def is_message(app_message) -> bool:
-        return str(app_message.broadcast.newTeamMessage.message.message) != ""
+    def is_message(app_message: AppMessage) -> bool:
+        return betterproto.serialized_on_wire(
+            app_message.broadcast.team_message.message
+        )
 
     @staticmethod
-    def is_camera_broadcast(app_message) -> bool:
-        return app_message.broadcast.HasField("cameraRays")
+    def is_camera_broadcast(app_message: AppMessage) -> bool:
+        return betterproto.serialized_on_wire(app_message.broadcast.camera_rays)
 
     @staticmethod
-    def is_entity_broadcast(app_message) -> bool:
-        return str(app_message.broadcast.entityChanged) != ""
+    def is_entity_broadcast(app_message: AppMessage) -> bool:
+        return betterproto.serialized_on_wire(app_message.broadcast.entity_changed)
 
     @staticmethod
-    def is_team_broadcast(app_message) -> bool:
-        return str(app_message.broadcast.teamChanged) != ""
+    def is_team_broadcast(app_message: AppMessage) -> bool:
+        return betterproto.serialized_on_wire(app_message.broadcast.team_changed)
 
     @staticmethod
-    def get_proto_cost(app_request) -> int:
+    def get_proto_cost(app_request: AppRequest) -> int:
         """
         Gets the cost of an AppRequest
         """
         costs = {
-            "getTime": 1,
-            "sendTeamMessage": 2,
-            "getInfo": 1,
-            "getTeamChat": 1,
-            "getTeamInfo": 1,
-            "getMapMarkers": 1,
-            "getMap": 5,
-            "setEntityValue": 1,
-            "getEntityInfo": 1,
-            "promoteToLeader": 1,
+            app_request.get_time: 1,
+            app_request.send_team_message: 2,
+            app_request.get_info: 1,
+            app_request.get_team_chat: 1,
+            app_request.get_team_info: 1,
+            app_request.get_map_markers: 1,
+            app_request.get_map: 5,
+            app_request.set_entity_value: 1,
+            app_request.get_entity_info: 1,
+            app_request.promote_to_leader: 1,
         }
         for request, cost in costs.items():
-            if app_request.HasField(request):
+            if betterproto.serialized_on_wire(request):
                 return cost
 
         raise ValueError()

@@ -4,12 +4,13 @@ from PIL import Image
 import logging
 import string
 
+from ..api.remote.rustplus_proto import AppMessage
 from ..api.structures import RustTime
 
 icons_path = "rustplus.api.icons"
 
 
-def format_time(protobuf) -> RustTime:
+def format_time(protobuf: AppMessage) -> RustTime:
     def convert_time(time) -> str:
         hours, minutes = divmod(time * 60, 60)
 
@@ -24,12 +25,12 @@ def format_time(protobuf) -> RustTime:
     parsed_time = convert_time(protobuf.response.time.time)
 
     return RustTime(
-        protobuf.response.time.dayLengthMinutes,
+        protobuf.response.time.day_length_minutes,
         sunrise,
         sunset,
         parsed_time,
         protobuf.response.time.time,
-        protobuf.response.time.timeScale,
+        protobuf.response.time.time_scale,
     )
 
 

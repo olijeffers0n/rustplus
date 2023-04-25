@@ -1,5 +1,7 @@
 from typing import List
 
+from ..remote.rustplus_proto import AppMap
+
 
 class RustMonument:
     def __init__(self, token, x, y) -> None:
@@ -26,11 +28,11 @@ class RustMonument:
 
 
 class RustMap:
-    def __init__(self, data) -> None:
+    def __init__(self, data: AppMap) -> None:
         self._width: int = data.width
         self._height: int = data.height
-        self._jpg_image: bytes = data.jpgImage
-        self._margin: int = data.oceanMargin
+        self._jpg_image: bytes = data.jpg_image
+        self._margin: int = data.ocean_margin
         self._monuments = [
             RustMonument(monument.token, monument.x, monument.y)
             for monument in data.monuments
