@@ -197,7 +197,6 @@ class RustRemote:
             app_request: AppRequest = self.api._generate_protobuf()
             app_request.entityId = eid
             app_request.get_entity_info = AppEmpty()
-            app_request.get_entity_info._serialized_on_wire = True
 
             await self.send_message(app_request)
 

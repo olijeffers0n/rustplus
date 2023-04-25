@@ -144,7 +144,6 @@ class CameraManager:
         await self.rust_socket._handle_ratelimit()
         app_request: AppRequest = self.rust_socket._generate_protobuf()
         app_request.camera_unsubscribe = AppEmpty()
-        app_request.camera_unsubscribe._serialized_on_wire = True
 
         await self.rust_socket.remote.send_message(app_request)
         self.rust_socket.remote.ignored_responses.append(app_request.seq)
