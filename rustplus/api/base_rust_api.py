@@ -176,9 +176,8 @@ class BaseRustSocket:
 
         self.remote.ignored_responses.append(app_request.seq)
 
-        await self.lock.acquire()
-        await self.remote.send_message(app_request)
-        self.lock.release()
+        async with self.lock:
+            await self.remote.send_message(app_request)
 
     async def switch_server(
         self,

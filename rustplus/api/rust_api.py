@@ -79,9 +79,8 @@ class RustSocket(BaseRustSocket):
         app_request.get_time = AppEmpty()
         app_request.get_time._serialized_on_wire = True
 
-        await self.lock.acquire()
-        await self.remote.send_message(app_request)
-        self.lock.release()
+        async with self.lock:
+            await self.remote.send_message(app_request)
 
         response = await self.remote.get_response(app_request.seq, app_request)
 
@@ -99,9 +98,8 @@ class RustSocket(BaseRustSocket):
 
         self.remote.ignored_responses.append(app_request.seq)
 
-        await self.lock.acquire()
-        await self.remote.send_message(app_request)
-        self.lock.release()
+        async with self.lock:
+            await self.remote.send_message(app_request)
 
     async def get_info(self) -> RustInfo:
 
@@ -111,9 +109,8 @@ class RustSocket(BaseRustSocket):
         app_request.get_info = AppEmpty()
         app_request.get_info._serialized_on_wire = True
 
-        await self.lock.acquire()
-        await self.remote.send_message(app_request)
-        self.lock.release()
+        async with self.lock:
+            await self.remote.send_message(app_request)
 
         response = await self.remote.get_response(app_request.seq, app_request)
 
@@ -127,9 +124,8 @@ class RustSocket(BaseRustSocket):
         app_request.get_team_chat = AppEmpty()
         app_request.get_team_chat._serialized_on_wire = True
 
-        await self.lock.acquire()
-        await self.remote.send_message(app_request)
-        self.lock.release()
+        async with self.lock:
+            await self.remote.send_message(app_request)
 
         messages = (
             await self.remote.get_response(app_request.seq, app_request)
@@ -145,9 +141,8 @@ class RustSocket(BaseRustSocket):
         app_request.get_team_info = AppEmpty()
         app_request.get_team_info._serialized_on_wire = True
 
-        await self.lock.acquire()
-        await self.remote.send_message(app_request)
-        self.lock.release()
+        async with self.lock:
+            await self.remote.send_message(app_request)
 
         app_message = await self.remote.get_response(app_request.seq, app_request)
 
@@ -161,9 +156,8 @@ class RustSocket(BaseRustSocket):
         app_request.get_map_markers = AppEmpty()
         app_request.get_map_markers._serialized_on_wire = True
 
-        await self.lock.acquire()
-        await self.remote.send_message(app_request)
-        self.lock.release()
+        async with self.lock:
+            await self.remote.send_message(app_request)
 
         app_message = await self.remote.get_response(app_request.seq, app_request)
 
@@ -179,9 +173,8 @@ class RustSocket(BaseRustSocket):
         app_request.get_map = AppEmpty()
         app_request.get_map._serialized_on_wire = True
 
-        await self.lock.acquire()
-        await self.remote.send_message(app_request)
-        self.lock.release()
+        async with self.lock:
+            await self.remote.send_message(app_request)
 
         app_message = await self.remote.get_response(app_request.seq, app_request)
 
@@ -214,9 +207,8 @@ class RustSocket(BaseRustSocket):
         app_request.get_map = AppEmpty()
         app_request.get_map._serialized_on_wire = True
 
-        await self.lock.acquire()
-        await self.remote.send_message(app_request)
-        self.lock.release()
+        async with self.lock:
+            await self.remote.send_message(app_request)
 
         app_message = await self.remote.get_response(app_request.seq, app_request)
 
@@ -322,9 +314,8 @@ class RustSocket(BaseRustSocket):
         app_request.get_entity_info = AppEmpty()
         app_request.get_entity_info._serialized_on_wire = True
 
-        await self.lock.acquire()
-        await self.remote.send_message(app_request)
-        self.lock.release()
+        async with self.lock:
+            await self.remote.send_message(app_request)
 
         app_message = await self.remote.get_response(app_request.seq, app_request)
 
@@ -344,9 +335,8 @@ class RustSocket(BaseRustSocket):
 
         self.remote.ignored_responses.append(app_request.seq)
 
-        await self.lock.acquire()
-        await self.remote.send_message(app_request)
-        self.lock.release()
+        async with self.lock:
+            await self.remote.send_message(app_request)
 
     async def turn_on_smart_switch(self, eid: int = None) -> None:
 
@@ -377,9 +367,8 @@ class RustSocket(BaseRustSocket):
 
         self.remote.ignored_responses.append(app_request.seq)
 
-        await self.lock.acquire()
-        await self.remote.send_message(app_request)
-        self.lock.release()
+        async with self.lock:
+            await self.remote.send_message(app_request)
 
     async def get_current_events(self) -> List[RustMarker]:
 

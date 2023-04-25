@@ -129,9 +129,8 @@ class RustRemote:
 
                 else:
 
-                    await self.api.lock.acquire()
-                    await self.send_message(app_request)
-                    self.api.lock.release()
+                    async with self.api.lock:
+                        await self.send_message(app_request)
                     await asyncio.sleep(0.1)
                     attempts = 0
 
@@ -140,9 +139,8 @@ class RustRemote:
                 attempts += 1
 
             else:
-                await self.api.lock.acquire()
-                await self.send_message(app_request)
-                self.api.lock.release()
+                async with self.api.lock:
+                    await self.send_message(app_request)
                 await asyncio.sleep(1)
                 attempts = 0
 
@@ -180,9 +178,8 @@ class RustRemote:
                     self.ratelimiter.get_estimated_delay_time(self.server_id, cost)
                 )
 
-            await self.api.lock.acquire()
-            await self.send_message(app_request)
-            self.api.lock.release()
+            async with self.api.lock:
+                await self.send_message(app_request)
             response = await self.get_response(seq, app_request)
 
         elif self.ws.error_present(response.response.error.error) and error_check:
@@ -205,9 +202,8 @@ class RustRemote:
             app_request.get_entity_info = AppEmpty()
             app_request.get_entity_info._serialized_on_wire = True
 
-            await self.api.lock.acquire()
-            await self.send_message(app_request)
-            self.api.lock.release()
+            async with self.api.lock:
+                await self.send_message(app_request)
 
             return await self.get_response(app_request.seq, app_request, False)
 
@@ -241,9 +237,8 @@ class RustRemote:
         subscribe.camera_id = entity_id
         app_request.camera_subscribe = subscribe
 
-        await self.api.lock.acquire()
-        await self.send_message(app_request)
-        self.api.lock.release()
+        async with self.api.lock:
+            await self.send_message(app_request)
 
         if ignore_response:
             self.ignored_responses.append(app_request.seq)
@@ -256,10 +251,9 @@ class RustRemote:
             if self.camera_manager._cam_id == cam_id:
                 return self.camera_manager
 
-        await self.api.lock.acquire()
-        app_request = await self.subscribe_to_camera(cam_id)
-        app_message = await self.get_response(app_request.seq, app_request)
-        self.api.lock.release()
+        async with self.api.lock:
+            app_request = await self.subscribe_to_camera(cam_id)
+            app_message = await self.get_response(app_request.seq, app_request)
 
         self.camera_manager = CameraManager(
             self.api, cam_id, app_message.response.camera_subscribe_info
