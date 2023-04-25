@@ -1,6 +1,6 @@
 import math
-import threading
 import time
+import threading
 from typing import Dict
 
 from ...exceptions.exceptions import RateLimitError
@@ -37,6 +37,7 @@ class TokenBucket:
 
 
 class RateLimiter:
+
     SERVER_LIMIT = 50
     SERVER_REFRESH_AMOUNT = 15
 

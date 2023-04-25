@@ -1,5 +1,12 @@
-from .exceptions import (ClientNotConnectedError, CommandsNotEnabledError,
-                         ImageError, PrefixNotDefinedError, RateLimitError,
-                         RequestError, ResponseNotReceivedError,
-                         ServerNotResponsiveError, ServerSwitchDisallowedError,
-                         SmartDeviceRegistrationError)
+from .exceptions import (
+    RateLimitError,
+    ServerNotResponsiveError,
+    CommandsNotEnabledError,
+    ResponseNotReceivedError,
+    PrefixNotDefinedError,
+    ImageError,
+    ClientNotConnectedError,
+    RequestError,
+    SmartDeviceRegistrationError,
+    ServerSwitchDisallowedError,
+)

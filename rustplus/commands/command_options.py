@@ -7,6 +7,7 @@ class CommandOptions:
     def __init__(
         self, prefix: str = None, overruling_commands: List[str] = None
     ) -> None:
+
         if prefix is None:
             raise PrefixNotDefinedError("No prefix")
 

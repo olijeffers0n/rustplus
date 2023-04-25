@@ -1,8 +1,7 @@
 import asyncio
 from typing import List
-
-from ..api.remote.events import EventLoopManager
 from .conversation_prompt import ConversationPrompt
+from ..api.remote.events import EventLoopManager
 
 
 class Conversation:
@@ -13,6 +12,7 @@ class Conversation:
         prompts: List[ConversationPrompt] = None,
         register=None,
     ) -> None:
+
         if target is None:
             raise ValueError("target must be specified")
         self._target = target

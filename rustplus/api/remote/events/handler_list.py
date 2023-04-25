@@ -1,8 +1,7 @@
 from collections import defaultdict
-from typing import Dict, Set
-
-from ....utils import ServerID
+from typing import Set, Dict
 from .registered_listener import RegisteredListener
+from ....utils import ServerID
 
 
 class HandlerList:
@@ -38,6 +37,7 @@ class EntityHandlerList(HandlerList):
             self._handlers.get(server_id).get(listener.listener_id).remove(listener)
 
     def register(self, listener: RegisteredListener, server_id: ServerID) -> None:
+
         if server_id not in self._handlers:
             self._handlers[server_id] = defaultdict(set)
 

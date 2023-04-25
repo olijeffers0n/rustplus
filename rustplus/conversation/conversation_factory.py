@@ -13,6 +13,7 @@ class ConversationFactory:
         self.gc_thread.start()
 
     def create_conversation(self, steamid: int) -> Conversation:
+
         if steamid in self.conversations:
             raise ValueError("Conversation already exists")
 

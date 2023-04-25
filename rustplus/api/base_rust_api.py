@@ -1,21 +1,25 @@
 import asyncio
-from typing import Callable, List, Union
-
+from typing import List, Callable, Union
 from PIL import Image
 
-from ..commands import CommandHandler, CommandOptions
-from ..commands.command_data import CommandData
-from ..conversation import ConversationFactory
-from ..exceptions import *
-from ..utils import ServerID, deprecated
-from .remote import (HeartBeat, MapEventListener, RateLimiter, RustRemote,
-                     ServerChecker)
-from .remote.camera import CameraManager
-from .remote.events import (ChatEvent, EntityEvent, ProtobufEvent,
-                            RegisteredListener, TeamEvent)
 from .remote.events.event_loop_manager import EventLoopManager
-from .remote.rustplus_proto import AppEmpty, AppRequest
 from .structures import *
+from .remote.rustplus_proto import AppEmpty, AppRequest
+from .remote import RustRemote, HeartBeat, MapEventListener, ServerChecker, RateLimiter
+from .remote.camera import CameraManager
+from ..commands import CommandOptions, CommandHandler
+from ..commands.command_data import CommandData
+from ..exceptions import *
+from .remote.events import (
+    RegisteredListener,
+    EntityEvent,
+    TeamEvent,
+    ChatEvent,
+    ProtobufEvent,
+)
+from ..utils import deprecated
+from ..conversation import ConversationFactory
+from ..utils import ServerID
 
 
 class BaseRustSocket:
@@ -35,6 +39,7 @@ class BaseRustSocket:
         event_loop: asyncio.AbstractEventLoop = None,
         rate_limiter: RateLimiter = None,
     ) -> None:
+
         if ip is None:
             raise ValueError("Ip cannot be None")
         if steam_id is None:
@@ -75,6 +80,7 @@ class BaseRustSocket:
         :return: None
         """
         while True:
+
             if self.remote.ratelimiter.can_consume(self.server_id, amount):
                 self.remote.ratelimiter.consume(self.server_id, amount)
                 break
@@ -277,6 +283,7 @@ class BaseRustSocket:
             return RegisteredListener(coro.__name__, cmd_data.coro)
 
         def wrap_func(coro):
+
             if self.command_options is None:
                 raise CommandsNotEnabledError("Not enabled")
 
@@ -333,6 +340,7 @@ class BaseRustSocket:
         """
 
         def wrap_func(coro) -> RegisteredListener:
+
             if isinstance(coro, RegisteredListener):
                 coro = coro.get_coro()
 
