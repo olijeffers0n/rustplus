@@ -1,13 +1,13 @@
 import asyncio
 import logging
 from asyncio.futures import Future
-from typing import Set, Coroutine, Any
+from typing import Any, Coroutine, Set
 
 from ....utils import ServerID
-from .events import EntityEvent, TeamEvent, ChatEvent, ProtobufEvent
-from .registered_listener import RegisteredListener
-from .event_loop_manager import EventLoopManager
 from ..rustplus_proto import AppMessage
+from .event_loop_manager import EventLoopManager
+from .events import ChatEvent, EntityEvent, ProtobufEvent, TeamEvent
+from .registered_listener import RegisteredListener
 
 
 class EventHandler:
@@ -25,7 +25,6 @@ class EventHandler:
     def run_entity_event(
         self, name: str, app_message: AppMessage, server_id: ServerID
     ) -> None:
-
         handlers: Set[RegisteredListener] = EntityEvent.handlers.get_handlers(
             server_id
         ).get(str(name))
@@ -43,7 +42,6 @@ class EventHandler:
             )
 
     def run_team_event(self, app_message: AppMessage, server_id: ServerID) -> None:
-
         handlers: Set[RegisteredListener] = TeamEvent.handlers.get_handlers(server_id)
         for handler in handlers.copy():
             coro = handler.data
@@ -53,7 +51,6 @@ class EventHandler:
             )
 
     def run_chat_event(self, app_message: AppMessage, server_id: ServerID) -> None:
-
         handlers: Set[RegisteredListener] = ChatEvent.handlers.get_handlers(server_id)
         for handler in handlers.copy():
             coro = handler.data
@@ -63,7 +60,6 @@ class EventHandler:
             )
 
     def run_proto_event(self, byte_data: bytes, server_id: ServerID) -> None:
-
         handlers: Set[RegisteredListener] = ProtobufEvent.handlers.get_handlers(
             server_id
         )
