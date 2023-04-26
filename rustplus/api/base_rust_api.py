@@ -239,17 +239,19 @@ class BaseRustSocket:
         self.raise_ratelimit_exception = raise_ratelimit_exception
 
         self.remote.pending_entity_subscriptions = []
-        self.remote.server_id = ServerID(ip, port, steam_id, player_token)
+        new_server_id = ServerID(ip, port, steam_id, player_token)
+        if new_server_id != self.server_id:
+            self.server_id = new_server_id
+            # reset ratelimiter
+            self.remote.ratelimiter.add_socket(
+                self.server_id,
+                self.ratelimit_limit,
+                self.ratelimit_limit,
+                1,
+                self.ratelimit_refill,
+            )
 
-        # reset ratelimiter
-        self.remote.ratelimiter.remove(self.server_id)
-        self.remote.ratelimiter.add_socket(
-            self.server_id,
-            self.ratelimit_limit,
-            self.ratelimit_limit,
-            1,
-            self.ratelimit_refill,
-        )
+        self.remote.use_proxy = use_proxy
         del self.remote.conversation_factory
         self.remote.conversation_factory = ConversationFactory(self)
         # remove entity events
