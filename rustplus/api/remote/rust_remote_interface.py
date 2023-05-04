@@ -1,9 +1,10 @@
 import asyncio
 import logging
 from asyncio import Future
+from typing import Union
+
 from .camera.camera_manager import CameraManager
 from .events import EventLoopManager, EntityEvent, RegisteredListener
-from .events.event_handler import EventHandler
 from .rustplus_proto import AppRequest, AppMessage, AppEmpty, AppCameraSubscribe
 from .rustws import RustWebsocket, CONNECTED, PENDING_CONNECTION
 from .ratelimiter import RateLimiter
@@ -61,13 +62,11 @@ class RustRemote:
             self.use_commands = True
             self.command_handler = CommandHandler(self.command_options, api)
 
-        self.event_handler = EventHandler()
-
         self.magic_value = MagicValueGrabber.get_magic_value()
         self.conversation_factory = ConversationFactory(api)
         self.use_test_server = use_test_server
         self.pending_entity_subscriptions = []
-        self.camera_manager: CameraManager = None
+        self.camera_manager: Union[CameraManager, None] = None
 
     async def connect(self, retries, delay, on_failure=None) -> None:
 

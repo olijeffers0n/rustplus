@@ -238,6 +238,7 @@ class BaseRustSocket:
         self.remote.server_id = ServerID(ip, port, steam_id, player_token)
 
         # reset ratelimiter
+        self.remote.use_proxy = use_proxy
         self.remote.ratelimiter.remove(self.server_id)
         self.remote.ratelimiter.add_socket(
             self.server_id,
@@ -588,14 +589,14 @@ class BaseRustSocket:
         """
         raise NotImplementedError("Not Implemented")
 
-    async def get_camera_manager(self, id: str) -> CameraManager:
+    async def get_camera_manager(self, cam_id: str) -> CameraManager:
         """
         Gets a camera manager for a given camera ID
 
         NOTE: This will override the current camera manager if one exists for the given ID so you cannot have multiple
 
-        :param id: The ID of the camera
+        :param cam_id: The ID of the camera
         :return CameraManager: The camera manager
-        :raises RequestError: If the camera is not found or you cannot access it. See reason for more info
+        :raises RequestError: If the camera is not found, or you cannot access it. See reason for more info
         """
         raise NotImplementedError("Not Implemented")
