@@ -10,7 +10,6 @@ class RegisteredListener:
 
     def __eq__(self, other) -> bool:
         if isinstance(other, RegisteredListener):
-
             coro = self.data
             if isinstance(self.data, tuple):
                 coro = self.data[0]

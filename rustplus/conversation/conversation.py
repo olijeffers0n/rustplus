@@ -12,7 +12,6 @@ class Conversation:
         prompts: List[ConversationPrompt] = None,
         register=None,
     ) -> None:
-
         if target is None:
             raise ValueError("target must be specified")
         self._target = target

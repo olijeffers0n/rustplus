@@ -7,11 +7,10 @@ from ..rustplus_proto import AppMessage
 
 
 class EventHandler:
-
     @staticmethod
-    async def run_entity_event(name: Union[str, int], app_message: AppMessage, server_id: ServerID
-                               ) -> None:
-
+    async def run_entity_event(
+        name: Union[str, int], app_message: AppMessage, server_id: ServerID
+    ) -> None:
         handlers: Set[RegisteredListener] = EntityEvent.handlers.get_handlers(
             server_id
         ).get(str(name))
@@ -26,7 +25,6 @@ class EventHandler:
 
     @staticmethod
     async def run_team_event(app_message: AppMessage, server_id: ServerID) -> None:
-
         handlers: Set[RegisteredListener] = TeamEvent.handlers.get_handlers(server_id)
         for handler in handlers.copy():
             coro = handler.data
@@ -35,7 +33,6 @@ class EventHandler:
 
     @staticmethod
     async def run_chat_event(app_message: AppMessage, server_id: ServerID) -> None:
-
         handlers: Set[RegisteredListener] = ChatEvent.handlers.get_handlers(server_id)
         for handler in handlers.copy():
             coro = handler.data
@@ -44,7 +41,6 @@ class EventHandler:
 
     @staticmethod
     async def run_proto_event(byte_data: bytes, server_id: ServerID) -> None:
-
         handlers: Set[RegisteredListener] = ProtobufEvent.handlers.get_handlers(
             server_id
         )

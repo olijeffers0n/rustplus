@@ -43,7 +43,9 @@ class CameraManager:
         for callback in self.frame_callbacks:
             await callback(frame)
 
-    def on_frame_received(self, coro: Callable[[Image.Image], Coroutine]) -> Callable[[Image.Image], Coroutine]:
+    def on_frame_received(
+        self, coro: Callable[[Image.Image], Coroutine]
+    ) -> Callable[[Image.Image], Coroutine]:
         self.frame_callbacks.add(coro)
         return coro
 
@@ -110,7 +112,6 @@ class CameraManager:
     async def send_combined_movement(
         self, movements: Iterable[int] = None, joystick_vector: Vector = None
     ) -> None:
-
         if joystick_vector is None:
             joystick_vector = Vector()
 

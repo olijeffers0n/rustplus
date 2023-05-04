@@ -15,16 +15,14 @@ class CommandHandler:
         self.api = api
 
     def register_command(self, data: CommandData) -> None:
-
         if not asyncio.iscoroutinefunction(data.coro):
             raise TypeError("The event registered must be a coroutine")
 
         self.commands[data.coro.__name__] = data
 
     async def run_command(self, message: RustChatMessage, prefix) -> None:
-
         if prefix == self.command_options.prefix:
-            command = message.message.split(" ")[0][len(prefix):]
+            command = message.message.split(" ")[0][len(prefix) :]
         else:
             command = prefix
 

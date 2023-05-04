@@ -34,7 +34,6 @@ class RustWebsocket:
         on_failure,
         delay,
     ):
-
         self.connection: Union[WebSocketClientProtocol, None] = None
         self.task: Union[Task, None] = None
         self.server_id = server_id
@@ -52,15 +51,12 @@ class RustWebsocket:
     async def connect(
         self, retries=float("inf"), ignore_open_value: bool = False
     ) -> None:
-
         if (
             not self.connection_status == CONNECTED or ignore_open_value
         ) and not self.remote.is_pending():
-
             attempts = 0
 
             while True:
-
                 if attempts >= retries:
                     raise ConnectionAbortedError("Reached Retry Limit")
 
@@ -85,7 +81,6 @@ class RustWebsocket:
                     self.connected_time = time.time()
                     break
                 except Exception as exception:
-
                     print_error = True
 
                     if not isinstance(exception, KeyboardInterrupt):
@@ -114,10 +109,11 @@ class RustWebsocket:
             self.connection_status = CONNECTED
 
         if not ignore_open_value:
-            self.task = asyncio.create_task(self.run(), name="[RustPlus.py] Websocket Polling Task")
+            self.task = asyncio.create_task(
+                self.run(), name="[RustPlus.py] Websocket Polling Task"
+            )
 
     async def close(self) -> None:
-
         self.connection_status = CLOSING
         await self.connection.close()
         self.connection = None
@@ -135,7 +131,9 @@ class RustWebsocket:
 
         try:
             if self.use_test_server:
-                await self.connection.send(base64.b64encode(bytes(message)).decode("utf-8"))
+                await self.connection.send(
+                    base64.b64encode(bytes(message)).decode("utf-8")
+                )
             else:
                 await self.connection.send(bytes(message))
             self.remote.pending_for_response[message.seq] = message
@@ -147,7 +145,6 @@ class RustWebsocket:
             return await self.remote.send_message(message)
 
     async def run(self) -> None:
-
         while self.connection_status == CONNECTED:
             try:
                 data = await self.connection.recv()
@@ -155,7 +152,9 @@ class RustWebsocket:
                 await EventHandler.run_proto_event(data, self.server_id)
 
                 app_message = AppMessage()
-                app_message.parse(base64.b64decode(data) if self.use_test_server else data)
+                app_message.parse(
+                    base64.b64decode(data) if self.use_test_server else data
+                )
 
             except Exception:
                 if self.connection_status == CONNECTED:
@@ -178,7 +177,6 @@ class RustWebsocket:
                 self.logger.error(e)
 
     async def handle_message(self, app_message: AppMessage) -> None:
-
         if app_message.response.seq in self.remote.ignored_responses:
             self.remote.ignored_responses.remove(app_message.response.seq)
             return

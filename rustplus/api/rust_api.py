@@ -72,7 +72,6 @@ class RustSocket(BaseRustSocket):
         )
 
     async def get_time(self) -> RustTime:
-
         await self._handle_ratelimit()
 
         app_request = self._generate_protobuf()
@@ -86,7 +85,6 @@ class RustSocket(BaseRustSocket):
         return format_time(response)
 
     async def send_team_message(self, message: str) -> None:
-
         await self._handle_ratelimit(2)
 
         app_send_message = AppSendMessage()
@@ -100,7 +98,6 @@ class RustSocket(BaseRustSocket):
         await self.remote.send_message(app_request)
 
     async def get_info(self) -> RustInfo:
-
         await self._handle_ratelimit()
 
         app_request = self._generate_protobuf()
@@ -114,7 +111,6 @@ class RustSocket(BaseRustSocket):
         return RustInfo(response.response.info)
 
     async def get_team_chat(self) -> List[RustChatMessage]:
-
         await self._handle_ratelimit()
 
         app_request = self._generate_protobuf()
@@ -130,7 +126,6 @@ class RustSocket(BaseRustSocket):
         return [RustChatMessage(message) for message in messages]
 
     async def get_team_info(self) -> RustTeamInfo:
-
         await self._handle_ratelimit()
 
         app_request = self._generate_protobuf()
@@ -144,7 +139,6 @@ class RustSocket(BaseRustSocket):
         return RustTeamInfo(app_message.response.team_info)
 
     async def get_markers(self) -> List[RustMarker]:
-
         await self._handle_ratelimit()
 
         app_request = self._generate_protobuf()
@@ -160,7 +154,6 @@ class RustSocket(BaseRustSocket):
         ]
 
     async def get_raw_map_data(self) -> RustMap:
-
         await self._handle_ratelimit(5)
 
         app_request = self._generate_protobuf()
@@ -181,7 +174,6 @@ class RustSocket(BaseRustSocket):
         override_images: dict = None,
         add_grid: bool = False,
     ) -> Image.Image:
-
         if override_images is None:
             override_images = {}
 
@@ -295,7 +287,6 @@ class RustSocket(BaseRustSocket):
         return game_map.resize((2000, 2000), Image.ANTIALIAS)
 
     async def get_entity_info(self, eid: int = None) -> RustEntityInfo:
-
         await self._handle_ratelimit()
 
         if eid is None:
@@ -313,7 +304,6 @@ class RustSocket(BaseRustSocket):
         return RustEntityInfo(app_message.response.entity_info)
 
     async def _update_smart_device(self, eid: int, value: bool) -> None:
-
         await self._handle_ratelimit()
 
         entity_value = AppSetEntityValue()
@@ -329,21 +319,18 @@ class RustSocket(BaseRustSocket):
         await self.remote.send_message(app_request)
 
     async def turn_on_smart_switch(self, eid: int = None) -> None:
-
         if eid is None:
             raise ValueError("EID cannot be None")
 
         await self._update_smart_device(eid, True)
 
     async def turn_off_smart_switch(self, eid: int = None) -> None:
-
         if eid is None:
             raise ValueError("EID cannot be None")
 
         await self._update_smart_device(eid, False)
 
     async def promote_to_team_leader(self, steam_id: int = None) -> None:
-
         if steam_id is None:
             raise ValueError("SteamID cannot be None")
 
@@ -360,7 +347,6 @@ class RustSocket(BaseRustSocket):
         await self.remote.send_message(app_request)
 
     async def get_current_events(self) -> List[RustMarker]:
-
         return [
             marker
             for marker in (await self.get_markers())
@@ -374,7 +360,6 @@ class RustSocket(BaseRustSocket):
     async def get_contents(
         self, eid: int = None, combine_stacks: bool = False
     ) -> RustContents:
-
         if eid is None:
             raise ValueError("EID cannot be None")
 

@@ -37,7 +37,6 @@ class TokenBucket:
 
 
 class RateLimiter:
-
     SERVER_LIMIT = 50
     SERVER_REFRESH_AMOUNT = 15
 

@@ -39,7 +39,6 @@ class BaseRustSocket:
         event_loop: asyncio.AbstractEventLoop = None,
         rate_limiter: RateLimiter = None,
     ) -> None:
-
         if ip is None:
             raise ValueError("Ip cannot be None")
         if steam_id is None:
@@ -80,7 +79,6 @@ class BaseRustSocket:
         :return: None
         """
         while True:
-
             if self.remote.ratelimiter.can_consume(self.server_id, amount):
                 self.remote.ratelimiter.consume(self.server_id, amount)
                 break
@@ -285,7 +283,6 @@ class BaseRustSocket:
             return RegisteredListener(coro.__name__, cmd_data.coro)
 
         def wrap_func(coro):
-
             if self.command_options is None:
                 raise CommandsNotEnabledError("Not enabled")
 
@@ -342,7 +339,6 @@ class BaseRustSocket:
         """
 
         def wrap_func(coro) -> RegisteredListener:
-
             if isinstance(coro, RegisteredListener):
                 coro = coro.get_coro()
 
