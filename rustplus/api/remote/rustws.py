@@ -81,7 +81,7 @@ class RustWebsocket:
                         )
                     )
                     address += f"?v={str(self.magic_value)}"
-                    self.connection = await connect(address)
+                    self.connection = await connect(address, close_timeout=0)
                     self.connected_time = time.time()
                     break
                 except Exception as exception:
@@ -114,13 +114,15 @@ class RustWebsocket:
             self.connection_status = CONNECTED
 
         if not ignore_open_value:
-            self.task = asyncio.create_task(self.run(), name="[RustPlus.py] WebsocketThread")
+            self.task = asyncio.create_task(self.run(), name="[RustPlus.py] Websocket Polling Task")
 
-    def close(self) -> None:
+    async def close(self) -> None:
 
         self.connection_status = CLOSING
-        self.connection.close_connection()
+        await self.connection.close()
+        self.connection = None
         self.task.cancel()
+        self.task = None
         self.connection_status = CLOSED
 
     async def send_message(self, message: AppRequest) -> None:

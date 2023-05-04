@@ -151,7 +151,7 @@ class BaseRustSocket:
 
         :return: None
         """
-        self.remote.close()
+        await self.remote.close()
 
     async def disconnect(self) -> None:
         """

@@ -84,10 +84,10 @@ class RustRemote:
         for entity_id, coroutine in self.pending_entity_subscriptions:
             self.handle_subscribing_entity(entity_id, coroutine)
 
-    def close(self) -> None:
+    async def close(self) -> None:
 
         if self.ws is not None:
-            self.ws.close()
+            await self.ws.close()
             del self.ws
             self.ws = None
 
