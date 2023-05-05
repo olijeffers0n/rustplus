@@ -1,5 +1,8 @@
+from typing import Union
+
+
 class RegisteredListener:
-    def __init__(self, listener_id: str, data) -> None:
+    def __init__(self, listener_id: Union[str, int], data) -> None:
         self.listener_id = str(listener_id)
         self.data = data
 

@@ -145,14 +145,13 @@ class RustRemote:
 
             # Fully Refill the bucket
 
-            self.ratelimiter.socket_buckets.get(self.server_id).current = 0
+            bucket = self.ratelimiter.socket_buckets.get(self.server_id)
 
-            while (
-                self.ratelimiter.socket_buckets.get(self.server_id).current
-                < self.ratelimiter.socket_buckets.get(self.server_id).max
-            ):
+            bucket.current = 0
+
+            while bucket.current < bucket.max:
                 await asyncio.sleep(1)
-                self.ratelimiter.socket_buckets.get(self.server_id).refresh()
+                bucket.refresh()
 
             # Reattempt the sending with a full bucket
             cost = self.ws.get_proto_cost(app_request)
@@ -179,17 +178,17 @@ class RustRemote:
             self.pending_entity_subscriptions.append((entity_id, coroutine))
             return
 
-        async def get_entity_info(self: RustRemote, eid):
-            await self.api._handle_ratelimit()
+        async def get_entity_info(remote: RustRemote, eid):
+            await remote.api._handle_ratelimit()
 
-            app_request: AppRequest = self.api._generate_protobuf()
+            app_request: AppRequest = remote.api._generate_protobuf()
             app_request.entityId = eid
             app_request.get_entity_info = AppEmpty()
             app_request.get_entity_info._serialized_on_wire = True
 
-            await self.send_message(app_request)
+            await remote.send_message(app_request)
 
-            return await self.get_response(app_request.seq, app_request, False)
+            return await remote.get_response(app_request.seq, app_request, False)
 
         def entity_event_callback(future_inner: Future) -> None:
             entity_info = future_inner.result()
