@@ -49,12 +49,14 @@ class RustRemote:
         )
         self.ws = None
         self.websocket_length = websocket_length
+
+        # TODO: Optimise these 4 dicts and lists
         self.responses = {}
         self.ignored_responses = []
         self.pending_for_response = {}
         self.sent_requests = []
-        self.command_handler = None
 
+        self.command_handler = None
         if command_options is None:
             self.use_commands = False
         else:
