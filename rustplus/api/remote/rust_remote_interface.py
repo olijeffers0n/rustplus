@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from asyncio import Future
-from typing import Union
+from typing import Union, Dict
 
 from .camera.camera_manager import CameraManager
 from .events import EventLoopManager, EntityEvent, RegisteredListener
@@ -9,12 +9,11 @@ from .rustplus_proto import AppRequest, AppMessage, AppEmpty, AppCameraSubscribe
 from .rustws import RustWebsocket, CONNECTED, PENDING_CONNECTION
 from .ratelimiter import RateLimiter
 from .expo_bundle_handler import MagicValueGrabber
-from ...utils import ServerID
+from ...utils import ServerID, YieldingEvent
 from ...conversation import ConversationFactory
 from ...commands import CommandHandler
 from ...exceptions import (
     ClientNotConnectedError,
-    ResponseNotReceivedError,
     RequestError,
     SmartDeviceRegistrationError,
 )
@@ -27,7 +26,6 @@ class RustRemote:
         command_options,
         ratelimit_limit,
         ratelimit_refill,
-        websocket_length=600,
         use_proxy: bool = False,
         api=None,
         use_test_server: bool = False,
@@ -48,13 +46,10 @@ class RustRemote:
             self.server_id, ratelimit_limit, ratelimit_limit, 1, ratelimit_refill
         )
         self.ws = None
-        self.websocket_length = websocket_length
+        self.logger = logging.getLogger("rustplus.py")
 
-        # TODO: Optimise these 4 dicts and lists
-        self.responses = {}
-        self.ignored_responses = []
-        self.pending_for_response = {}
-        self.sent_requests = []
+        self.ignored_responses = set()
+        self.pending_response_events: Dict[int, YieldingEvent] = {}
 
         self.command_handler = None
         if command_options is None:
@@ -104,6 +99,7 @@ class RustRemote:
         if self.ws is None:
             raise ClientNotConnectedError("No Current Websocket Connection")
 
+        self.pending_response_events[request.seq] = YieldingEvent()
         await self.ws.send_message(request)
 
     async def get_response(
@@ -113,32 +109,27 @@ class RustRemote:
         Returns a given response from the server.
         """
 
-        attempts = 0
+        attempts = 1
 
-        while seq in self.pending_for_response and seq not in self.responses:
-            if seq in self.sent_requests:
-                if attempts <= 40:
-                    attempts += 1
-                    await asyncio.sleep(0.1)
+        while True:
+            event = self.pending_response_events.get(seq)
+            if event is None:
+                raise Exception("Event Doesn't exist")
 
-                else:
-                    await self.send_message(app_request)
-                    await asyncio.sleep(0.1)
-                    attempts = 0
+            response: AppMessage = await event.event_wait_for(4)
+            if response is not None:
+                break
 
-            if attempts <= 10:
-                await asyncio.sleep(0.1)
-                attempts += 1
+            await self.send_message(app_request)
 
-            else:
-                await self.send_message(app_request)
-                await asyncio.sleep(1)
-                attempts = 0
+            if attempts % 150 == 0:
+                self.logger.info(
+                    f"[RustPlus.py] Been waiting 10 minutes for a response for seq {seq}"
+                )
 
-        if seq not in self.responses:
-            raise ResponseNotReceivedError("Not Received")
+            attempts += 1
 
-        response = self.responses.pop(seq)
+        self.pending_response_events.pop(seq)
 
         if response.response.error.error == "rate_limit":
             logging.getLogger("rustplus.py").warning(
@@ -224,7 +215,7 @@ class RustRemote:
         await self.send_message(app_request)
 
         if ignore_response:
-            self.ignored_responses.append(app_request.seq)
+            await self.add_ignored_response(app_request.seq)
 
         return app_request
 
@@ -240,3 +231,6 @@ class RustRemote:
             self.api, cam_id, app_message.response.camera_subscribe_info
         )
         return self.camera_manager
+
+    async def add_ignored_response(self, seq) -> None:
+        self.ignored_responses.add(seq)

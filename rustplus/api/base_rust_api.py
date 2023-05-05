@@ -171,7 +171,7 @@ class BaseRustSocket:
         app_request.get_time = AppEmpty()
         app_request.get_time._serialized_on_wire = True
 
-        self.remote.ignored_responses.append(app_request.seq)
+        await self.remote.add_ignored_response(app_request.seq)
 
         await self.remote.send_message(app_request)
 

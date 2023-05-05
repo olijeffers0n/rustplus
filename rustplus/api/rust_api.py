@@ -93,7 +93,7 @@ class RustSocket(BaseRustSocket):
         app_request = self._generate_protobuf()
         app_request.send_team_message = app_send_message
 
-        self.remote.ignored_responses.append(app_request.seq)
+        await self.remote.add_ignored_response(app_request.seq)
 
         await self.remote.send_message(app_request)
 
@@ -314,7 +314,7 @@ class RustSocket(BaseRustSocket):
         app_request.entity_id = eid
         app_request.set_entity_value = entity_value
 
-        self.remote.ignored_responses.append(app_request.seq)
+        await self.remote.add_ignored_response(app_request.seq)
 
         await self.remote.send_message(app_request)
 
@@ -342,7 +342,7 @@ class RustSocket(BaseRustSocket):
         app_request = self._generate_protobuf()
         app_request.promote_to_leader = leader_packet
 
-        self.remote.ignored_responses.append(app_request.seq)
+        await self.remote.add_ignored_response(app_request.seq)
 
         await self.remote.send_message(app_request)
 

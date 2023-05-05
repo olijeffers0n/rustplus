@@ -4,7 +4,6 @@ from typing import Any, Union
 
 
 class YieldingEvent(asyncio.Event):
-
     def __init__(self) -> None:
         self.value: Union[Any, None] = None
         super().__init__()

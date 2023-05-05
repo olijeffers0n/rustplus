@@ -15,7 +15,7 @@ from .events import EventHandler
 from ..structures import RustChatMessage
 from ...exceptions import ClientNotConnectedError
 from ...conversation import Conversation
-from ...utils import ServerID
+from ...utils import ServerID, YieldingEvent
 
 CONNECTED = 1
 PENDING_CONNECTION = 2
@@ -136,13 +136,12 @@ class RustWebsocket:
                 )
             else:
                 await self.connection.send(bytes(message))
-            self.remote.pending_for_response[message.seq] = message
         except Exception:
             self.logger.exception("An exception occurred whilst sending a message")
 
             while self.remote.is_pending():
                 await asyncio.sleep(0.5)
-            return await self.remote.send_message(message)
+            return await self.send_message(message)
 
     async def run(self) -> None:
         while self.connection_status == CONNECTED:
@@ -165,11 +164,6 @@ class RustWebsocket:
 
                     continue
                 return
-
-            try:
-                del self.remote.pending_for_response[app_message.response.seq]
-            except KeyError:
-                pass
 
             try:
                 await self.handle_message(app_message)
@@ -247,8 +241,10 @@ class RustWebsocket:
 
         else:
             # This means that it wasn't sent by the server and is a message from the server in response to an action
-
-            self.remote.responses[app_message.response.seq] = app_message
+            event: YieldingEvent = self.remote.pending_response_events[
+                app_message.response.seq
+            ]
+            event.set_with_value(app_message)
 
     def get_prefix(self, message: str) -> Optional[str]:
         if self.remote.use_commands:
