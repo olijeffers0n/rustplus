@@ -137,9 +137,7 @@ class RustRemote:
             )
 
             # Fully Refill the bucket
-
             bucket = self.ratelimiter.socket_buckets.get(self.server_id)
-
             bucket.current = 0
 
             while bucket.current < bucket.max:
@@ -150,12 +148,12 @@ class RustRemote:
             cost = self.ws.get_proto_cost(app_request)
 
             while True:
-                if self.ratelimiter.can_consume(self.server_id, cost):
-                    self.ratelimiter.consume(self.server_id, cost)
+                if await self.ratelimiter.can_consume(self.server_id, cost):
+                    await self.ratelimiter.consume(self.server_id, cost)
                     break
 
                 await asyncio.sleep(
-                    self.ratelimiter.get_estimated_delay_time(self.server_id, cost)
+                    await self.ratelimiter.get_estimated_delay_time(self.server_id, cost)
                 )
 
             await self.send_message(app_request)

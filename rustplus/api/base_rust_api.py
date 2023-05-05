@@ -79,15 +79,15 @@ class BaseRustSocket:
         :return: None
         """
         while True:
-            if self.remote.ratelimiter.can_consume(self.server_id, amount):
-                self.remote.ratelimiter.consume(self.server_id, amount)
+            if await self.remote.ratelimiter.can_consume(self.server_id, amount):
+                await self.remote.ratelimiter.consume(self.server_id, amount)
                 break
 
             if self.raise_ratelimit_exception:
                 raise RateLimitError("Out of tokens")
 
             await asyncio.sleep(
-                self.remote.ratelimiter.get_estimated_delay_time(self.server_id, amount)
+                await self.remote.ratelimiter.get_estimated_delay_time(self.server_id, amount)
             )
 
         self.heartbeat.reset_rhythm()
@@ -237,7 +237,7 @@ class BaseRustSocket:
 
         # reset ratelimiter
         self.remote.use_proxy = use_proxy
-        self.remote.ratelimiter.remove(self.server_id)
+        await self.remote.ratelimiter.remove(self.server_id)
         self.remote.ratelimiter.add_socket(
             self.server_id,
             self.ratelimit_limit,
