@@ -1,5 +1,5 @@
 import asyncio
-from typing import List
+from typing import List, Any
 from .conversation_prompt import ConversationPrompt
 from ..api.remote.events import EventLoopManager
 
@@ -12,7 +12,6 @@ class Conversation:
         prompts: List[ConversationPrompt] = None,
         register=None,
     ) -> None:
-
         if target is None:
             raise ValueError("target must be specified")
         self._target = target
@@ -54,7 +53,7 @@ class Conversation:
         self._register(self._target, self)
         await self.send_prompt(await self._prompts[0].prompt())
 
-    def run_coro(self, coro, args) -> None:
+    def run_coro(self, coro, args) -> Any:
         return asyncio.run_coroutine_threadsafe(
             coro(*args), EventLoopManager.get_loop(self._api.server_id)
         ).result()

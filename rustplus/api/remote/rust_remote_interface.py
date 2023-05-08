@@ -1,19 +1,19 @@
 import asyncio
 import logging
 from asyncio import Future
+from typing import Union, Dict
+
 from .camera.camera_manager import CameraManager
 from .events import EventLoopManager, EntityEvent, RegisteredListener
-from .events.event_handler import EventHandler
 from .rustplus_proto import AppRequest, AppMessage, AppEmpty, AppCameraSubscribe
 from .rustws import RustWebsocket, CONNECTED, PENDING_CONNECTION
 from .ratelimiter import RateLimiter
 from .expo_bundle_handler import MagicValueGrabber
-from ...utils import ServerID
+from ...utils import ServerID, YieldingEvent
 from ...conversation import ConversationFactory
 from ...commands import CommandHandler
 from ...exceptions import (
     ClientNotConnectedError,
-    ResponseNotReceivedError,
     RequestError,
     SmartDeviceRegistrationError,
 )
@@ -26,13 +26,11 @@ class RustRemote:
         command_options,
         ratelimit_limit,
         ratelimit_refill,
-        websocket_length=600,
         use_proxy: bool = False,
         api=None,
         use_test_server: bool = False,
         rate_limiter: RateLimiter = None,
     ) -> None:
-
         self.server_id = server_id
         self.api = api
         self.command_options = command_options
@@ -48,29 +46,25 @@ class RustRemote:
             self.server_id, ratelimit_limit, ratelimit_limit, 1, ratelimit_refill
         )
         self.ws = None
-        self.websocket_length = websocket_length
-        self.responses = {}
-        self.ignored_responses = []
-        self.pending_for_response = {}
-        self.sent_requests = []
-        self.command_handler = None
+        self.logger = logging.getLogger("rustplus.py")
 
+        self.ignored_responses = set()
+        self.pending_response_events: Dict[int, YieldingEvent] = {}
+
+        self.command_handler = None
         if command_options is None:
             self.use_commands = False
         else:
             self.use_commands = True
             self.command_handler = CommandHandler(self.command_options, api)
 
-        self.event_handler = EventHandler()
-
         self.magic_value = MagicValueGrabber.get_magic_value()
         self.conversation_factory = ConversationFactory(api)
         self.use_test_server = use_test_server
         self.pending_entity_subscriptions = []
-        self.camera_manager: CameraManager = None
+        self.camera_manager: Union[CameraManager, None] = None
 
     async def connect(self, retries, delay, on_failure=None) -> None:
-
         self.ws = RustWebsocket(
             server_id=self.server_id,
             remote=self,
@@ -85,10 +79,9 @@ class RustRemote:
         for entity_id, coroutine in self.pending_entity_subscriptions:
             self.handle_subscribing_entity(entity_id, coroutine)
 
-    def close(self) -> None:
-
+    async def close(self) -> None:
         if self.ws is not None:
-            self.ws.close()
+            await self.ws.close()
             del self.ws
             self.ws = None
 
@@ -103,10 +96,10 @@ class RustRemote:
         return False
 
     async def send_message(self, request: AppRequest) -> None:
-
         if self.ws is None:
             raise ClientNotConnectedError("No Current Websocket Connection")
 
+        self.pending_response_events[request.seq] = YieldingEvent()
         await self.ws.send_message(request)
 
     async def get_response(
@@ -116,36 +109,27 @@ class RustRemote:
         Returns a given response from the server.
         """
 
-        attempts = 0
+        attempts = 1
 
-        while seq in self.pending_for_response and seq not in self.responses:
+        while True:
+            event = self.pending_response_events.get(seq)
+            if event is None:
+                raise Exception("Event Doesn't exist")
 
-            if seq in self.sent_requests:
+            response: AppMessage = await event.event_wait_for(4)
+            if response is not None:
+                break
 
-                if attempts <= 40:
+            await self.send_message(app_request)
 
-                    attempts += 1
-                    await asyncio.sleep(0.1)
+            if attempts % 150 == 0:
+                self.logger.info(
+                    f"[RustPlus.py] Been waiting 10 minutes for a response for seq {seq}"
+                )
 
-                else:
+            attempts += 1
 
-                    await self.send_message(app_request)
-                    await asyncio.sleep(0.1)
-                    attempts = 0
-
-            if attempts <= 10:
-                await asyncio.sleep(0.1)
-                attempts += 1
-
-            else:
-                await self.send_message(app_request)
-                await asyncio.sleep(1)
-                attempts = 0
-
-        if seq not in self.responses:
-            raise ResponseNotReceivedError("Not Received")
-
-        response = self.responses.pop(seq)
+        self.pending_response_events.pop(seq)
 
         if response.response.error.error == "rate_limit":
             logging.getLogger("rustplus.py").warning(
@@ -153,27 +137,23 @@ class RustRemote:
             )
 
             # Fully Refill the bucket
+            bucket = self.ratelimiter.socket_buckets.get(self.server_id)
+            bucket.current = 0
 
-            self.ratelimiter.socket_buckets.get(self.server_id).current = 0
-
-            while (
-                self.ratelimiter.socket_buckets.get(self.server_id).current
-                < self.ratelimiter.socket_buckets.get(self.server_id).max
-            ):
+            while bucket.current < bucket.max:
                 await asyncio.sleep(1)
-                self.ratelimiter.socket_buckets.get(self.server_id).refresh()
+                bucket.refresh()
 
             # Reattempt the sending with a full bucket
             cost = self.ws.get_proto_cost(app_request)
 
             while True:
-
-                if self.ratelimiter.can_consume(self.server_id, cost):
-                    self.ratelimiter.consume(self.server_id, cost)
+                if await self.ratelimiter.can_consume(self.server_id, cost):
+                    await self.ratelimiter.consume(self.server_id, cost)
                     break
 
                 await asyncio.sleep(
-                    self.ratelimiter.get_estimated_delay_time(self.server_id, cost)
+                    await self.ratelimiter.get_estimated_delay_time(self.server_id, cost)
                 )
 
             await self.send_message(app_request)
@@ -185,26 +165,23 @@ class RustRemote:
         return response
 
     def handle_subscribing_entity(self, entity_id: int, coroutine) -> None:
-
         if not self.is_open():
             self.pending_entity_subscriptions.append((entity_id, coroutine))
             return
 
-        async def get_entity_info(self: RustRemote, eid):
+        async def get_entity_info(remote: RustRemote, eid):
+            await remote.api._handle_ratelimit()
 
-            await self.api._handle_ratelimit()
-
-            app_request: AppRequest = self.api._generate_protobuf()
+            app_request: AppRequest = remote.api._generate_protobuf()
             app_request.entityId = eid
             app_request.get_entity_info = AppEmpty()
             app_request.get_entity_info._serialized_on_wire = True
 
-            await self.send_message(app_request)
+            await remote.send_message(app_request)
 
-            return await self.get_response(app_request.seq, app_request, False)
+            return await remote.get_response(app_request.seq, app_request, False)
 
         def entity_event_callback(future_inner: Future) -> None:
-
             entity_info = future_inner.result()
 
             if entity_info.response.HasField("error"):
@@ -236,12 +213,11 @@ class RustRemote:
         await self.send_message(app_request)
 
         if ignore_response:
-            self.ignored_responses.append(app_request.seq)
+            await self.add_ignored_response(app_request.seq)
 
         return app_request
 
     async def create_camera_manager(self, cam_id) -> CameraManager:
-
         if self.camera_manager is not None:
             if self.camera_manager._cam_id == cam_id:
                 return self.camera_manager
@@ -253,3 +229,6 @@ class RustRemote:
             self.api, cam_id, app_message.response.camera_subscribe_info
         )
         return self.camera_manager
+
+    async def add_ignored_response(self, seq) -> None:
+        self.ignored_responses.add(seq)

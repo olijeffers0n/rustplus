@@ -85,7 +85,6 @@ class RustSellOrder:
 
 
 class RustMarker:
-
     PlayerMarker = 1
     ExplosionMarker = 2
     VendingMachineMarker = 3

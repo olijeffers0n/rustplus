@@ -27,7 +27,6 @@ class Item:
 
 
 class TeamEvent:
-
     handlers = HandlerList()
 
     def __init__(self, app_message: AppMessage) -> None:
@@ -44,7 +43,6 @@ class TeamEvent:
 
 
 class ChatEvent:
-
     handlers = HandlerList()
 
     def __init__(self, app_message: AppMessage) -> None:
@@ -56,7 +54,6 @@ class ChatEvent:
 
 
 class EntityEvent:
-
     handlers = EntityHandlerList()
 
     def __init__(self, app_message: AppMessage, entity_type) -> None:
@@ -119,7 +116,6 @@ class MarkerEvent:
 
 
 class ProtobufEvent:
-
     handlers = HandlerList()
 
     def __init__(self, byte_data) -> None:

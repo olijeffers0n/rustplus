@@ -39,7 +39,6 @@ class BaseRustSocket:
         event_loop: asyncio.AbstractEventLoop = None,
         rate_limiter: RateLimiter = None,
     ) -> None:
-
         if ip is None:
             raise ValueError("Ip cannot be None")
         if steam_id is None:
@@ -80,16 +79,15 @@ class BaseRustSocket:
         :return: None
         """
         while True:
-
-            if self.remote.ratelimiter.can_consume(self.server_id, amount):
-                self.remote.ratelimiter.consume(self.server_id, amount)
+            if await self.remote.ratelimiter.can_consume(self.server_id, amount):
+                await self.remote.ratelimiter.consume(self.server_id, amount)
                 break
 
             if self.raise_ratelimit_exception:
                 raise RateLimitError("Out of tokens")
 
             await asyncio.sleep(
-                self.remote.ratelimiter.get_estimated_delay_time(self.server_id, amount)
+                await self.remote.ratelimiter.get_estimated_delay_time(self.server_id, amount)
             )
 
         self.heartbeat.reset_rhythm()
@@ -151,7 +149,7 @@ class BaseRustSocket:
 
         :return: None
         """
-        self.remote.close()
+        await self.remote.close()
 
     async def disconnect(self) -> None:
         """
@@ -173,7 +171,7 @@ class BaseRustSocket:
         app_request.get_time = AppEmpty()
         app_request.get_time._serialized_on_wire = True
 
-        self.remote.ignored_responses.append(app_request.seq)
+        await self.remote.add_ignored_response(app_request.seq)
 
         await self.remote.send_message(app_request)
 
@@ -238,7 +236,8 @@ class BaseRustSocket:
         self.remote.server_id = ServerID(ip, port, steam_id, player_token)
 
         # reset ratelimiter
-        self.remote.ratelimiter.remove(self.server_id)
+        self.remote.use_proxy = use_proxy
+        await self.remote.ratelimiter.remove(self.server_id)
         self.remote.ratelimiter.add_socket(
             self.server_id,
             self.ratelimit_limit,
@@ -284,7 +283,6 @@ class BaseRustSocket:
             return RegisteredListener(coro.__name__, cmd_data.coro)
 
         def wrap_func(coro):
-
             if self.command_options is None:
                 raise CommandsNotEnabledError("Not enabled")
 
@@ -341,7 +339,6 @@ class BaseRustSocket:
         """
 
         def wrap_func(coro) -> RegisteredListener:
-
             if isinstance(coro, RegisteredListener):
                 coro = coro.get_coro()
 
@@ -588,14 +585,14 @@ class BaseRustSocket:
         """
         raise NotImplementedError("Not Implemented")
 
-    async def get_camera_manager(self, id: str) -> CameraManager:
+    async def get_camera_manager(self, cam_id: str) -> CameraManager:
         """
         Gets a camera manager for a given camera ID
 
         NOTE: This will override the current camera manager if one exists for the given ID so you cannot have multiple
 
-        :param id: The ID of the camera
+        :param cam_id: The ID of the camera
         :return CameraManager: The camera manager
-        :raises RequestError: If the camera is not found or you cannot access it. See reason for more info
+        :raises RequestError: If the camera is not found, or you cannot access it. See reason for more info
         """
         raise NotImplementedError("Not Implemented")

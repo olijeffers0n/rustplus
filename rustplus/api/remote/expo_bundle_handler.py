@@ -7,7 +7,6 @@ from datetime import datetime
 class MagicValueGrabber:
     @staticmethod
     def get_magic_value() -> int:
-
         try:
             data = requests.get(
                 "https://exp.host/@facepunch/RustCompanion",

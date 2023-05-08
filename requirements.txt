@@ -1,4 +1,4 @@
-websocket_client
+websockets
 Pillow
 asyncio
 rustPlusPushReceiver==0.4.1

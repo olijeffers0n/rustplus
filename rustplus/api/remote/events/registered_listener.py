@@ -1,5 +1,8 @@
+from typing import Union
+
+
 class RegisteredListener:
-    def __init__(self, listener_id: str, data) -> None:
+    def __init__(self, listener_id: Union[str, int], data) -> None:
         self.listener_id = str(listener_id)
         self.data = data
 
@@ -10,7 +13,6 @@ class RegisteredListener:
 
     def __eq__(self, other) -> bool:
         if isinstance(other, RegisteredListener):
-
             coro = self.data
             if isinstance(self.data, tuple):
                 coro = self.data[0]
