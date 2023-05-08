@@ -1,6 +1,6 @@
 import math
 import time
-import threading
+import asyncio
 from typing import Dict
 
 from ...exceptions.exceptions import RateLimitError
@@ -37,7 +37,6 @@ class TokenBucket:
 
 
 class RateLimiter:
-
     SERVER_LIMIT = 50
     SERVER_REFRESH_AMOUNT = 15
 
@@ -51,7 +50,7 @@ class RateLimiter:
     def __init__(self) -> None:
         self.socket_buckets: Dict[ServerID, TokenBucket] = {}
         self.server_buckets: Dict[str, TokenBucket] = {}
-        self.lock = threading.Lock()
+        self.lock = asyncio.Lock()
 
     def add_socket(
         self,
@@ -69,66 +68,62 @@ class RateLimiter:
                 self.SERVER_LIMIT, self.SERVER_LIMIT, 1, self.SERVER_REFRESH_AMOUNT
             )
 
-    def can_consume(self, server_id: ServerID, amount: int = 1) -> bool:
+    async def can_consume(self, server_id: ServerID, amount: int = 1) -> bool:
         """
         Returns whether the user can consume the amount of tokens provided
         """
-        self.lock.acquire(blocking=True)
-        can_consume = True
+        async with self.lock:
+            can_consume = True
 
-        for bucket in [
-            self.socket_buckets.get(server_id),
-            self.server_buckets.get(server_id.get_server_string()),
-        ]:
-            bucket.refresh()
-            if not bucket.can_consume(amount):
-                can_consume = False
+            for bucket in [
+                self.socket_buckets.get(server_id),
+                self.server_buckets.get(server_id.get_server_string()),
+            ]:
+                bucket.refresh()
+                if not bucket.can_consume(amount):
+                    can_consume = False
 
-        self.lock.release()
         return can_consume
 
-    def consume(self, server_id: ServerID, amount: int = 1) -> None:
+    async def consume(self, server_id: ServerID, amount: int = 1) -> None:
         """
         Consumes an amount of tokens from the bucket. You should first check to see whether it is possible with can_consume
         """
-        self.lock.acquire(blocking=True)
-        for bucket in [
-            self.socket_buckets.get(server_id),
-            self.server_buckets.get(server_id.get_server_string()),
-        ]:
-            bucket.refresh()
-            if not bucket.can_consume(amount):
-                self.lock.release()
-                raise RateLimitError("Not Enough Tokens")
-            bucket.consume(amount)
-        self.lock.release()
+        async with self.lock:
+            for bucket in [
+                self.socket_buckets.get(server_id),
+                self.server_buckets.get(server_id.get_server_string()),
+            ]:
+                bucket.refresh()
+                if not bucket.can_consume(amount):
+                    self.lock.release()
+                    raise RateLimitError("Not Enough Tokens")
+                bucket.consume(amount)
 
-    def get_estimated_delay_time(self, server_id: ServerID, target_cost: int) -> float:
+    async def get_estimated_delay_time(self, server_id: ServerID, target_cost: int) -> float:
         """
         Returns how long until the amount of tokens needed will be available
         """
-        self.lock.acquire(blocking=True)
-        delay = 0
-        for bucket in [
-            self.socket_buckets.get(server_id),
-            self.server_buckets.get(server_id.get_server_string()),
-        ]:
-            val = (
-                math.ceil(
-                    (((target_cost - bucket.current) / bucket.refresh_per_second) + 0.1)
-                    * 100
+        async with self.lock:
+            delay = 0
+            for bucket in [
+                self.socket_buckets.get(server_id),
+                self.server_buckets.get(server_id.get_server_string()),
+            ]:
+                val = (
+                    math.ceil(
+                        (((target_cost - bucket.current) / bucket.refresh_per_second) + 0.1)
+                        * 100
+                    )
+                    / 100
                 )
-                / 100
-            )
-            if val > delay:
-                delay = val
-        self.lock.release()
+                if val > delay:
+                    delay = val
         return delay
 
-    def remove(self, server_id: ServerID) -> None:
+    async def remove(self, server_id: ServerID) -> None:
         """
         Removes the limiter
         """
-        self.lock.acquire(blocking=True)
-        del self.socket_buckets[server_id]
-        self.lock.release()
+        async with self.lock:
+            del self.socket_buckets[server_id]

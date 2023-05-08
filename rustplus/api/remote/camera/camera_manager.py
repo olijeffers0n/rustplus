@@ -1,10 +1,9 @@
 import time
-from typing import Iterable, Union, List, Coroutine, TypeVar, Set
+from typing import Iterable, Union, List, Coroutine, TypeVar, Set, Callable
 
 from PIL import Image
 
 from .camera_parser import Parser
-from ..events import EventLoopManager, EventHandler
 from ..rustplus_proto import (
     AppCameraInput,
     Vector2,
@@ -31,31 +30,29 @@ class CameraManager:
             self._cam_info_message.width, self._cam_info_message.height
         )
         self.time_since_last_subscribe: float = time.time()
-        self.frame_callbacks: Set[Coroutine] = set()
+        self.frame_callbacks: Set[Callable[[Image.Image], Coroutine]] = set()
 
-    def add_packet(self, packet) -> None:
+    async def add_packet(self, packet) -> None:
         self._last_packets.add(packet)
 
         if len(self.frame_callbacks) == 0:
             return
 
-        frame = self._create_frame()
+        frame = await self._create_frame()
 
         for callback in self.frame_callbacks:
-            EventHandler.schedule_event(
-                EventLoopManager.get_loop(self.rust_socket.server_id),
-                callback,
-                frame,
-            )
+            await callback(frame)
 
-    def on_frame_received(self, coro: Coroutine) -> Coroutine:
+    def on_frame_received(
+        self, coro: Callable[[Image.Image], Coroutine]
+    ) -> Callable[[Image.Image], Coroutine]:
         self.frame_callbacks.add(coro)
         return coro
 
     def has_frame_data(self) -> bool:
         return self._last_packets is not None and len(self._last_packets) > 0
 
-    def _create_frame(
+    async def _create_frame(
         self,
         render_entities: bool = True,
         entity_render_distance: float = float("inf"),
@@ -96,7 +93,7 @@ class CameraManager:
         entity_render_distance: float = float("inf"),
         max_entity_amount: int = float("inf"),
     ) -> Union[Image.Image, None]:
-        return self._create_frame(
+        return await self._create_frame(
             render_entities, entity_render_distance, max_entity_amount
         )
 
@@ -115,7 +112,6 @@ class CameraManager:
     async def send_combined_movement(
         self, movements: Iterable[int] = None, joystick_vector: Vector = None
     ) -> None:
-
         if joystick_vector is None:
             joystick_vector = Vector()
 
@@ -139,7 +135,7 @@ class CameraManager:
 
         async with self.rust_socket.lock:
             await self.rust_socket.remote.send_message(app_request)
-            self.rust_socket.remote.ignored_responses.append(app_request.seq)
+            await self.rust_socket.remote.add_ignored_response(app_request.seq)
 
     async def exit_camera(self) -> None:
         await self.rust_socket._handle_ratelimit()
@@ -149,7 +145,7 @@ class CameraManager:
 
         async with self.rust_socket.lock:
             await self.rust_socket.remote.send_message(app_request)
-            self.rust_socket.remote.ignored_responses.append(app_request.seq)
+            await self.rust_socket.remote.add_ignored_response(app_request.seq)
 
         self._open = False
         self._last_packets.clear()

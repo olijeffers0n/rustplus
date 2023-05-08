@@ -3,18 +3,19 @@ import base64
 import logging
 import time
 from datetime import datetime
-from threading import Thread
+from typing import Optional, Union
 import betterproto
-from typing import Optional, TypeVar
-import websocket
+from asyncio import Task
+from websockets.client import connect
+from websockets.legacy.client import WebSocketClientProtocol
 
 from .camera.structures import RayPacket
-from .events import EventLoopManager
 from .rustplus_proto import AppMessage, AppRequest
+from .events import EventHandler
 from ..structures import RustChatMessage
 from ...exceptions import ClientNotConnectedError
 from ...conversation import Conversation
-from ...utils import ServerID
+from ...utils import ServerID, YieldingEvent
 
 CONNECTED = 1
 PENDING_CONNECTION = 2
@@ -22,23 +23,20 @@ CLOSING = 4
 CLOSED = 3
 
 
-RMI = TypeVar("RMI", bound="RustRemoteInterface")
-
-
-class RustWebsocket(websocket.WebSocket):
+class RustWebsocket:
     def __init__(
         self,
         server_id: ServerID,
-        remote: RMI,
+        remote,
         use_proxy,
         magic_value,
         use_test_server,
         on_failure,
         delay,
     ):
-
+        self.connection: Union[WebSocketClientProtocol, None] = None
+        self.task: Union[Task, None] = None
         self.server_id = server_id
-        self.thread: Thread = None
         self.connection_status = CLOSED
         self.use_proxy = use_proxy
         self.remote = remote
@@ -50,20 +48,15 @@ class RustWebsocket(websocket.WebSocket):
         self.on_failure = on_failure
         self.delay = delay
 
-        super().__init__()
-
     async def connect(
         self, retries=float("inf"), ignore_open_value: bool = False
     ) -> None:
-
         if (
             not self.connection_status == CONNECTED or ignore_open_value
         ) and not self.remote.is_pending():
-
             attempts = 0
 
             while True:
-
                 if attempts >= retries:
                     raise ConnectionAbortedError("Reached Retry Limit")
 
@@ -84,11 +77,10 @@ class RustWebsocket(websocket.WebSocket):
                         )
                     )
                     address += f"?v={str(self.magic_value)}"
-                    super().connect(address)
+                    self.connection = await connect(address, close_timeout=0)
                     self.connected_time = time.time()
                     break
                 except Exception as exception:
-
                     print_error = True
 
                     if not isinstance(exception, KeyboardInterrupt):
@@ -117,16 +109,16 @@ class RustWebsocket(websocket.WebSocket):
             self.connection_status = CONNECTED
 
         if not ignore_open_value:
-            self.thread = Thread(
-                target=self.run, name="[RustPlus.py] WebsocketThread", daemon=True
+            self.task = asyncio.create_task(
+                self.run(), name="[RustPlus.py] Websocket Polling Task"
             )
-            self.thread.start()
 
-    def close(self) -> None:
-
+    async def close(self) -> None:
         self.connection_status = CLOSING
-        self.shutdown()
-        # super().close()
+        await self.connection.close()
+        self.connection = None
+        self.task.cancel()
+        self.task = None
         self.connection_status = CLOSED
 
     async def send_message(self, message: AppRequest) -> None:
@@ -139,53 +131,46 @@ class RustWebsocket(websocket.WebSocket):
 
         try:
             if self.use_test_server:
-                self.send(base64.b64encode(bytes(message)).decode("utf-8"))
+                await self.connection.send(
+                    base64.b64encode(bytes(message)).decode("utf-8")
+                )
             else:
-                self.send_binary(bytes(message))
-            self.remote.pending_for_response[message.seq] = message
+                await self.connection.send(bytes(message))
         except Exception:
+            self.logger.exception("An exception occurred whilst sending a message")
+
             while self.remote.is_pending():
                 await asyncio.sleep(0.5)
-            return await self.remote.send_message(message)
+            return await self.send_message(message)
 
-    def run(self) -> None:
-
+    async def run(self) -> None:
         while self.connection_status == CONNECTED:
             try:
-                data = self.recv()
+                data = await self.connection.recv()
 
-                self.remote.event_handler.run_proto_event(data, self.server_id)
+                await EventHandler.run_proto_event(data, self.server_id)
 
                 app_message = AppMessage()
-                if self.use_test_server:
-                    app_message.parse(base64.b64decode(data))
-                else:
-                    app_message.parse(data)
+                app_message.parse(
+                    base64.b64decode(data) if self.use_test_server else data
+                )
 
             except Exception:
                 if self.connection_status == CONNECTED:
                     self.logger.warning(
                         f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} [RustPlus.py] Connection interrupted, Retrying"
                     )
-                    asyncio.run_coroutine_threadsafe(
-                        self.connect(ignore_open_value=True),
-                        EventLoopManager.get_loop(self.server_id),
-                    ).result()
+                    await self.connect(ignore_open_value=True)
+
                     continue
                 return
 
             try:
-                del self.remote.pending_for_response[app_message.response.seq]
-            except KeyError:
-                pass
+                await self.handle_message(app_message)
+            except Exception:
+                self.logger.exception("An Error occurred whilst handling the event")
 
-            try:
-                self.handle_message(app_message)
-            except Exception as e:
-                self.logger.error(e)
-
-    def handle_message(self, app_message: AppMessage) -> None:
-
+    async def handle_message(self, app_message: AppMessage) -> None:
         if app_message.response.seq in self.remote.ignored_responses:
             self.remote.ignored_responses.remove(app_message.response.seq)
             return
@@ -198,13 +183,12 @@ class RustWebsocket(websocket.WebSocket):
             # This means it is a command
 
             message = RustChatMessage(app_message.broadcast.team_message.message)
-
-            self.remote.command_handler.run_command(message, prefix)
+            await self.remote.command_handler.run_command(message, prefix)
 
         if self.is_entity_broadcast(app_message):
             # This means that an entity has changed state
 
-            self.remote.event_handler.run_entity_event(
+            await EventHandler.run_entity_event(
                 app_message.broadcast.entity_changed.entity_id,
                 app_message,
                 self.server_id,
@@ -212,13 +196,13 @@ class RustWebsocket(websocket.WebSocket):
 
         elif self.is_camera_broadcast(app_message):
             if self.remote.camera_manager is not None:
-                self.remote.camera_manager.add_packet(
+                await self.remote.camera_manager.add_packet(
                     RayPacket(app_message.broadcast.camera_rays)
                 )
 
         elif self.is_team_broadcast(app_message):
             # This means that the team of the current player has changed
-            self.remote.event_handler.run_team_event(app_message, self.server_id)
+            await EventHandler.run_team_event(app_message, self.server_id)
 
         elif self.is_message(app_message):
             # This means that a message has been sent to the team chat
@@ -234,36 +218,33 @@ class RustWebsocket(websocket.WebSocket):
                     )
 
                     conversation.get_answers().append(message)
-                    conversation.run_coro(
-                        conversation.get_current_prompt().on_response, args=[message]
-                    )
+                    await conversation.get_current_prompt().on_response(message)
 
                     if conversation.has_next():
                         conversation.increment_prompt()
                         prompt = conversation.get_current_prompt()
-                        prompt_string = conversation.run_coro(prompt.prompt, args=[])
-                        conversation.run_coro(
-                            conversation.send_prompt, args=[prompt_string]
-                        )
+                        prompt_string = await prompt.prompt()
+                        await conversation.send_prompt(prompt_string)
+
                     else:
                         prompt = conversation.get_current_prompt()
-                        prompt_string = conversation.run_coro(prompt.on_finish, args=[])
+                        prompt_string = await prompt.on_finish()
                         if prompt_string != "":
-                            conversation.run_coro(
-                                conversation.send_prompt, args=[prompt_string]
-                            )
+                            await conversation.send_prompt(prompt_string)
                         self.remote.conversation_factory.abort_conversation(steam_id)
                 else:
                     self.outgoing_conversation_messages.remove(message)
 
                 # Conversation API end
 
-            self.remote.event_handler.run_chat_event(app_message, self.server_id)
+            await EventHandler.run_chat_event(app_message, self.server_id)
 
         else:
             # This means that it wasn't sent by the server and is a message from the server in response to an action
-
-            self.remote.responses[app_message.response.seq] = app_message
+            event: YieldingEvent = self.remote.pending_response_events[
+                app_message.response.seq
+            ]
+            event.set_with_value(app_message)
 
     def get_prefix(self, message: str) -> Optional[str]:
         if self.remote.use_commands:
