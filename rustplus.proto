@@ -414,6 +414,7 @@ message AppCameraRays {
 	required bytes rayData = 3;
 	required float distance = 4;
 	repeated AppCameraRays.Entity entities = 5;
+	required float timeOfDay = 6;
 
 	enum EntityType {
 		Tree = 1;

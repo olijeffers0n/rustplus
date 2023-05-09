@@ -30,5 +30,5 @@ setup(
     include_package_data=True,
     long_description_content_type='text/markdown',
     install_requires=requirements,
-    python_requires='>=3.6.0',
+    python_requires='>=3.8.0',
 )

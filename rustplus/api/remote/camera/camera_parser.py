@@ -367,7 +367,7 @@ class Parser:
         colour = (
             (PLAYER_COLOUR if not entity.name.isdigit() else SCIENTIST_COLOUR)
             if entity.type == 2
-            else MathUtils.get_slightly_random_colour(TREE_COLOUR, entity.entity_id)
+            else MathUtils.get_slightly_random_colour(TREE_COLOUR, entity.position)
         )
 
         MathUtils.set_polygon_with_depth(
@@ -658,17 +658,23 @@ class MathUtils:
         return vertices
 
     @staticmethod
-    def get_slightly_random_colour(colour: str, entity_id: int) -> str:
+    def get_slightly_random_colour(colour: str, entity_pos: Vector3) -> str:
         """
         Returns a slightly randomised version of the colour passed in
         Must be the same colour for the same entity id
         """
 
-        random.seed(entity_id)
         r, g, b = int(colour[1:3], 16), int(colour[3:5], 16), int(colour[5:7], 16)
-        r = int(r * (1 + random.uniform(-0.1, 0.1)))
-        g = int(g * (1 + random.uniform(-0.1, 0.1)))
-        b = int(b * (1 + random.uniform(-0.1, 0.1)))
+
+        # Create an algorithm will slightly vary the colour based on the distance from the origin
+        # This is to make it easier to distinguish between entities
+
+        distance_squared = entity_pos.x**2 + entity_pos.y**2 + 2 * entity_pos.z**2
+
+        r += int(distance_squared * 0.0003) % 10
+        g += int(distance_squared * 0.0003) % 10
+        b += int(distance_squared * 0.0003) % 10
+
         return f"#{r}{g}{b}"
 
     @staticmethod

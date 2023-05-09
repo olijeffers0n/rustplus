@@ -482,6 +482,7 @@ class AppCameraRays(betterproto.Message):
     ray_data: bytes = betterproto.bytes_field(3)
     distance: float = betterproto.float_field(4)
     entities: List["AppCameraRaysEntity"] = betterproto.message_field(5)
+    time_of_day: float = betterproto.float_field(6)
 
 
 @dataclass
