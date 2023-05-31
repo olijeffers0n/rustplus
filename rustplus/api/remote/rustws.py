@@ -168,7 +168,7 @@ class RustWebsocket:
             try:
                 await self.handle_message(app_message)
             except Exception:
-                self.logger.exception("An Error occurred whilst handling the event")
+                self.logger.exception("An Error occurred whilst handling the message from the server")
 
     async def handle_message(self, app_message: AppMessage) -> None:
         if app_message.response.seq in self.remote.ignored_responses:

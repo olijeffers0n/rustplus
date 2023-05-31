@@ -3,6 +3,8 @@ import logging
 from asyncio import Future
 from typing import Union, Dict
 
+import betterproto
+
 from .camera.camera_manager import CameraManager
 from .events import EventLoopManager, EntityEvent, RegisteredListener
 from .rustplus_proto import AppRequest, AppMessage, AppEmpty, AppCameraSubscribe
@@ -173,7 +175,7 @@ class RustRemote:
             await remote.api._handle_ratelimit()
 
             app_request: AppRequest = remote.api._generate_protobuf()
-            app_request.entityId = eid
+            app_request.entity_id = eid
             app_request.get_entity_info = AppEmpty()
             app_request.get_entity_info._serialized_on_wire = True
 
@@ -182,16 +184,16 @@ class RustRemote:
             return await remote.get_response(app_request.seq, app_request, False)
 
         def entity_event_callback(future_inner: Future) -> None:
-            entity_info = future_inner.result()
+            entity_info: AppMessage = future_inner.result()
 
-            if entity_info.response.HasField("error"):
+            if betterproto.serialized_on_wire(entity_info.response.error):
                 raise SmartDeviceRegistrationError(
                     f"Entity: '{entity_id}' has not been found"
                 )
 
             EntityEvent.handlers.register(
                 RegisteredListener(
-                    entity_id, (coroutine, entity_info.response.entityInfo.type)
+                    entity_id, (coroutine, entity_info.response.entity_info.type)
                 ),
                 self.server_id,
             )
