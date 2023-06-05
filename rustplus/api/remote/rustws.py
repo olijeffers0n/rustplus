@@ -77,7 +77,7 @@ class RustWebsocket:
                         )
                     )
                     address += f"?v={str(self.magic_value)}"
-                    self.connection = await connect(address, close_timeout=0)
+                    self.connection = await connect(address, close_timeout=0, ping_interval=None)
                     self.connected_time = time.time()
                     break
                 except Exception as exception:
@@ -155,9 +155,10 @@ class RustWebsocket:
                     base64.b64decode(data) if self.use_test_server else data
                 )
 
-            except Exception:
+            except Exception as e:
                 if self.connection_status == CONNECTED:
-                    self.logger.warning(
+                    print(e)
+                    self.logger.exception(
                         f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} [RustPlus.py] Connection interrupted, Retrying"
                     )
                     await self.connect(ignore_open_value=True)

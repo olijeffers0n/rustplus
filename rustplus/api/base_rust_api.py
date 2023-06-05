@@ -273,6 +273,9 @@ class BaseRustSocket:
         if isinstance(coro, RegisteredListener):
             coro = coro.get_coro()
 
+        if self.remote.command_handler is None:
+            raise CommandsNotEnabledError("Not enabled")
+
         if asyncio.iscoroutinefunction(coro):
             cmd_data = CommandData(
                 coro,
