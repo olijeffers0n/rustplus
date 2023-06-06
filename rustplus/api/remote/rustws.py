@@ -85,7 +85,10 @@ class RustWebsocket:
                     if asyncio.iscoroutinefunction(self.on_success):
                         await self.on_success()
                     else:
-                        self.on_success()
+                        try:
+                            self.on_success()
+                        except TypeError:
+                            pass
 
                     break
                 except Exception as exception:
