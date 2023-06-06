@@ -82,15 +82,18 @@ class RustWebsocket:
                     self.connection = await connect(address, close_timeout=0, ping_interval=None)
                     self.connected_time = time.time()
 
-                    if asyncio.iscoroutinefunction(self.on_success):
-                        await self.on_success()
-                    else:
-                        try:
-                            self.on_success()
-                        except TypeError:
-                            pass
+                    try:
+                        if self.on_success is not None:
+                            if asyncio.iscoroutinefunction(self.on_success):
+                                await self.on_success()
+                            else:
+                                self.on_success()
+
+                    except Exception as e:
+                        self.logger.warning(e)
 
                     break
+
                 except Exception as exception:
                     print_error = True
 
