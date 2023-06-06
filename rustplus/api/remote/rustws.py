@@ -32,6 +32,7 @@ class RustWebsocket:
         magic_value,
         use_test_server,
         on_failure,
+        on_success,
         delay,
     ):
         self.connection: Union[WebSocketClientProtocol, None] = None
@@ -46,6 +47,7 @@ class RustWebsocket:
         self.use_test_server = use_test_server
         self.outgoing_conversation_messages = []
         self.on_failure = on_failure
+        self.on_success = on_success
         self.delay = delay
 
     async def connect(
@@ -79,6 +81,12 @@ class RustWebsocket:
                     address += f"?v={str(self.magic_value)}"
                     self.connection = await connect(address, close_timeout=0, ping_interval=None)
                     self.connected_time = time.time()
+
+                    if asyncio.iscoroutinefunction(self.on_success):
+                        await self.on_success()
+                    else:
+                        self.on_success()
+
                     break
                 except Exception as exception:
                     print_error = True
