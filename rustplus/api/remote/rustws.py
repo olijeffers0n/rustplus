@@ -82,16 +82,14 @@ class RustWebsocket:
                     self.connection = await connect(address, close_timeout=0, ping_interval=None)
                     self.connected_time = time.time()
 
-                    try:
-                        if self.on_success is not None:
+                    if self.on_success is not None:
+                        try:
                             if asyncio.iscoroutinefunction(self.on_success):
                                 await self.on_success()
                             else:
                                 self.on_success()
-
-                    except Exception as e:
-                        self.logger.warning(e)
-
+                        except Exception as e:
+                            self.logger.warning(e)
                     break
 
                 except Exception as exception:
@@ -99,8 +97,8 @@ class RustWebsocket:
 
                     if not isinstance(exception, KeyboardInterrupt):
                         # Run the failure callback
-                        try:
-                            if self.on_failure is not None:
+                        if self.on_failure is not None:
+                            try:
                                 if asyncio.iscoroutinefunction(self.on_failure):
                                     val = await self.on_failure()
                                 else:
@@ -109,8 +107,8 @@ class RustWebsocket:
                                 if val is not None:
                                     print_error = val
 
-                        except Exception as e:
-                            self.logger.warning(e)
+                            except Exception as e:
+                                self.logger.warning(e)
 
                     if print_error:
                         self.logger.warning(
