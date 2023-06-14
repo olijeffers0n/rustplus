@@ -32,6 +32,7 @@ class RustWebsocket:
         magic_value,
         use_test_server,
         on_failure,
+        on_success,
         delay,
     ):
         self.connection: Union[WebSocketClientProtocol, None] = None
@@ -46,6 +47,7 @@ class RustWebsocket:
         self.use_test_server = use_test_server
         self.outgoing_conversation_messages = []
         self.on_failure = on_failure
+        self.on_success = on_success
         self.delay = delay
 
     async def connect(
@@ -79,14 +81,24 @@ class RustWebsocket:
                     address += f"?v={str(self.magic_value)}"
                     self.connection = await connect(address, close_timeout=0, ping_interval=None)
                     self.connected_time = time.time()
+
+                    if self.on_success is not None:
+                        try:
+                            if asyncio.iscoroutinefunction(self.on_success):
+                                await self.on_success()
+                            else:
+                                self.on_success()
+                        except Exception as e:
+                            self.logger.warning(e)
                     break
+
                 except Exception as exception:
                     print_error = True
 
                     if not isinstance(exception, KeyboardInterrupt):
                         # Run the failure callback
-                        try:
-                            if self.on_failure is not None:
+                        if self.on_failure is not None:
+                            try:
                                 if asyncio.iscoroutinefunction(self.on_failure):
                                     val = await self.on_failure()
                                 else:
@@ -95,8 +107,8 @@ class RustWebsocket:
                                 if val is not None:
                                     print_error = val
 
-                        except Exception as e:
-                            self.logger.warning(e)
+                            except Exception as e:
+                                self.logger.warning(e)
 
                     if print_error:
                         self.logger.warning(
