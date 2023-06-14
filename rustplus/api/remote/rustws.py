@@ -3,9 +3,9 @@ import base64
 import logging
 import time
 from datetime import datetime
-from typing import Optional, Union
+from typing import Optional, Union, Coroutine
 import betterproto
-from asyncio import Task
+from asyncio import Task, AbstractEventLoop
 from websockets.client import connect
 from websockets.legacy.client import WebSocketClientProtocol
 
@@ -148,7 +148,7 @@ class RustWebsocket:
             try:
                 data = await self.connection.recv()
 
-                await EventHandler.run_proto_event(data, self.server_id)
+                await self.run_coroutine_non_blocking(EventHandler.run_proto_event(data, self.server_id))
 
                 app_message = AppMessage()
                 app_message.parse(
@@ -184,26 +184,26 @@ class RustWebsocket:
             # This means it is a command
 
             message = RustChatMessage(app_message.broadcast.team_message.message)
-            await self.remote.command_handler.run_command(message, prefix)
+            await self.run_coroutine_non_blocking(self.remote.command_handler.run_command(message, prefix))
 
         if self.is_entity_broadcast(app_message):
             # This means that an entity has changed state
 
-            await EventHandler.run_entity_event(
+            await self.run_coroutine_non_blocking(EventHandler.run_entity_event(
                 app_message.broadcast.entity_changed.entity_id,
                 app_message,
                 self.server_id,
-            )
+            ))
 
         elif self.is_camera_broadcast(app_message):
             if self.remote.camera_manager is not None:
-                await self.remote.camera_manager.add_packet(
+                await self.run_coroutine_non_blocking(self.remote.camera_manager.add_packet(
                     RayPacket(app_message.broadcast.camera_rays)
-                )
+                ))
 
         elif self.is_team_broadcast(app_message):
             # This means that the team of the current player has changed
-            await EventHandler.run_team_event(app_message, self.server_id)
+            await self.run_coroutine_non_blocking(EventHandler.run_team_event(app_message, self.server_id))
 
         elif self.is_message(app_message):
             # This means that a message has been sent to the team chat
@@ -219,26 +219,26 @@ class RustWebsocket:
                     )
 
                     conversation.get_answers().append(message)
-                    await conversation.get_current_prompt().on_response(message)
+                    await self.run_coroutine_non_blocking(conversation.get_current_prompt().on_response(message))
 
                     if conversation.has_next():
                         conversation.increment_prompt()
                         prompt = conversation.get_current_prompt()
                         prompt_string = await prompt.prompt()
-                        await conversation.send_prompt(prompt_string)
+                        await self.run_coroutine_non_blocking(conversation.send_prompt(prompt_string))
 
                     else:
                         prompt = conversation.get_current_prompt()
                         prompt_string = await prompt.on_finish()
                         if prompt_string != "":
-                            await conversation.send_prompt(prompt_string)
+                            await self.run_coroutine_non_blocking(conversation.send_prompt(prompt_string))
                         self.remote.conversation_factory.abort_conversation(steam_id)
                 else:
                     self.outgoing_conversation_messages.remove(message)
 
                 # Conversation API end
 
-            await EventHandler.run_chat_event(app_message, self.server_id)
+            await self.run_coroutine_non_blocking(EventHandler.run_chat_event(app_message, self.server_id))
 
         else:
             # This means that it wasn't sent by the server and is a message from the server in response to an action
@@ -307,3 +307,8 @@ class RustWebsocket:
         Checks message for error
         """
         return message != ""
+
+    @staticmethod
+    async def run_coroutine_non_blocking(coroutine: Coroutine) -> None:
+        loop: AbstractEventLoop = asyncio.get_event_loop_policy().get_event_loop()
+        loop.create_task(coroutine)
