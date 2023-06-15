@@ -156,7 +156,9 @@ class RustRemote:
                     break
 
                 await asyncio.sleep(
-                    await self.ratelimiter.get_estimated_delay_time(self.server_id, cost)
+                    await self.ratelimiter.get_estimated_delay_time(
+                        self.server_id, cost
+                    )
                 )
 
             await self.send_message(app_request)

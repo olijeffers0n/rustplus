@@ -100,7 +100,9 @@ class RateLimiter:
                     raise RateLimitError("Not Enough Tokens")
                 bucket.consume(amount)
 
-    async def get_estimated_delay_time(self, server_id: ServerID, target_cost: int) -> float:
+    async def get_estimated_delay_time(
+        self, server_id: ServerID, target_cost: int
+    ) -> float:
         """
         Returns how long until the amount of tokens needed will be available
         """
@@ -112,7 +114,10 @@ class RateLimiter:
             ]:
                 val = (
                     math.ceil(
-                        (((target_cost - bucket.current) / bucket.refresh_per_second) + 0.1)
+                        (
+                            ((target_cost - bucket.current) / bucket.refresh_per_second)
+                            + 0.1
+                        )
                         * 100
                     )
                     / 100

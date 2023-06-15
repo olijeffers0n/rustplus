@@ -79,7 +79,9 @@ class RustWebsocket:
                         )
                     )
                     address += f"?v={str(self.magic_value)}"
-                    self.connection = await connect(address, close_timeout=0, ping_interval=None)
+                    self.connection = await connect(
+                        address, close_timeout=0, ping_interval=None
+                    )
                     self.connected_time = time.time()
 
                     if self.on_success is not None:
@@ -160,7 +162,10 @@ class RustWebsocket:
             try:
                 data = await self.connection.recv()
 
-                await self.run_coroutine_non_blocking(EventHandler.run_proto_event(data, self.server_id))
+                # See below for context on why this is needed
+                await self.run_coroutine_non_blocking(
+                    EventHandler.run_proto_event(data, self.server_id)
+                )
 
                 app_message = AppMessage()
                 app_message.parse(
@@ -179,9 +184,15 @@ class RustWebsocket:
                 return
 
             try:
-                await self.handle_message(app_message)
+                # This creates an asyncio task rather than awaiting the coroutine directly.
+                # This fixes the bug where if you called a BaseRustSocket#get... from within a RegisteredListener or callback,
+                # It would hang the websocket. This is because the websocket event loop would be stuck on the callback rather than polling the socket.
+                # This way, we can schedule the execution of all logic for this message, but continue polling the WS
+                await self.run_coroutine_non_blocking(self.handle_message(app_message))
             except Exception:
-                self.logger.exception("An Error occurred whilst handling the message from the server")
+                self.logger.exception(
+                    "An Error occurred whilst handling the message from the server"
+                )
 
     async def handle_message(self, app_message: AppMessage) -> None:
         if app_message.response.seq in self.remote.ignored_responses:
@@ -196,26 +207,26 @@ class RustWebsocket:
             # This means it is a command
 
             message = RustChatMessage(app_message.broadcast.team_message.message)
-            await self.run_coroutine_non_blocking(self.remote.command_handler.run_command(message, prefix))
+            await self.remote.command_handler.run_command(message, prefix)
 
         if self.is_entity_broadcast(app_message):
             # This means that an entity has changed state
 
-            await self.run_coroutine_non_blocking(EventHandler.run_entity_event(
+            await EventHandler.run_entity_event(
                 app_message.broadcast.entity_changed.entity_id,
                 app_message,
                 self.server_id,
-            ))
+            )
 
         elif self.is_camera_broadcast(app_message):
             if self.remote.camera_manager is not None:
-                await self.run_coroutine_non_blocking(self.remote.camera_manager.add_packet(
+                await self.remote.camera_manager.add_packet(
                     RayPacket(app_message.broadcast.camera_rays)
-                ))
+                )
 
         elif self.is_team_broadcast(app_message):
             # This means that the team of the current player has changed
-            await self.run_coroutine_non_blocking(EventHandler.run_team_event(app_message, self.server_id))
+            await EventHandler.run_team_event(app_message, self.server_id)
 
         elif self.is_message(app_message):
             # This means that a message has been sent to the team chat
@@ -231,26 +242,26 @@ class RustWebsocket:
                     )
 
                     conversation.get_answers().append(message)
-                    await self.run_coroutine_non_blocking(conversation.get_current_prompt().on_response(message))
+                    await conversation.get_current_prompt().on_response(message)
 
                     if conversation.has_next():
                         conversation.increment_prompt()
                         prompt = conversation.get_current_prompt()
                         prompt_string = await prompt.prompt()
-                        await self.run_coroutine_non_blocking(conversation.send_prompt(prompt_string))
+                        await conversation.send_prompt(prompt_string)
 
                     else:
                         prompt = conversation.get_current_prompt()
                         prompt_string = await prompt.on_finish()
                         if prompt_string != "":
-                            await self.run_coroutine_non_blocking(conversation.send_prompt(prompt_string))
+                            await conversation.send_prompt(prompt_string)
                         self.remote.conversation_factory.abort_conversation(steam_id)
                 else:
                     self.outgoing_conversation_messages.remove(message)
 
                 # Conversation API end
 
-            await self.run_coroutine_non_blocking(EventHandler.run_chat_event(app_message, self.server_id))
+            await EventHandler.run_chat_event(app_message, self.server_id)
 
         else:
             # This means that it wasn't sent by the server and is a message from the server in response to an action
@@ -321,6 +332,6 @@ class RustWebsocket:
         return message != ""
 
     @staticmethod
-    async def run_coroutine_non_blocking(coroutine: Coroutine) -> None:
+    async def run_coroutine_non_blocking(coroutine: Coroutine) -> Task:
         loop: AbstractEventLoop = asyncio.get_event_loop_policy().get_event_loop()
-        loop.create_task(coroutine)
+        return loop.create_task(coroutine)

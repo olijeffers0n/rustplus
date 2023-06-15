@@ -87,7 +87,9 @@ class BaseRustSocket:
                 raise RateLimitError("Out of tokens")
 
             await asyncio.sleep(
-                await self.remote.ratelimiter.get_estimated_delay_time(self.server_id, amount)
+                await self.remote.ratelimiter.get_estimated_delay_time(
+                    self.server_id, amount
+                )
             )
 
         self.heartbeat.reset_rhythm()
@@ -108,7 +110,11 @@ class BaseRustSocket:
         return app_request
 
     async def connect(
-        self, retries: int = float("inf"), delay: int = 20, on_failure=None, on_success=None
+        self,
+        retries: int = float("inf"),
+        delay: int = 20,
+        on_failure=None,
+        on_success=None,
     ) -> None:
         """
         Attempts to open a connection to the rust game server specified in the constructor
@@ -144,7 +150,7 @@ class BaseRustSocket:
                     retries=retries,
                     delay=delay,
                     on_failure=on_failure,
-                    on_success=on_success
+                    on_success=on_success,
                 )
                 await self.heartbeat.start_beat()
         except ConnectionRefusedError:
