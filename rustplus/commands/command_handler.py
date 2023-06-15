@@ -44,7 +44,7 @@ class CommandHandler:
                 # or if it matches the callable function
 
                 if command in data.aliases or data.callable_func(command):
-                    data.coro(
+                    await data.coro(
                         Command(
                             message.name,
                             message.steam_id,
