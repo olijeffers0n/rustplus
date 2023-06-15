@@ -1,6 +1,6 @@
 import asyncio
 import requests
-from typing import List
+from typing import List, Union
 from PIL import Image
 from io import BytesIO
 from datetime import datetime
@@ -84,7 +84,7 @@ class RustSocket(BaseRustSocket):
 
         return format_time(response)
 
-    async def send_team_message(self, message: str) -> None:
+    async def send_team_message(self, message: Union[str, object]) -> None:
         await self._handle_ratelimit(2)
 
         app_send_message = AppSendMessage()
