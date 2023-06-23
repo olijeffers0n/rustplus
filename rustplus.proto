@@ -236,6 +236,7 @@ message AppInfo {
 		optional string nexus = 13;
 		optional int32 nexusId = 14;
 		optional string nexusZone = 15;
+		optional bool camerasEnabled = 16;
 }
 
 message AppTime {
