@@ -742,6 +742,7 @@ item_ids = {
     "2126889441": "Santa Beard",
     "2133269020": "Red Berry Clone"
 }
+stack_to_id = {}
 
 
 def translate_id_to_stack(value_id: Union[str, int]) -> str:
@@ -754,11 +755,14 @@ def translate_id_to_stack(value_id: Union[str, int]) -> str:
 
 def translate_stack_to_id(item: str) -> int:
     global item_ids
-    stack_to_id = {}
-    for i in item_ids: stack_to_id[item_ids[i].lower()] = i
-    print(stack_to_id)
-    try: return stack_to_id[item.lower()]
-    except KeyError: return "Not Found"
+    global stack_to_id
+    if stack_to_id == {}:
+        for i in item_ids:
+            stack_to_id[item_ids[i].lower()] = i
+    try:
+        return stack_to_id[item.lower()]
+    except KeyError:
+        return "Not Found"
 
 
 def grab_items(reversed = False) -> None:
@@ -778,7 +782,7 @@ def grab_items(reversed = False) -> None:
         if item[1] == "" or item[2] == "N/A": continue
 
         if not reversed: data[int(item[2])] = item[0]
-        else: data[str(item[0])] == int(item[2])
+        else: data[str(item[0])] = int(item[2])
 
     with open("rust_items.json", "w") as output:
         json.dump(data, output, indent=4, sort_keys=True)
