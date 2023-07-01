@@ -306,19 +306,19 @@ class RustWebsocket:
         """
         Gets the cost of an AppRequest
         """
-        costs = {
-            app_request.get_time: 1,
-            app_request.send_team_message: 2,
-            app_request.get_info: 1,
-            app_request.get_team_chat: 1,
-            app_request.get_team_info: 1,
-            app_request.get_map_markers: 1,
-            app_request.get_map: 5,
-            app_request.set_entity_value: 1,
-            app_request.get_entity_info: 1,
-            app_request.promote_to_leader: 1,
-        }
-        for request, cost in costs.items():
+        costs = [
+            (app_request.get_time, 1),
+            (app_request.send_team_message, 2),
+            (app_request.get_info, 1),
+            (app_request.get_team_chat, 1),
+            (app_request.get_team_info, 1),
+            (app_request.get_map_markers, 1),
+            (app_request.get_map, 5),
+            (app_request.set_entity_value, 1),
+            (app_request.get_entity_info, 1),
+            (app_request.promote_to_leader, 1),
+        ]
+        for request, cost in costs:
             if betterproto.serialized_on_wire(request):
                 return cost
 
