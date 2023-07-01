@@ -6,4 +6,4 @@ http-ece
 requests
 numpy
 scipy
-betterproto
+betterproto==2.0.0b6

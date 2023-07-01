@@ -1,27 +1,25 @@
-from typing import Union
+from typing import Union, Coroutine
 
 
 class RegisteredListener:
-    def __init__(self, listener_id: Union[str, int], data) -> None:
+    def __init__(self, listener_id: Union[str, int], coroutine: Coroutine, entity_type: int = None) -> None:
         self.listener_id = str(listener_id)
-        self.data = data
+        self._coroutine = coroutine
+        self._entity_type = entity_type
 
     def get_coro(self):
-        if isinstance(self.data, tuple):
-            return self.data[0]
-        return self.data
+        return self._coroutine
+
+    def get_entity_type(self):
+        return self._entity_type
 
     def __eq__(self, other) -> bool:
-        if isinstance(other, RegisteredListener):
-            coro = self.data
-            if isinstance(self.data, tuple):
-                coro = self.data[0]
+        if not isinstance(other, RegisteredListener):
+            return False
 
-            return self.listener_id == other.listener_id and coro == coro
-        return False
+        return self.listener_id == other.listener_id and \
+            self._coroutine == other.get_coro() and \
+            self._entity_type == other.get_entity_type()
 
     def __hash__(self):
-        coro = self.data
-        if isinstance(self.data, tuple):
-            coro = self.data[0]
-        return hash((self.listener_id, coro))
+        return hash((self.listener_id, self._coroutine, self._entity_type))

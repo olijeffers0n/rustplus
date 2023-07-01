@@ -159,8 +159,8 @@ def entity_type_to_string(id) -> str:
 
 def convert_xy_to_grid(
     coords: tuple, map_size: float, catch_out_of_bounds: bool = True
-) -> Tuple[int, int]:
-    grid_size = 146.3
+) -> Tuple[str, int]:
+    grid_size = 146.28571428571428
     grids = list(string.ascii_uppercase) + [
         f"A{letter}" for letter in list(string.ascii_uppercase)
     ]

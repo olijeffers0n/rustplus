@@ -180,7 +180,6 @@ class RustRemote:
             app_request: AppRequest = remote.api._generate_protobuf()
             app_request.entity_id = eid
             app_request.get_entity_info = AppEmpty()
-            app_request.get_entity_info._serialized_on_wire = True
 
             await remote.send_message(app_request)
 
@@ -196,7 +195,7 @@ class RustRemote:
 
             EntityEvent.handlers.register(
                 RegisteredListener(
-                    entity_id, (coroutine, entity_info.response.entity_info.type)
+                    entity_id, coroutine, entity_info.response.entity_info.type
                 ),
                 self.server_id,
             )

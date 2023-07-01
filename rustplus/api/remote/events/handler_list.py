@@ -28,6 +28,7 @@ class HandlerList:
 
 class EntityHandlerList(HandlerList):
     def __init__(self) -> None:
+        super().__init__()
         self._handlers: Dict[
             ServerID, Dict[str, Set[RegisteredListener]]
         ] = defaultdict(dict)

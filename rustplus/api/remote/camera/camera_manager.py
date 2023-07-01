@@ -1,5 +1,5 @@
 import time
-from typing import Iterable, Union, List, Coroutine, TypeVar, Set, Callable
+from typing import Iterable, Union, List, Coroutine, Set, Callable
 
 from PIL import Image
 
@@ -14,14 +14,12 @@ from ..rustplus_proto import (
 from ...structures import Vector
 from .structures import CameraInfo, Entity, LimitedQueue
 
-RS = TypeVar("RS", bound="RustSocket")
-
 
 class CameraManager:
     def __init__(
-        self, rust_socket: RS, cam_id: str, cam_info_message: AppCameraInfo
+        self, rust_socket, cam_id: str, cam_info_message: AppCameraInfo
     ) -> None:
-        self.rust_socket: RS = rust_socket
+        self.rust_socket = rust_socket
         self._cam_id: str = cam_id
         self._last_packets: LimitedQueue = LimitedQueue(6)
         self._cam_info_message: CameraInfo = CameraInfo(cam_info_message)
@@ -140,7 +138,6 @@ class CameraManager:
         await self.rust_socket._handle_ratelimit()
         app_request: AppRequest = self.rust_socket._generate_protobuf()
         app_request.camera_unsubscribe = AppEmpty()
-        app_request.camera_unsubscribe._serialized_on_wire = True
 
         await self.rust_socket.remote.send_message(app_request)
         await self.rust_socket.remote.add_ignored_response(app_request.seq)

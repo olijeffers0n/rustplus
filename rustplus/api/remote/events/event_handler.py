@@ -19,25 +19,19 @@ class EventHandler:
             return
 
         for handler in handlers.copy():
-            coro, event_type = handler.data
-
-            await coro(EntityEvent(app_message, event_type))
+            await handler.get_coro()(EntityEvent(app_message, handler.get_entity_type()))
 
     @staticmethod
     async def run_team_event(app_message: AppMessage, server_id: ServerID) -> None:
         handlers: Set[RegisteredListener] = TeamEvent.handlers.get_handlers(server_id)
         for handler in handlers.copy():
-            coro = handler.data
-
-            await coro(TeamEvent(app_message))
+            await handler.get_coro()(TeamEvent(app_message))
 
     @staticmethod
     async def run_chat_event(app_message: AppMessage, server_id: ServerID) -> None:
         handlers: Set[RegisteredListener] = ChatEvent.handlers.get_handlers(server_id)
         for handler in handlers.copy():
-            coro = handler.data
-
-            await coro(ChatEvent(app_message))
+            await handler.get_coro()(ChatEvent(app_message))
 
     @staticmethod
     async def run_proto_event(byte_data: bytes, server_id: ServerID) -> None:
@@ -45,6 +39,4 @@ class EventHandler:
             server_id
         )
         for handler in handlers.copy():
-            coro = handler.data
-
-            await coro(ProtobufEvent(byte_data))
+            await handler.get_coro()(ProtobufEvent(byte_data))

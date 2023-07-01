@@ -182,7 +182,6 @@ class BaseRustSocket:
 
         app_request = self._generate_protobuf()
         app_request.get_time = AppEmpty()
-        app_request.get_time._serialized_on_wire = True
 
         await self.remote.add_ignored_response(app_request.seq)
 
@@ -445,6 +444,7 @@ class BaseRustSocket:
         while True:
             await asyncio.sleep(1)
 
+    @deprecated("Implement this yourself. This will be removed in thed future")
     def get_conversation_factory(self) -> ConversationFactory:
         """
         Gets the current ConversationFactory object
