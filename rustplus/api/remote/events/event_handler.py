@@ -19,7 +19,9 @@ class EventHandler:
             return
 
         for handler in handlers.copy():
-            await handler.get_coro()(EntityEvent(app_message, handler.get_entity_type()))
+            await handler.get_coro()(
+                EntityEvent(app_message, handler.get_entity_type())
+            )
 
     @staticmethod
     async def run_team_event(app_message: AppMessage, server_id: ServerID) -> None:

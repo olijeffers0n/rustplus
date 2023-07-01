@@ -740,7 +740,7 @@ item_ids = {
     "2106561762": "Decorative Tinsel",
     "2114754781": "Water Purifier",
     "2126889441": "Santa Beard",
-    "2133269020": "Red Berry Clone"
+    "2133269020": "Red Berry Clone",
 }
 stack_to_id = {}
 
@@ -765,7 +765,7 @@ def translate_stack_to_id(item: str) -> int:
         return "Not Found"
 
 
-def grab_items(reversed = False) -> None:
+def grab_items(reversed=False) -> None:
     data = {}
 
     for line in (
@@ -775,14 +775,18 @@ def grab_items(reversed = False) -> None:
         .content.decode()
         .splitlines(False)[2:]
     ):
-        if len(line) == 0: continue
+        if len(line) == 0:
+            continue
 
         item = line.split("|")[1:-1]
 
-        if item[1] == "" or item[2] == "N/A": continue
+        if item[1] == "" or item[2] == "N/A":
+            continue
 
-        if not reversed: data[int(item[2])] = item[0]
-        else: data[str(item[0])] = int(item[2])
+        if not reversed:
+            data[int(item[2])] = item[0]
+        else:
+            data[str(item[0])] = int(item[2])
 
     with open("rust_items.json", "w") as output:
         json.dump(data, output, indent=4, sort_keys=True)

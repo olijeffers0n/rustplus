@@ -5,10 +5,7 @@ import logging
 class MagicValueGrabber:
     @staticmethod
     def get_magic_value() -> int:
-
-        data = requests.get(
-            "https://companion-rust.facepunch.com/api/version"
-        )
+        data = requests.get("https://companion-rust.facepunch.com/api/version")
 
         if data.status_code == 200:
             data = data.json()
