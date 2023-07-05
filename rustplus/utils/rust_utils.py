@@ -183,7 +183,7 @@ def _get_grid_y(y, map_size):
 
 def _number_to_letters(num):
     power, mod = divmod(num, 26)
-    out = chr(64 + mod) if mod else (power, 'Z')
+    out = chr(64 + mod) if mod else (power, "Z")
     return _number_to_letters(power) + out if power else out
 
 
@@ -194,11 +194,12 @@ def _get_corrected_map_size(map_size):
 
 
 def _is_outside_grid_system(x, y, map_size, offset=0):
-    return x < -offset or x > (map_size + offset) or y < -offset or y > (map_size + offset)
+    return (
+        x < -offset or x > (map_size + offset) or y < -offset or y > (map_size + offset)
+    )
 
 
 class HackyBackwardsCompatCoordClass:
-
     def __init__(self, x, y):
         self.x = x
         self.y = y
