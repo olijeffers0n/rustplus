@@ -8,6 +8,7 @@ from ..api.remote.rustplus_proto import AppMessage
 from ..api.structures import RustTime
 
 icons_path = "rustplus.api.icons"
+GRID_DIAMETER = 146.28571428571428
 
 
 def format_time(protobuf: AppMessage) -> RustTime:
@@ -157,16 +158,76 @@ def entity_type_to_string(id) -> str:
         raise ValueError("Not Valid type")
 
 
+def _get_grid_x(x):
+    counter = 1
+    start_grid = 0
+    while start_grid < x + GRID_DIAMETER:
+        if start_grid <= x <= (start_grid + GRID_DIAMETER):
+            # We're at the correct grid!
+            return _number_to_letters(counter)
+
+        counter += 1
+        start_grid += GRID_DIAMETER
+
+
+def _get_grid_y(y, map_size):
+    counter = 1
+    number_of_grids = map_size // GRID_DIAMETER
+    start_grid = 0
+    while start_grid < y + GRID_DIAMETER:
+        if start_grid <= y <= (start_grid + GRID_DIAMETER):
+            return number_of_grids - counter
+        counter += 1
+        start_grid += GRID_DIAMETER
+
+
+def _number_to_letters(num):
+    power, mod = divmod(num, 26)
+    out = chr(64 + mod) if mod else (power, 'Z')
+    return _number_to_letters(power) + out if power else out
+
+
+def _get_corrected_map_size(map_size):
+    remainder = map_size % GRID_DIAMETER
+    offset = GRID_DIAMETER - remainder
+    return map_size - remainder if remainder < 120 else map_size + offset
+
+
+def _is_outside_grid_system(x, y, map_size, offset=0):
+    return x < -offset or x > (map_size + offset) or y < -offset or y > (map_size + offset)
+
+
+class HackyBackwardsCompatCoordClass:
+
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def __getitem__(self, item):
+        if item == 0:
+            return self.x
+        elif item == 1:
+            return self.y
+        else:
+            raise IndexError("Index out of range")
+
+    def __iter__(self):
+        yield self.x
+        yield self.y
+
+    def __repr__(self):
+        return f"{self.x}{self.y}"
+
+    def __str__(self):
+        return self.__repr__()
+
+
 def convert_xy_to_grid(
     coords: tuple, map_size: float, catch_out_of_bounds: bool = True
-) -> Tuple[str, int]:
-    grid_size = 146.28571428571428
-    grids = list(string.ascii_uppercase) + [
-        f"A{letter}" for letter in list(string.ascii_uppercase)
-    ]
+) -> HackyBackwardsCompatCoordClass:
+    corrected_map_size = _get_corrected_map_size(map_size)
 
-    if coords[0] > map_size or coords[0] < 0 or coords[1] > map_size or coords[1] < 0:
-        if catch_out_of_bounds:
-            raise ValueError("Out of bounds")
+    grid_pos_letters = _get_grid_x(coords[0])
+    grid_pos_number = str(int(_get_grid_y(coords[1], corrected_map_size)))
 
-    return grids[int(coords[0] // grid_size)], int((map_size - coords[1]) // grid_size)
+    return HackyBackwardsCompatCoordClass(grid_pos_letters, grid_pos_number)
