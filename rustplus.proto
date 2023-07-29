@@ -20,9 +20,9 @@ message Vector4 {
 }
 
 message Half3 {
-		optional float x = 1;
-		optional float y = 2;
-		optional float z = 3;
+		optional uint32 x = 1;
+		optional uint32 y = 2;
+		optional uint32 z = 3;
 }
 
 message Color {
