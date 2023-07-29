@@ -10,7 +10,7 @@ from .events import EventLoopManager, EntityEvent, RegisteredListener
 from .rustplus_proto import AppRequest, AppMessage, AppEmpty, AppCameraSubscribe
 from .rustws import RustWebsocket, CONNECTED, PENDING_CONNECTION
 from .ratelimiter import RateLimiter
-from .expo_bundle_handler import MagicValueGrabber
+from .rplus_version_handler import MagicValueGrabber
 from ...utils import ServerID, YieldingEvent
 from ...conversation import ConversationFactory
 from ...commands import CommandHandler
