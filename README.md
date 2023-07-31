@@ -14,17 +14,11 @@
     </div>
 </div>
 
-A lot of code and ideas have come from the JavaScript version of a wrapper, so I will credit it now:
-[RustPlus.js](https://github.com/liamcottle/rustplus.js)
-I have used his Protocol Buffer file for generating the necessary requests so chuck some support their way
-
-
 ## Installation:
 Install the package with:
 ```
 pip install rustplus
 ```
-It should also install all the dependencies, but if not you will have to install them yourself
 
 ## What can you do?
 - Get the Map
@@ -39,9 +33,11 @@ It should also install all the dependencies, but if not you will have to install
 # For information on all the above methods, see the [Wiki](https://rplus.ollieee.xyz)
 
 ### Support:
-If you need help, or you think that there is an issue feel free to open an issue. If you think you have made some improvements, open a PR! 
+If you need help, or you think that there is a problem feel free to open an issue. If you think you have made some improvements, open a PR! 
 
-I have tried to explain this a well as possible, but if you should need further clarification, join me on my discord server:
+Feel free to chuck some support to Liam at [RustPlus.js](https://github.com/liamcottle/rustplus.js) as he was the first to really crack this API
+
+You can also join me on my discord server:
 <div align="center">
     <a href = "https://discord.gg/nQqJe8qvP8">
         <img src="https://discordapp.com/api/guilds/872406750639321088/widget.png?style=banner2" alt="Discord">

@@ -200,7 +200,7 @@ class RustSocket(BaseRustSocket):
         if not self.use_test_server:
             image = image.crop((500, 500, game_map.height - 500, game_map.width - 500))
 
-        game_map = image.resize((map_size, map_size), Image.ANTIALIAS).convert("RGBA")
+        game_map = image.resize((map_size, map_size), Image.LANCZOS).convert("RGBA")
 
         if add_grid:
             grid = (
@@ -209,7 +209,7 @@ class RustSocket(BaseRustSocket):
                         f"https://files.rustmaps.com/grids/{map_size}.png", stream=True
                     ).raw
                 )
-                .resize((map_size, map_size), Image.ANTIALIAS)
+                .resize((map_size, map_size), Image.LANCZOS)
                 .convert("RGBA")
             )
 
@@ -277,7 +277,7 @@ class RustSocket(BaseRustSocket):
                         vending_machine,
                     )
 
-        return game_map.resize((2000, 2000), Image.ANTIALIAS)
+        return game_map.resize((2000, 2000), Image.LANCZOS)
 
     async def get_entity_info(self, eid: int = None) -> RustEntityInfo:
         await self._handle_ratelimit()
