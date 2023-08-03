@@ -80,7 +80,10 @@ class RustWebsocket:
                     )
                     address += f"?v={str(self.magic_value)}"
                     self.connection = await connect(
-                        address, close_timeout=0, ping_interval=None, max_size=1_000_000_000
+                        address,
+                        close_timeout=0,
+                        ping_interval=None,
+                        max_size=1_000_000_000,
                     )
                     self.connected_time = time.time()
 
@@ -228,6 +231,12 @@ class RustWebsocket:
             # This means that the team of the current player has changed
             await EventHandler.run_team_event(app_message, self.server_id)
 
+        elif self.is_clan_message(app_message):
+            await EventHandler.run_clan_chat_event(app_message, self.server_id)
+
+        elif self.is_clan_change_info(app_message):
+            await EventHandler.run_clan_info_event(app_message, self.server_id)
+
         elif self.is_message(app_message):
             # This means that a message has been sent to the team chat
 
@@ -290,6 +299,18 @@ class RustWebsocket:
         )
 
     @staticmethod
+    def is_clan_message(app_message: AppMessage) -> bool:
+        return betterproto.serialized_on_wire(
+            app_message.broadcast.clan_message.message
+        )
+
+    @staticmethod
+    def is_clan_change_info(app_message: AppMessage) -> bool:
+        return betterproto.serialized_on_wire(
+            app_message.broadcast.clan_changed.clan_info
+        )
+
+    @staticmethod
     def is_camera_broadcast(app_message: AppMessage) -> bool:
         return betterproto.serialized_on_wire(app_message.broadcast.camera_rays)
 
@@ -329,7 +350,7 @@ class RustWebsocket:
         """
         Checks message for error
         """
-        return message != ""
+        return message != "" and "clan" not in message
 
     @staticmethod
     async def run_coroutine_non_blocking(coroutine: Coroutine) -> Task:

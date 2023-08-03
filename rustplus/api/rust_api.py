@@ -18,6 +18,8 @@ from .structures import (
     RustEntityInfo,
     RustContents,
     RustItem,
+    RustClanInfo,
+    RustClanMessage,
 )
 from .remote.rustplus_proto import (
     AppEmpty,
@@ -407,3 +409,59 @@ class RustSocket(BaseRustSocket):
 
     async def get_camera_manager(self, cam_id: str) -> CameraManager:
         return await self.remote.create_camera_manager(cam_id)
+
+    async def get_clan_info(self) -> RustClanInfo:
+        await self._handle_ratelimit()
+
+        app_request = self._generate_protobuf()
+        app_request.get_clan_info = AppEmpty()
+
+        await self.remote.send_message(app_request)
+
+        app_message = await self.remote.get_response(app_request.seq, app_request)
+
+        if app_message.response.error.error != "":
+            return None
+
+        return RustClanInfo(app_message.response.clan_info)
+
+    async def get_clan_chat(self) -> List[RustClanMessage]:
+        await self._handle_ratelimit()
+
+        app_request = self._generate_protobuf()
+        app_request.get_clan_chat = AppEmpty()
+
+        await self.remote.send_message(app_request)
+
+        app_message = await self.remote.get_response(app_request.seq, app_request)
+
+        return [
+            RustClanMessage(message)
+            for message in app_message.response.clan_chat.messages
+        ]
+
+    async def send_clan_message(self, message: str) -> None:
+        await self._handle_ratelimit(2)
+
+        app_send_message = AppSendMessage()
+        app_send_message.message = str(message)
+
+        app_request = self._generate_protobuf()
+        app_request.send_clan_message = app_send_message
+
+        await self.remote.add_ignored_response(app_request.seq)
+
+        await self.remote.send_message(app_request)
+
+    async def set_clan_motd(self, message: str) -> None:
+        await self._handle_ratelimit()
+
+        app_send_message = AppSendMessage()
+        app_send_message.message = str(message)
+
+        app_request = self._generate_protobuf()
+        app_request.set_clan_motd = app_send_message
+
+        await self.remote.add_ignored_response(app_request.seq)
+
+        await self.remote.send_message(app_request)

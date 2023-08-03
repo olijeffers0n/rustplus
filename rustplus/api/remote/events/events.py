@@ -1,7 +1,7 @@
-from typing import List
+from typing import List, Union
 
 from ..rustplus_proto import AppMessage, AppEntityPayloadItem
-from ...structures import RustChatMessage
+from ...structures import RustChatMessage, RustClanInfo
 from ...structures.rust_team_info import RustTeamInfo
 from ...structures.rust_marker import RustMarker
 from .handler_list import HandlerList, EntityHandlerList
@@ -45,12 +45,24 @@ class TeamEvent:
 class ChatEvent:
     handlers = HandlerList()
 
-    def __init__(self, app_message: AppMessage) -> None:
-        self._message = RustChatMessage(app_message.broadcast.team_message.message)
+    def __init__(
+        self, message: RustChatMessage, is_clan: bool, clan_id: Union[int, None]
+    ) -> None:
+        self._message = message
+        self._is_clan = is_clan
+        self._clan_id = clan_id
 
     @property
     def message(self) -> RustChatMessage:
         return self._message
+
+    @property
+    def is_clan(self) -> bool:
+        return self._is_clan
+
+    @property
+    def clan_id(self) -> Union[int, None]:
+        return self._clan_id
 
 
 class EntityEvent:
@@ -124,3 +136,14 @@ class ProtobufEvent:
     @property
     def byte_data(self) -> bytes:
         return self._byte_data
+
+
+class ClanInfoEvent:
+    handlers = HandlerList()
+
+    def __init__(self, clan_info: RustClanInfo) -> None:
+        self._clan_info = clan_info
+
+    @property
+    def clan_info(self) -> RustClanInfo:
+        return self._clan_info

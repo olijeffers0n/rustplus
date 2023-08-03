@@ -37,12 +37,12 @@ message Ray {
 		optional Vector3 direction = 2;
 }
 
-message ClanActionResult {
-		required int32 requestId = 1;
-		required int32 result = 2;
-		required bool hasClanInfo = 3;
-		optional ClanInfo clanInfo = 4;
-}
+// message ClanActionResult {
+// 		required int32 requestId = 1;
+// 		required int32 result = 2;
+// 		required bool hasClanInfo = 3;
+// 		optional ClanInfo clanInfo = 4;
+// }
 
 message ClanInfo {
 		required int64 clanId = 1;
@@ -89,29 +89,29 @@ message ClanInfo {
 		}
 }
 
-message ClanLog {
-		required int64 clanId = 1;
-		repeated ClanLog.Entry logEntries = 2;
+// message ClanLog {
+// 		required int64 clanId = 1;
+// 		repeated ClanLog.Entry logEntries = 2;
+//
+// 		message Entry {
+// 				required int64 timestamp = 1;
+// 				required string eventKey = 2;
+// 				optional string arg1 = 3;
+// 				optional string arg2 = 4;
+// 				optional string arg3 = 5;
+// 				optional string arg4 = 6;
+// 		}
+// }
 
-		message Entry {
-				required int64 timestamp = 1;
-				required string eventKey = 2;
-				optional string arg1 = 3;
-				optional string arg2 = 4;
-				optional string arg3 = 5;
-				optional string arg4 = 6;
-		}
-}
-
-message ClanInvitations {
-		repeated ClanInvitations.Invitation invitations = 1;
-
-		message Invitation {
-				required int64 clanId = 1;
-				required uint64 recruiter = 2;
-				required int64 timestamp = 3;
-		}
-}
+// message ClanInvitations {
+// 		repeated ClanInvitations.Invitation invitations = 1;
+//
+// 		message Invitation {
+// 				required int64 clanId = 1;
+// 				required uint64 recruiter = 2;
+// 				required int64 timestamp = 3;
+// 		}
+// }
 
 enum AppEntityType {
 	Switch = 1;

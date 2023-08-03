@@ -16,6 +16,7 @@ from .remote.events import (
     TeamEvent,
     ChatEvent,
     ProtobufEvent,
+    ClanInfoEvent,
 )
 from ..utils import deprecated
 from ..conversation import ConversationFactory
@@ -404,6 +405,21 @@ class BaseRustSocket:
         ProtobufEvent.handlers.register(listener, self.server_id)
         return listener
 
+    def clan_info_event(self, coro) -> RegisteredListener:
+        """
+        A Decorator to register an event listener for clan info being received on the websocket
+
+        :param coro: The coroutine to call when the command is called
+        :return: RegisteredListener - The listener object
+        """
+
+        if isinstance(coro, RegisteredListener):
+            coro = coro.get_coro()
+
+        listener = RegisteredListener("clan_info_received", coro)
+        ClanInfoEvent.handlers.register(listener, self.server_id)
+        return listener
+
     def remove_listener(self, listener) -> bool:
         """
         This will remove a listener, command or event. Takes a RegisteredListener instance
@@ -610,5 +626,37 @@ class BaseRustSocket:
         :param cam_id: The ID of the camera
         :return CameraManager: The camera manager
         :raises RequestError: If the camera is not found, or you cannot access it. See reason for more info
+        """
+        raise NotImplementedError("Not Implemented")
+
+    async def get_clan_info(self) -> RustClanInfo:
+        """
+        Gets the clan info from the server
+
+        :return RustClanInfo: The clan info. Will be None if not in a clan
+        """
+        raise NotImplementedError("Not Implemented")
+
+    async def get_clan_chat(self) -> List[RustClanMessage]:
+        """
+        Gets the clan chat from the server
+
+        :return List[RustClanMessage]: The clan chat messages
+        """
+        raise NotImplementedError("Not Implemented")
+
+    async def send_clan_message(self, message: str) -> None:
+        """
+        Sends a message to the clan chat
+
+        :param message: The message to send
+        """
+        raise NotImplementedError("Not Implemented")
+
+    async def set_clan_motd(self, message: str) -> None:
+        """
+        Sets the clan MOTD
+
+        :param message: The message to set
         """
         raise NotImplementedError("Not Implemented")
