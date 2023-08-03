@@ -3,3 +3,4 @@ from .deprecated import deprecated
 from .grab_items import translate_id_to_stack
 from .server_id import ServerID
 from .yielding_event import YieldingEvent
+from .emojis import Emoji
