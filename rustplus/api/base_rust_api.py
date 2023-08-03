@@ -612,3 +612,12 @@ class BaseRustSocket:
         :raises RequestError: If the camera is not found, or you cannot access it. See reason for more info
         """
         raise NotImplementedError("Not Implemented")
+
+    async def get_nexus_player_token(self, app_key: str) -> str:
+        """
+        Gets the Nexus Player Token for the server
+
+        :param app_key: The App Key for the server
+        :return str: The Nexus Player Token
+        """
+        raise NotImplementedError("Not Implemented")

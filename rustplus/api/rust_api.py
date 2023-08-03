@@ -24,6 +24,7 @@ from .remote.rustplus_proto import (
     AppSendMessage,
     AppSetEntityValue,
     AppPromoteToLeader,
+    AppGetNexusAuth,
 )
 from .remote import HeartBeat, RateLimiter
 from ..commands import CommandOptions
@@ -407,3 +408,18 @@ class RustSocket(BaseRustSocket):
 
     async def get_camera_manager(self, cam_id: str) -> CameraManager:
         return await self.remote.create_camera_manager(cam_id)
+
+    async def get_nexus_player_token(self, app_key: str) -> str:
+        await self._handle_ratelimit()
+
+        app_request = self._generate_protobuf()
+
+        get_auth = AppGetNexusAuth()
+        get_auth.app_key = app_key
+        app_request.get_nexus_auth = get_auth
+
+        await self.remote.send_message(app_request)
+
+        app_message = await self.remote.get_response(app_request.seq, app_request)
+
+        return app_message.response.nexus_auth

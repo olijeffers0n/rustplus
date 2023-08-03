@@ -14,6 +14,9 @@ class RustInfo:
         self._queued_players: int = data.queued_players
         self._seed: int = data.seed
         self._logo_image: str = data.logo_image
+        self._nexus: str = data.nexus
+        self._nexus_id: int = data.nexus_id
+        self._nexus_zone: str = data.nexus_zone
 
     @property
     def url(self) -> str:
@@ -59,10 +62,22 @@ class RustInfo:
     def logo_image(self) -> str:
         return self._logo_image
 
+    @property
+    def nexus(self) -> str:
+        return self._nexus
+
+    @property
+    def nexus_id(self) -> int:
+        return self._nexus_id
+
+    @property
+    def nexus_zone(self) -> str:
+        return self._nexus_zone
+
     def __str__(self) -> str:
         return (
             "RustInfo[url={}, name={}, map={}, size={}, players={}, max_players={}, queued_players={}, seed={}, "
-            "wipe_time={}, header_image={}, logo_image={}]".format(
+            "wipe_time={}, header_image={}, logo_image={}, nexus={}, nexus_id={}, nexus_zone={}]".format(
                 self._url,
                 self._name,
                 self._map,
@@ -74,5 +89,8 @@ class RustInfo:
                 self._wipe_time,
                 self._header_image,
                 self._logo_image,
+                self._nexus,
+                self._nexus_id,
+                self._nexus_zone,
             )
         )
