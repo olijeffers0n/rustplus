@@ -19,5 +19,3 @@ Head over to our GitHub repository [here](https://github.com/olijeffers0n/rustpl
 ## Need some help?
 
 Head over to our discord server [here](https://lt.ollieee.xyz/rplusdiscord)
-
-{% embed url="https://markprompt.com/embed/N4IgDgTg9gVgpgYwC4Gk4E8QC4QGcDWA+knLkoQJwAyFAogLYDiFKAWkgBIAqYAagGIANAOYB5AMJhRAVgBeYAO71BAOQCSKgMr8QAGhD0AhhHyQo9MElGWAllAB2ubMAC++pAAs49OOM2bsEBAXIA" %}
