@@ -80,7 +80,10 @@ class RustWebsocket:
                     )
                     address += f"?v={str(self.magic_value)}"
                     self.connection = await connect(
-                        address, close_timeout=0, ping_interval=None, max_size=1_000_000_000
+                        address,
+                        close_timeout=0,
+                        ping_interval=None,
+                        max_size=1_000_000_000,
                     )
                     self.connected_time = time.time()
 

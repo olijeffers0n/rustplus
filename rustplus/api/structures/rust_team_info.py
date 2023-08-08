@@ -64,6 +64,9 @@ class RustTeamNote:
         self._type: int = data.type
         self._x: float = data.x
         self._y: float = data.y
+        self._icon: int = data.icon
+        self._colour_index: int = data.colour_index
+        self._label: str = data.label
 
     @property
     def type(self) -> int:
@@ -77,8 +80,22 @@ class RustTeamNote:
     def y(self) -> float:
         return self._y
 
+    @property
+    def icon(self) -> int:
+        return self._icon
+
+    @property
+    def colour_index(self) -> int:
+        return self._colour_index
+
+    @property
+    def label(self) -> str:
+        return self._label
+
     def __str__(self) -> str:
-        return "RustTeamNote[type={}, x={}, y={}]".format(self._type, self._x, self._y)
+        return "RustTeamNote[type={}, x={}, y={}, icon={}, colour_index={}, label={}]".format(
+            self._type, self._x, self._y, self._icon, self._colour_index, self._label
+        )
 
 
 class RustTeamInfo:
