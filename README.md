@@ -51,4 +51,5 @@ Have Fun!
 ## Special Thanks:
 Thanks to [JetBrains](https://www.jetbrains.com/?from=rustplus) for providing me with a free Open Source License for 
 PyCharm Professional, which is what I use to develop this project.
+
 <a href="https://jb.gg/OpenSourceSupport"><img src="https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.svg" width="150"></a>
