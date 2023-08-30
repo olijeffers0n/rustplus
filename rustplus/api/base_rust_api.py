@@ -116,7 +116,7 @@ class BaseRustSocket:
         on_failure: Union[Coroutine, Callable[[], None], None] = None,
         on_success: Union[Coroutine, Callable[[], None], None] = None,
         on_success_args_kwargs: Tuple[List, Dict] = ([], {}),
-        on_failure_args_kwargs: Tuple[List, Dict] = ([], {})
+        on_failure_args_kwargs: Tuple[List, Dict] = ([], {}),
     ) -> None:
         """
         Attempts to open a connection to the rust game server specified in the constructor
