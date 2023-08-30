@@ -51,8 +51,8 @@ class RustWebsocket:
         self.on_failure = on_failure
         self.on_success = on_success
         self.delay = delay
-        self.on_success_args_kwargs=on_success_args_kwargs
-        self.on_failure_args_kwargs=on_failure_args_kwargs
+        self.on_success_args_kwargs = on_success_args_kwargs
+        self.on_failure_args_kwargs = on_failure_args_kwargs
 
     async def connect(
         self, retries=float("inf"), ignore_open_value: bool = False
