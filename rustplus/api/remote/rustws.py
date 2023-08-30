@@ -83,7 +83,6 @@ class RustWebsocket:
                         )
                     )
                     address += f"?v={str(self.magic_value)}"
-
                     self.connection = await connect(
                         address,
                         close_timeout=0,

@@ -115,8 +115,8 @@ class BaseRustSocket:
         delay: int = 20,
         on_failure: Union[Coroutine, Callable[[], None], None] = None,
         on_success: Union[Coroutine, Callable[[], None], None] = None,
-        on_success_args_kwargs: tuple = ([], {}),
-        on_failure_args_kwargs: tuple = ([], {})
+        on_success_args_kwargs: tuple[list, dict] = ([], {}),
+        on_failure_args_kwargs: tuple[list, dict] = ([], {})
     ) -> None:
         """
         Attempts to open a connection to the rust game server specified in the constructor
@@ -125,8 +125,8 @@ class BaseRustSocket:
         :param delay: The delay (in seconds) between reconnection attempts.
         :param on_failure: Optional function to be called when connecting fails.
         :param on_success: Optional function to be called when connecting succeeds.
-        :param on_success_kwargs_args: Optional tuple holding keyword and regular arguments for on_success in this format (args, kwargs)
-        :param on_failure_kwargs_args: Optional tuple holding keyword and regular arguments for on_failure in this format (args, kwargs)
+        :param on_success_args_kwargs: Optional tuple holding keyword and regular arguments for on_success in this format (args, kwargs)
+        :param on_failure_args_kwargs: Optional tuple holding keyword and regular arguments for on_failure in this format (args, kwargs)
 
         :return: None
         """
