@@ -72,10 +72,8 @@ class RustRemote:
             delay, 
             on_failure, 
             on_success, 
-            on_success_kwargs,
-            on_failure_kwargs,
-            on_success_args,
-            on_failure_args
+            on_success_args_kwargs,
+            on_failure_args_kwargs
             ) -> None:
         
         self.ws = RustWebsocket(
@@ -87,10 +85,8 @@ class RustRemote:
             on_failure=on_failure,
             on_success=on_success,
             delay=delay,
-            on_success_kwargs=on_success_kwargs,
-            on_failure_kwargs=on_failure_kwargs,
-            on_success_args=on_success_args,
-            on_failure_args=on_failure_args
+            on_success_args_kwargs=on_success_args_kwargs,
+            on_failure_args_kwargs=on_failure_args_kwargs
         )
         await self.ws.connect(retries=retries)
 

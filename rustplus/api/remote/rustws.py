@@ -34,10 +34,8 @@ class RustWebsocket:
         on_failure,
         on_success,
         delay,
-        on_success_kwargs,
-        on_failure_kwargs,
-        on_success_args,
-        on_failure_args
+        on_success_args_kwargs,
+        on_failure_args_kwargs
     ):
         self.connection: Union[WebSocketClientProtocol, None] = None
         self.task: Union[Task, None] = None
@@ -53,10 +51,8 @@ class RustWebsocket:
         self.on_failure = on_failure
         self.on_success = on_success
         self.delay = delay
-        self.on_success_kwargs=on_success_kwargs
-        self.on_failure_kwargs=on_failure_kwargs
-        self.on_success_args=on_success_args
-        self.on_failure_args=on_failure_args
+        self.on_success_args_kwargs=on_success_args_kwargs
+        self.on_failure_args_kwargs=on_failure_args_kwargs
 
     async def connect(
         self, retries=float("inf"), ignore_open_value: bool = False
@@ -99,9 +95,9 @@ class RustWebsocket:
                     if self.on_success is not None:
                         try:
                             if asyncio.iscoroutinefunction(self.on_success):
-                                await self.on_success(*self.on_success_args, **self.on_success_kwargs)
+                                await self.on_success(*self.on_success_args_kwargs[0], **self.on_success_args_kwargs[1])
                             else:
-                                self.on_success(*self.on_success_args, **self.on_success_kwargs)
+                                self.on_success(*self.on_success_args_kwargs[0], **self.on_success_args_kwargs[1])
                         except Exception as e:
                             self.logger.warning(e)
                     break
@@ -114,9 +110,9 @@ class RustWebsocket:
                         if self.on_failure is not None:
                             try:
                                 if asyncio.iscoroutinefunction(self.on_failure):
-                                    val = await self.on_failure(*self.on_failure_args, **self.on_failure_kwargs)
+                                    val = await self.on_failure(*self.on_failure_args_kwargs[0], **self.on_failure_args_kwargs[1])
                                 else:
-                                    val = self.on_failure(*self.on_failure_args, **self.on_failure_kwargs)
+                                    val = self.on_failure(*self.on_failure_args_kwargs[0], **self.on_failure_args_kwargs[1])
 
                                 if val is not None:
                                     print_error = val
