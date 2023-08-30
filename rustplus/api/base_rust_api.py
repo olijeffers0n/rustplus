@@ -1,5 +1,5 @@
 import asyncio
-from typing import List, Callable, Union
+from typing import List, Callable, Union, Coroutine, Callable, Optional
 from PIL import Image
 
 from .remote.events.event_loop_manager import EventLoopManager
@@ -113,8 +113,12 @@ class BaseRustSocket:
         self,
         retries: int = float("inf"),
         delay: int = 20,
-        on_failure=None,
-        on_success=None,
+        on_failure: Union[Coroutine, Callable[[], None], None] = None,
+        on_success: Union[Coroutine, Callable[[], None], None] = None,
+        on_success_kwargs: dict = {},
+        on_failure_kwargs: dict = {},
+        on_success_args: list = [],
+        on_failure_args: list = []
     ) -> None:
         """
         Attempts to open a connection to the rust game server specified in the constructor
@@ -123,7 +127,10 @@ class BaseRustSocket:
         :param delay: The delay (in seconds) between reconnection attempts.
         :param on_failure: Optional function to be called when connecting fails.
         :param on_success: Optional function to be called when connecting succeeds.
-
+        :param on_success_kwargs: Optional keywords arguments to pass to the on_success function
+        :param on_failure_kwargs: Optional keywords arguments to pass to the on_failure function
+        :param on_success_args: Optional arguments to pass to the on_success function
+        :param on_failure_args: Optional arguments to pass to the on_failure function
 
         :return: None
         """
@@ -151,6 +158,10 @@ class BaseRustSocket:
                     delay=delay,
                     on_failure=on_failure,
                     on_success=on_success,
+                    on_success_kwargs=on_success_kwargs,
+                    on_failure_kwargs=on_failure_kwargs,
+                    on_success_args=on_success_args,
+                    on_failure_args=on_failure_args
                 )
                 await self.heartbeat.start_beat()
         except ConnectionRefusedError:

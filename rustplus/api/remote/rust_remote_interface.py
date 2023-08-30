@@ -66,7 +66,18 @@ class RustRemote:
         self.pending_entity_subscriptions = []
         self.camera_manager: Union[CameraManager, None] = None
 
-    async def connect(self, retries, delay, on_failure=None, on_success=None) -> None:
+    async def connect(
+            self, 
+            retries, 
+            delay, 
+            on_failure, 
+            on_success, 
+            on_success_kwargs,
+            on_failure_kwargs,
+            on_success_args,
+            on_failure_args
+            ) -> None:
+        
         self.ws = RustWebsocket(
             server_id=self.server_id,
             remote=self,
@@ -76,6 +87,10 @@ class RustRemote:
             on_failure=on_failure,
             on_success=on_success,
             delay=delay,
+            on_success_kwargs=on_success_kwargs,
+            on_failure_kwargs=on_failure_kwargs,
+            on_success_args=on_success_args,
+            on_failure_args=on_failure_args
         )
         await self.ws.connect(retries=retries)
 
