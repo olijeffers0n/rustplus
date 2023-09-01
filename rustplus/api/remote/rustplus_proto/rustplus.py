@@ -53,9 +53,9 @@ class Vector4(betterproto.Message):
 
 @dataclass
 class Half3(betterproto.Message):
-    x: float = betterproto.float_field(1)
-    y: float = betterproto.float_field(2)
-    z: float = betterproto.float_field(3)
+    x: int = betterproto.uint32_field(1)
+    y: int = betterproto.uint32_field(2)
+    z: int = betterproto.uint32_field(3)
 
 
 @dataclass
@@ -277,6 +277,7 @@ class AppInfo(betterproto.Message):
     nexus: str = betterproto.string_field(13)
     nexus_id: int = betterproto.int32_field(14)
     nexus_zone: str = betterproto.string_field(15)
+    cameras_enabled: bool = betterproto.bool_field(16)
 
 
 @dataclass

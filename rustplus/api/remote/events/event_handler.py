@@ -1,7 +1,8 @@
 from typing import Set, Union
 
+from ...structures import RustChatMessage, RustClanInfo
 from ....utils import ServerID
-from .events import EntityEvent, TeamEvent, ChatEvent, ProtobufEvent
+from .events import EntityEvent, TeamEvent, ChatEvent, ProtobufEvent, ClanInfoEvent
 from .registered_listener import RegisteredListener
 from ..rustplus_proto import AppMessage
 
@@ -33,7 +34,29 @@ class EventHandler:
     async def run_chat_event(app_message: AppMessage, server_id: ServerID) -> None:
         handlers: Set[RegisteredListener] = ChatEvent.handlers.get_handlers(server_id)
         for handler in handlers.copy():
-            await handler.get_coro()(ChatEvent(app_message))
+            message = RustChatMessage(app_message.broadcast.team_message.message)
+            await handler.get_coro()(ChatEvent(message, False, None))
+
+    @staticmethod
+    async def run_clan_chat_event(app_message: AppMessage, server_id: ServerID) -> None:
+        handlers: Set[RegisteredListener] = ChatEvent.handlers.get_handlers(server_id)
+        for handler in handlers.copy():
+            message = RustChatMessage(app_message.broadcast.clan_message.message)
+            await handler.get_coro()(
+                ChatEvent(message, True, app_message.broadcast.clan_message.clan_id)
+            )
+
+    @staticmethod
+    async def run_clan_info_event(app_message: AppMessage, server_id: ServerID) -> None:
+        handlers: Set[RegisteredListener] = ClanInfoEvent.handlers.get_handlers(
+            server_id
+        )
+        for handler in handlers.copy():
+            await handler.get_coro()(
+                ClanInfoEvent(
+                    RustClanInfo(app_message.broadcast.clan_changed.clan_info)
+                )
+            )
 
     @staticmethod
     async def run_proto_event(byte_data: bytes, server_id: ServerID) -> None:
