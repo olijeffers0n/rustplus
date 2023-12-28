@@ -1,9 +1,9 @@
 from typing import List
-
+from .serialization import Serializable
 from ..remote.rustplus_proto import AppMap
 
 
-class RustMonument:
+class RustMonument(Serializable):
     def __init__(self, token, x, y) -> None:
         self._token: str = token
         self._x: float = x
@@ -27,7 +27,7 @@ class RustMonument:
         )
 
 
-class RustMap:
+class RustMap(Serializable):
     def __init__(self, data: AppMap) -> None:
         self._width: int = data.width
         self._height: int = data.height

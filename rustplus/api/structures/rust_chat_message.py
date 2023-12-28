@@ -1,7 +1,8 @@
 from ..remote.rustplus_proto import AppTeamMessage
+from .serialization import Serializable
 
 
-class RustChatMessage:
+class RustChatMessage(Serializable):
     def __init__(self, data: AppTeamMessage):
         self._steam_id: int = data.steam_id
         self._name: str = data.name

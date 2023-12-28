@@ -1,9 +1,9 @@
 from typing import List
-
+from .serialization import Serializable
 from ..remote.rustplus_proto import AppTeamInfoMember, AppTeamInfoNote, AppTeamInfo
 
 
-class RustTeamMember:
+class RustTeamMember(Serializable):
     def __init__(self, data: AppTeamInfoMember) -> None:
         self._steam_id: int = data.steam_id
         self._name: str = data.name
@@ -59,7 +59,7 @@ class RustTeamMember:
         )
 
 
-class RustTeamNote:
+class RustTeamNote(Serializable):
     def __init__(self, data: AppTeamInfoNote) -> None:
         self._type: int = data.type
         self._x: float = data.x
@@ -98,7 +98,7 @@ class RustTeamNote:
         )
 
 
-class RustTeamInfo:
+class RustTeamInfo(Serializable):
     def __init__(self, data: AppTeamInfo) -> None:
         self._leader_steam_id: int = data.leader_steam_id
         self._members = [RustTeamMember(member) for member in data.members]

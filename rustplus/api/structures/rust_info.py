@@ -1,7 +1,8 @@
 from ..remote.rustplus_proto import AppInfo
+from .serialization import Serializable
 
 
-class RustInfo:
+class RustInfo(Serializable):
     def __init__(self, data: AppInfo) -> None:
         self._name: str = data.name
         self._url: str = data.url
