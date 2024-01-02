@@ -108,6 +108,19 @@ def convert_monument(name: str, override_images: dict) -> Image.Image:
         "large_oil_rig": "large_oil_rig.png",
         "underwater_lab": "underwater_lab.png",
         "AbandonedMilitaryBase": "desert_base.png",
+        "ferryterminal": "ferryterminal.png",
+        "harbor_display_name": "harbor.png",
+        "harbor_2_display_name": "harbor.png",
+        "arctic_base_a": "arctic_base.png",
+        "arctic_base_b": "arctic_base.png",
+        "missile_silo_monument": "missile_silo.png",
+        "stables_a": "stables.png",
+        "stables_b": "stables.png",
+        "mining_quarry_stone_display_name": "mining_quarry_stone.png",
+        "mining_quarry_sulfur_display_name": "mining_quarry_sulfur.png",
+        "mining_quarry_hqm_display_name": "mining_quarry_hqm.png",
+        "train_tunnel_link_display_name": "train_tunnel.png",
+        "DungeonBase": "dungeon_base.png",
     }
 
     try:
