@@ -35,7 +35,7 @@ def format_time(protobuf: AppMessage) -> RustTime:
     )
 
 
-def format_coord(x, y, map_size) -> tuple:
+def format_coord(x, y, map_size) -> Tuple[int, int]:
     y = map_size - y - 75
     x -= 75
 
@@ -84,7 +84,6 @@ def convert_marker(name, angle) -> Image.Image:
 
 def convert_monument(name: str, override_images: dict) -> Image.Image:
     name_to_file = {
-        "train_tunnel_display_name": "train.png",
         "supermarket": "supermarket.png",
         "mining_outpost_display_name": "mining_outpost.png",
         "gas_station": "oxums.png",
@@ -108,6 +107,19 @@ def convert_monument(name: str, override_images: dict) -> Image.Image:
         "large_oil_rig": "large_oil_rig.png",
         "underwater_lab": "underwater_lab.png",
         "AbandonedMilitaryBase": "desert_base.png",
+        "ferryterminal": "ferryterminal.png",
+        "harbor_display_name": "harbour.png",
+        "harbor_2_display_name": "harbour.png",
+        "arctic_base_a": "arctic_base.png",
+        "arctic_base_b": "arctic_base.png",
+        "missile_silo_monument": "missile_silo.png",
+        "stables_a": "stables.png",
+        "stables_b": "stables.png",
+        "mining_quarry_stone_display_name": "mining_quarry_stone.png",
+        "mining_quarry_sulfur_display_name": "mining_quarry_sulfur.png",
+        "mining_quarry_hqm_display_name": "mining_quarry_hqm.png",
+        "train_tunnel_link_display_name": "train.png",
+        "train_tunnel_display_name": "train.png",
     }
 
     try:
@@ -119,24 +131,8 @@ def convert_monument(name: str, override_images: dict) -> Image.Image:
         file_name = name_to_file[name]
         with resources.path(icons_path, file_name) as path:
             icon = Image.open(path).convert("RGBA")
-    elif (
-        "mining_quarry" in name
-        or "harbor" in name
-        or "stables" in name
-        or "swamp" in name
-        or "arctic_base" in name
-    ):
-        if "mining_quarry" in name:
-            file_name = "quarry.png"
-        elif "harbor" in name:
-            file_name = "harbour.png"
-        elif "stables" in name:
-            file_name = "stable.png"
-        elif "swamp" in name:
-            file_name = "swamp.png"
-        elif "arctic_base" in name:
-            file_name = "arctic_base.png"
-        with resources.path(icons_path, file_name) as path:
+    elif "swamp" in name:
+        with resources.path(icons_path, "swamp.png") as path:
             icon = Image.open(path).convert("RGBA")
     else:
         logging.getLogger("rustplus.py").info(
