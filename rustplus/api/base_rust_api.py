@@ -46,6 +46,16 @@ class BaseRustSocket:
         if player_token is None:
             raise ValueError("PlayerToken cannot be None")
 
+        try:
+            steam_id = int(steam_id)
+        except ValueError:
+            raise ValueError("SteamID must be an integer")
+
+        try:
+            player_token = int(player_token)
+        except ValueError:
+            raise ValueError("PlayerToken must be an integer")
+
         self.server_id = ServerID(ip, port, steam_id, player_token)
         self.seq = 1
         self.command_options = command_options
