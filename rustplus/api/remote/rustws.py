@@ -36,6 +36,7 @@ class RustWebsocket:
         delay,
         on_success_args_kwargs,
         on_failure_args_kwargs,
+        debug: bool = False,
     ):
         self.connection: Union[WebSocketClientProtocol, None] = None
         self.task: Union[Task, None] = None
@@ -53,6 +54,7 @@ class RustWebsocket:
         self.delay = delay
         self.on_success_args_kwargs = on_success_args_kwargs
         self.on_failure_args_kwargs = on_failure_args_kwargs
+        self.debug = debug
 
     async def connect(
         self, retries=float("inf"), ignore_open_value: bool = False
@@ -83,6 +85,10 @@ class RustWebsocket:
                         )
                     )
                     address += f"?v={str(self.magic_value)}"
+
+                    if self.debug:
+                        self.logger.info(f"[RustPlus.py] Connecting to {address}")
+
                     self.connection = await connect(
                         address,
                         close_timeout=0,
@@ -108,8 +114,10 @@ class RustWebsocket:
                     break
 
                 except Exception as exception:
-                    print_error = True
 
+                    self.logger.info(f"[RustPlus.py] {exception}")
+
+                    print_error = True
                     if not isinstance(exception, KeyboardInterrupt):
                         # Run the failure callback
                         if self.on_failure is not None:
@@ -153,6 +161,9 @@ class RustWebsocket:
         self.task.cancel()
         self.task = None
         self.connection_status = CLOSED
+
+        if self.debug:
+            self.logger.info(f"[RustPlus.py] Connection Closed")
 
     async def send_message(self, message: AppRequest) -> None:
         """
@@ -214,6 +225,10 @@ class RustWebsocket:
                 )
 
     async def handle_message(self, app_message: AppMessage) -> None:
+
+        if self.debug:
+            self.logger.info(f"[RustPlus.py] Received Message with seq {app_message.response.seq}: {app_message}")
+
         if app_message.response.seq in self.remote.ignored_responses:
             self.remote.ignored_responses.remove(app_message.response.seq)
             return
@@ -225,11 +240,17 @@ class RustWebsocket:
         if prefix is not None:
             # This means it is a command
 
+            if self.debug:
+                self.logger.info(f"[RustPlus.py] Attempting to run Command: {app_message}")
+
             message = RustChatMessage(app_message.broadcast.team_message.message)
             await self.remote.command_handler.run_command(message, prefix)
 
         if self.is_entity_broadcast(app_message):
             # This means that an entity has changed state
+
+            if self.debug:
+                self.logger.info(f"[RustPlus.py] Running Entity Event: {app_message}")
 
             await EventHandler.run_entity_event(
                 app_message.broadcast.entity_changed.entity_id,
@@ -238,17 +259,28 @@ class RustWebsocket:
             )
 
         elif self.is_camera_broadcast(app_message):
+
+            if self.debug:
+                self.logger.info(f"[RustPlus.py] Running Camera Event: {app_message}")
+
             if self.remote.camera_manager is not None:
                 await self.remote.camera_manager.add_packet(
                     RayPacket(app_message.broadcast.camera_rays)
                 )
 
         elif self.is_team_broadcast(app_message):
+
+            if self.debug:
+                self.logger.info(f"[RustPlus.py] Running Team Event: {app_message}")
+
             # This means that the team of the current player has changed
             await EventHandler.run_team_event(app_message, self.server_id)
 
         elif self.is_message(app_message):
             # This means that a message has been sent to the team chat
+
+            if self.debug:
+                self.logger.info(f"[RustPlus.py] Running Chat Event: {app_message}")
 
             steam_id = int(app_message.broadcast.team_message.message.steam_id)
             message = str(app_message.broadcast.team_message.message.message)
@@ -278,16 +310,21 @@ class RustWebsocket:
                 else:
                     self.outgoing_conversation_messages.remove(message)
 
-                # Conversation API end
+            # Conversation API end
 
             await EventHandler.run_chat_event(app_message, self.server_id)
 
         else:
             # This means that it wasn't sent by the server and is a message from the server in response to an action
-            event: YieldingEvent = self.remote.pending_response_events[
-                app_message.response.seq
-            ]
-            event.set_with_value(app_message)
+            event: YieldingEvent = self.remote.pending_response_events.get(
+                 app_message.response.seq, None
+            )
+            if event is not None:
+
+                if self.debug:
+                    self.logger.info(f"[RustPlus.py] Running Response Event: {app_message}")
+
+                event.set_with_value(app_message)
 
     def get_prefix(self, message: str) -> Optional[str]:
         if self.remote.use_commands:

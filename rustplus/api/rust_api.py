@@ -54,6 +54,7 @@ class RustSocket(BaseRustSocket):
         use_test_server: bool = False,
         event_loop: asyncio.AbstractEventLoop = None,
         rate_limiter: RateLimiter = None,
+        debug: bool = False,
     ) -> None:
         super().__init__(
             ip=ip,
@@ -69,6 +70,7 @@ class RustSocket(BaseRustSocket):
             use_test_server=use_test_server,
             event_loop=event_loop,
             rate_limiter=rate_limiter,
+            debug=debug,
         )
 
     async def get_time(self) -> RustTime:

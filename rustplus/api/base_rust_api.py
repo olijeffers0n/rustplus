@@ -38,6 +38,7 @@ class BaseRustSocket:
         use_test_server: bool = False,
         event_loop: asyncio.AbstractEventLoop = None,
         rate_limiter: RateLimiter = None,
+        debug: bool = False,
     ) -> None:
         if ip is None:
             raise ValueError("Ip cannot be None")
@@ -65,6 +66,7 @@ class BaseRustSocket:
             api=self,
             use_test_server=use_test_server,
             rate_limiter=rate_limiter,
+            debug=debug,
         )
 
         if heartbeat is None:
