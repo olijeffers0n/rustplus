@@ -116,7 +116,9 @@ class RustRemote:
             raise ClientNotConnectedError("No Current Websocket Connection")
 
         if self.debug:
-            self.logger.info(f"[RustPlus.py] Sending Message with seq {request.seq}: {request}")
+            self.logger.info(
+                f"[RustPlus.py] Sending Message with seq {request.seq}: {request}"
+            )
 
         self.pending_response_events[request.seq] = YieldingEvent()
         await self.ws.send_message(request)

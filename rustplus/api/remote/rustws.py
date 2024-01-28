@@ -114,7 +114,6 @@ class RustWebsocket:
                     break
 
                 except Exception as exception:
-
                     self.logger.info(f"[RustPlus.py] {exception}")
 
                     print_error = True
@@ -225,9 +224,10 @@ class RustWebsocket:
                 )
 
     async def handle_message(self, app_message: AppMessage) -> None:
-
         if self.debug:
-            self.logger.info(f"[RustPlus.py] Received Message with seq {app_message.response.seq}: {app_message}")
+            self.logger.info(
+                f"[RustPlus.py] Received Message with seq {app_message.response.seq}: {app_message}"
+            )
 
         if app_message.response.seq in self.remote.ignored_responses:
             self.remote.ignored_responses.remove(app_message.response.seq)
@@ -241,7 +241,9 @@ class RustWebsocket:
             # This means it is a command
 
             if self.debug:
-                self.logger.info(f"[RustPlus.py] Attempting to run Command: {app_message}")
+                self.logger.info(
+                    f"[RustPlus.py] Attempting to run Command: {app_message}"
+                )
 
             message = RustChatMessage(app_message.broadcast.team_message.message)
             await self.remote.command_handler.run_command(message, prefix)
@@ -259,7 +261,6 @@ class RustWebsocket:
             )
 
         elif self.is_camera_broadcast(app_message):
-
             if self.debug:
                 self.logger.info(f"[RustPlus.py] Running Camera Event: {app_message}")
 
@@ -269,7 +270,6 @@ class RustWebsocket:
                 )
 
         elif self.is_team_broadcast(app_message):
-
             if self.debug:
                 self.logger.info(f"[RustPlus.py] Running Team Event: {app_message}")
 
@@ -317,12 +317,13 @@ class RustWebsocket:
         else:
             # This means that it wasn't sent by the server and is a message from the server in response to an action
             event: YieldingEvent = self.remote.pending_response_events.get(
-                 app_message.response.seq, None
+                app_message.response.seq, None
             )
             if event is not None:
-
                 if self.debug:
-                    self.logger.info(f"[RustPlus.py] Running Response Event: {app_message}")
+                    self.logger.info(
+                        f"[RustPlus.py] Running Response Event: {app_message}"
+                    )
 
                 event.set_with_value(app_message)
 
