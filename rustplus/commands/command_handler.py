@@ -1,4 +1,5 @@
 import asyncio
+import shlex
 from datetime import datetime
 
 from . import Command, CommandTime
@@ -35,7 +36,7 @@ class CommandHandler:
                     message.steam_id,
                     CommandTime(datetime.utcfromtimestamp(message.time), message.time),
                     command,
-                    message.message.split(" ")[1:],
+                    shlex.split(message.message),
                 )
             )
         else:
@@ -52,7 +53,7 @@ class CommandHandler:
                                 datetime.utcfromtimestamp(message.time), message.time
                             ),
                             command,
-                            message.message.split(" ")[1:],
+                            shlex.split(message.message),
                         ),
                     )
                     break
