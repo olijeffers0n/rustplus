@@ -1,4 +1,5 @@
 import asyncio
+import shlex
 from datetime import datetime
 
 from . import Command, CommandTime
@@ -22,7 +23,7 @@ class CommandHandler:
 
     async def run_command(self, message: RustChatMessage, prefix) -> None:
         if prefix == self.command_options.prefix:
-            command = message.message.split(" ")[0][len(prefix) :]
+            command = shlex.split(message.message)[0][len(prefix) :]
         else:
             command = prefix
 
@@ -35,7 +36,7 @@ class CommandHandler:
                     message.steam_id,
                     CommandTime(datetime.utcfromtimestamp(message.time), message.time),
                     command,
-                    message.message.split(" ")[1:],
+                    shlex.split(message.message)[1:],
                 )
             )
         else:
@@ -52,7 +53,7 @@ class CommandHandler:
                                 datetime.utcfromtimestamp(message.time), message.time
                             ),
                             command,
-                            message.message.split(" ")[1:],
+                            shlex.split(message.message)[1:],
                         ),
                     )
                     break
