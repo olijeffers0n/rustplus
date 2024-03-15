@@ -7,3 +7,4 @@ requests
 numpy
 scipy
 betterproto==2.0.0b6
+shlex
