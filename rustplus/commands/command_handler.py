@@ -36,7 +36,7 @@ class CommandHandler:
                     message.steam_id,
                     CommandTime(datetime.utcfromtimestamp(message.time), message.time),
                     command,
-                    shlex.split(message.message),
+                    shlex.split(message.message)[1:],
                 )
             )
         else:
@@ -53,7 +53,7 @@ class CommandHandler:
                                 datetime.utcfromtimestamp(message.time), message.time
                             ),
                             command,
-                            shlex.split(message.message),
+                            shlex.split(message.message)[1:],
                         ),
                     )
                     break
