@@ -131,16 +131,18 @@ class CameraManager:
         cam_input.mouse_delta = vector
         app_request.camera_input = cam_input
 
-        await self.rust_socket.remote.send_message(app_request)
-        await self.rust_socket.remote.add_ignored_response(app_request.seq)
+        async with self.rust_socket.lock:
+            await self.rust_socket.remote.send_message(app_request)
+            await self.rust_socket.remote.add_ignored_response(app_request.seq)
 
     async def exit_camera(self) -> None:
         await self.rust_socket._handle_ratelimit()
         app_request: AppRequest = self.rust_socket._generate_protobuf()
         app_request.camera_unsubscribe = AppEmpty()
 
-        await self.rust_socket.remote.send_message(app_request)
-        await self.rust_socket.remote.add_ignored_response(app_request.seq)
+        async with self.rust_socket.lock:
+            await self.rust_socket.remote.send_message(app_request)
+            await self.rust_socket.remote.add_ignored_response(app_request.seq)
 
         self._open = False
         self._last_packets.clear()

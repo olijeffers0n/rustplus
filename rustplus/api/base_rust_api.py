@@ -66,6 +66,7 @@ class BaseRustSocket:
         self.marker_listener = MapEventListener(self)
         self.use_test_server = use_test_server
         self.event_loop = event_loop
+        self.lock = asyncio.Lock()
 
         self.remote = RustRemote(
             server_id=self.server_id,
@@ -204,7 +205,8 @@ class BaseRustSocket:
 
         await self.remote.add_ignored_response(app_request.seq)
 
-        await self.remote.send_message(app_request)
+        async with self.lock:
+            await self.remote.send_message(app_request)
 
     async def switch_server(
         self,
@@ -244,6 +246,8 @@ class BaseRustSocket:
             raise ValueError("PlayerToken cannot be None")
 
         # disconnect before redefining
+        await self.lock.acquire()
+
         await self.disconnect()
 
         # Reset basic credentials
@@ -276,6 +280,7 @@ class BaseRustSocket:
             1,
             self.ratelimit_refill,
         )
+        del self.remote.conversation_factory
         self.remote.conversation_factory = ConversationFactory(self)
         # remove entity events
         EntityEvent.handlers.unregister_all()
@@ -285,6 +290,8 @@ class BaseRustSocket:
 
         if connect:
             await self.connect()
+
+        self.lock.release()
 
     def command(
         self,
