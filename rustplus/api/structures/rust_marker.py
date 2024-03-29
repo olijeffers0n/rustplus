@@ -185,3 +185,6 @@ class RustMarker(Serializable):
                 self._out_of_stock,
             )
         )
+    
+    def __hash__(self) -> int:
+        return hash((self._id, self._type))
