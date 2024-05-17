@@ -10,6 +10,7 @@ from ..api.structures import RustTime
 
 icons_path = "rustplus.api.icons"
 GRID_DIAMETER = 146.28571428571428
+FONT_PATH = "rustplus.utils.fonts"
 
 
 def format_time(protobuf: AppMessage) -> RustTime:
@@ -190,9 +191,9 @@ def _get_corrected_map_size(map_size):
     return map_size - remainder if remainder < 120 else map_size + offset
 
 
-def _is_outside_grid_system(x, y, map_size, offset=0):
+def _is_outside_grid_system(x, y, map_size, offset = 0):
     return (
-        x < -offset or x > (map_size + offset) or y < -offset or y > (map_size + offset)
+            x < -offset or x > (map_size + offset) or y < -offset or y > (map_size + offset)
     )
 
 
@@ -221,7 +222,7 @@ class HackyBackwardsCompatCoordClass:
 
 
 def convert_xy_to_grid(
-    coords: tuple, map_size: float, catch_out_of_bounds: bool = True
+        coords: tuple, map_size: float, catch_out_of_bounds: bool = True
 ) -> HackyBackwardsCompatCoordClass:
     corrected_map_size = _get_corrected_map_size(map_size)
 
@@ -232,19 +233,16 @@ def convert_xy_to_grid(
 
 
 def generate_grid(
-    map_size: int,
-    text_size: int = 20,
-    text_padding: int = 5,
-    text_font: Path = None,
-    color: str = "black",
+        map_size: int,
+        text_size: int = 20,
+        text_padding: int = 5,
+        text_font: str = 'PermanentMarker.ttf',
+        color: str = "black"
 ) -> Image.Image:
     img = Image.new("RGBA", (map_size, map_size), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
 
-    try:
-        font = ImageFont.truetype(text_font, text_size)
-    except OSError:
-        font = ImageFont.load_default(text_size)
+    font = ImageFont.truetype(str(resources.path(FONT_PATH, text_font)), text_size)
 
     letters = list(string.ascii_uppercase)
     letters.extend(
@@ -257,10 +255,10 @@ def generate_grid(
         for j in range(num_cells):
             start = (i * GRID_DIAMETER, j * GRID_DIAMETER)
             end = ((i + 1) * GRID_DIAMETER, (j + 1) * GRID_DIAMETER)
-            d.rectangle([start, end], outline=color)
+            d.rectangle([start, end], outline = color)
 
             text = letters[i] + str(j)
             text_pos = (start[0] + text_padding, start[1] + text_padding)
-            d.text(text_pos, text, fill=color, font=font)
+            d.text(text_pos, text, fill = color, font = font)
 
     return img
