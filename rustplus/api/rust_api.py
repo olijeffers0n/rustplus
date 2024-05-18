@@ -36,6 +36,7 @@ from ..utils import (
     convert_monument,
     translate_id_to_stack,
     deprecated,
+    generate_grid,
 )
 
 
@@ -205,17 +206,9 @@ class RustSocket(BaseRustSocket):
         game_map = image.resize((map_size, map_size), Image.LANCZOS).convert("RGBA")
 
         if add_grid:
-            grid = (
-                Image.open(
-                    requests.get(
-                        f"https://files.rustmaps.com/grids/{map_size}.png", stream=True
-                    ).raw
-                )
-                .resize((map_size, map_size), Image.LANCZOS)
-                .convert("RGBA")
-            )
+            grid = generate_grid(map_size)
 
-            game_map.paste(grid, (0, 0), grid)
+            game_map.paste(grid, (5, 5), grid)
 
         if add_icons or add_events or add_vending_machines:
             map_markers = (

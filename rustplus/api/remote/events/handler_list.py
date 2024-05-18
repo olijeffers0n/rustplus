@@ -29,9 +29,9 @@ class HandlerList:
 class EntityHandlerList(HandlerList):
     def __init__(self) -> None:
         super().__init__()
-        self._handlers: Dict[
-            ServerID, Dict[str, Set[RegisteredListener]]
-        ] = defaultdict(dict)
+        self._handlers: Dict[ServerID, Dict[str, Set[RegisteredListener]]] = (
+            defaultdict(dict)
+        )
 
     def unregister(self, listener: RegisteredListener, server_id: ServerID) -> None:
         if listener.listener_id in self._handlers.get(server_id):
