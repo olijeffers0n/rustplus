@@ -294,14 +294,15 @@ class RustSocket(BaseRustSocket):
                                 f"&steamids={member.steam_id}"
                             )
                             if response.status_code == 403:
-                                raise SteamApiKeyError('Invalid Steam Web API Key')
-
+                                raise SteamApiKeyError("Invalid Steam Web API Key")
 
                             if steam_accounts := response.json()["response"]["players"]:
                                 avatar_url = steam_accounts[0]["avatarfull"]
 
                                 avatar = (
-                                    Image.open(requests.get(avatar_url, stream=True).raw)
+                                    Image.open(
+                                        requests.get(avatar_url, stream=True).raw
+                                    )
                                     .resize((100, 100), Image.LANCZOS)
                                     .convert("RGBA")
                                 )
@@ -312,7 +313,11 @@ class RustSocket(BaseRustSocket):
 
                                 game_map.paste(
                                     player_avatar,
-                                    (format_coord(int(member.x), int(member.y), map_size)),
+                                    (
+                                        format_coord(
+                                            int(member.x), int(member.y), map_size
+                                        )
+                                    ),
                                     player_avatar,
                                 )
 
