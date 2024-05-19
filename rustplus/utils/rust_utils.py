@@ -283,7 +283,7 @@ def avatar_processing(
     draw.ellipse([0, 0, size_with_border[0], size_with_border[1]], fill=255)
 
     border_layer = Image.new(
-        "RGBA", size_with_border, ONLINE_COLOR if player_online else OFFLINE_COLOR
+        "RGBA", size_with_border, PLAYER_MARKER_ONLINE_COLOR if player_online else PLAYER_MARKER_OFFLINE_COLOR
     )
     border_image.paste(border_layer, mask=mask)
 
