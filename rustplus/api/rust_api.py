@@ -1,6 +1,4 @@
 import asyncio
-import logging
-
 import requests
 from typing import List, Union
 from PIL import Image
@@ -30,7 +28,6 @@ from .remote.rustplus_proto import (
 from .remote import HeartBeat, RateLimiter
 from ..commands import CommandOptions
 from ..exceptions import *
-from ..exceptions.exceptions import SteamApiKeyError
 from ..utils import (
     RustTime,
     format_time,
@@ -51,7 +48,6 @@ class RustSocket(BaseRustSocket):
         port: str = None,
         steam_id: int = None,
         player_token: int = None,
-        steam_web_api_key: str = None,
         command_options: CommandOptions = None,
         raise_ratelimit_exception: bool = False,
         ratelimit_limit: int = 25,
@@ -67,7 +63,6 @@ class RustSocket(BaseRustSocket):
             port=port,
             steam_id=steam_id,
             player_token=player_token,
-            steam_web_api_key=steam_web_api_key,
             command_options=command_options,
             raise_ratelimit_exception=raise_ratelimit_exception,
             ratelimit_limit=ratelimit_limit,
@@ -279,47 +274,27 @@ class RustSocket(BaseRustSocket):
                         vending_machine,
                     )
             if add_team_positions:
-                if not self.steam_web_api_key:
-                    logging.warning(
-                        "Steam Web API Key is required for add team positions"
-                    )
-                else:
-                    team = await self.get_team_info()
-                    for member in team.members:
-                        if member.is_alive:
-                            response = requests.get(
-                                f"https://api.steampowered.com/"
-                                f"ISteamUser/GetPlayerSummaries/v2/"
-                                f"?key={self.steam_web_api_key}"
-                                f"&steamids={member.steam_id}"
+                team = await self.get_team_info()
+                for member in team.members:
+                    if member.is_alive:
+                        avatar = (
+                            Image.open(
+                                requests.get(
+                                    f"https://companion-rust.facepunch.com/api/avatar/{member.steam_id}",
+                                    stream=True,
+                                ).raw
                             )
-                            if response.status_code == 403:
-                                raise SteamApiKeyError("Invalid Steam Web API Key")
+                            .resize((100, 100), Image.LANCZOS)
+                            .convert("RGBA")
+                        )
 
-                            if steam_accounts := response.json()["response"]["players"]:
-                                avatar_url = steam_accounts[0]["avatarfull"]
+                        player_avatar = avatar_processing(avatar, 5, member.is_online)
 
-                                avatar = (
-                                    Image.open(
-                                        requests.get(avatar_url, stream=True).raw
-                                    )
-                                    .resize((100, 100), Image.LANCZOS)
-                                    .convert("RGBA")
-                                )
-
-                                player_avatar = avatar_processing(
-                                    avatar, 5, member.is_online
-                                )
-
-                                game_map.paste(
-                                    player_avatar,
-                                    (
-                                        format_coord(
-                                            int(member.x), int(member.y), map_size
-                                        )
-                                    ),
-                                    player_avatar,
-                                )
+                        game_map.paste(
+                            player_avatar,
+                            (format_coord(int(member.x), int(member.y), map_size)),
+                            player_avatar,
+                        )
 
         return game_map.resize((2000, 2000), Image.LANCZOS)
 

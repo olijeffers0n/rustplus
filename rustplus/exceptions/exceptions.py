@@ -62,9 +62,3 @@ class ServerSwitchDisallowedError(Error):
     """Raised when you are using the test server and attempt to swap server"""
 
     pass
-
-
-class SteamApiKeyError(Error):
-    """Raised when the steam api key is invalid"""
-
-    pass

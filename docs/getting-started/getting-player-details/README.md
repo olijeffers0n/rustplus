@@ -56,7 +56,7 @@ In order to get your data, you need to:
     "name": "",
     "playerId": "", <- This is your steam player ID
     "playerToken": "", <- This is your unique token
-    "port": "", <- This is the token
+    "port": "", <- This is the port
     "type": "",
     "url": ""
 }
@@ -65,9 +65,5 @@ In order to get your data, you need to:
 You can then use these details in the Python Wrapper here:
 
 ```python
-rust_socket = RustSocket("IPADDRESS",  "PORT", 64BITSTEAMID, PLAYERTOKEN, STEAM_WEB_API_KEY)
+rust_socket = RustSocket("IPADDRESS",  "PORT", 64BITSTEAMID, PLAYERTOKEN)
 ```
-
-##### Steam web api key is not required, but without it you will not be able to use some features
-
-To get the steam web api key, please follow this [link](https://steamcommunity.com/dev/apikey)
