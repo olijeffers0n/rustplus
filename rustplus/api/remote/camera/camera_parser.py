@@ -121,9 +121,9 @@ class Parser:
                 ] = (208, 230, 252)
                 distance = float("inf")
 
-            self.depth_output[
-                x : x + self.scale_factor, y : y + self.scale_factor
-            ] = distance
+            self.depth_output[x : x + self.scale_factor, y : y + self.scale_factor] = (
+                distance
+            )
 
         return False
 

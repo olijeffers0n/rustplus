@@ -1,16 +1,15 @@
 from importlib import resources
 from typing import Tuple
 from PIL import Image, ImageDraw, ImageFont
-from pathlib import Path
 import logging
 import string
 
 from ..api.remote.rustplus_proto import AppMessage
 from ..api.structures import RustTime
 
-icons_path = "rustplus.api.icons"
-GRID_DIAMETER = 146.28571428571428
+ICONS_PATH = "rustplus.api.icons"
 FONT_PATH = "rustplus.utils.fonts"
+GRID_DIAMETER = 146.28571428571428
 
 
 def format_time(protobuf: AppMessage) -> RustTime:
@@ -62,21 +61,21 @@ def convert_marker(name, angle) -> Image.Image:
         "8": "patrol.png",
     }
 
-    with resources.path(icons_path, name_to_file[name]) as path:
+    with resources.path(ICONS_PATH, name_to_file[name]) as path:
         icon = Image.open(path).convert("RGBA")
     if name == "6":
         icon = icon.resize((85, 85))
     elif name == "2":
         icon = icon.resize((96, 96))
     elif name == "4":
-        with resources.path(icons_path, "chinook_blades.png") as path:
+        with resources.path(ICONS_PATH, "chinook_blades.png") as path:
             blades = Image.open(path).convert("RGBA")
         blades = blades.resize((100, 100))
         icon.paste(blades, (64 - 50, 96 - 50), blades)
         icon.paste(blades, (64 - 50, 32 - 50), blades)
     elif name == "8":
         icon = icon.resize((200, 200))
-        with resources.path(icons_path, "chinook_blades.png") as path:
+        with resources.path(ICONS_PATH, "chinook_blades.png") as path:
             blades = Image.open(path).convert("RGBA")
         blades = blades.resize((200, 200))
         icon.paste(blades, (0, 0), blades)
@@ -131,16 +130,16 @@ def convert_monument(name: str, override_images: dict) -> Image.Image:
 
     if name in name_to_file:
         file_name = name_to_file[name]
-        with resources.path(icons_path, file_name) as path:
+        with resources.path(ICONS_PATH, file_name) as path:
             icon = Image.open(path).convert("RGBA")
     elif "swamp" in name:
-        with resources.path(icons_path, "swamp.png") as path:
+        with resources.path(ICONS_PATH, "swamp.png") as path:
             icon = Image.open(path).convert("RGBA")
     else:
         logging.getLogger("rustplus.py").info(
             f"{name} - Has no icon, report this as an issue"
         )
-        with resources.path(icons_path, "icon.png") as path:
+        with resources.path(ICONS_PATH, "icon.png") as path:
             icon = Image.open(path).convert("RGBA")
     return icon
 
@@ -236,13 +235,13 @@ def generate_grid(
     map_size: int,
     text_size: int = 20,
     text_padding: int = 5,
-    text_font: str = "PermanentMarker.ttf",
     color: str = "black",
 ) -> Image.Image:
     img = Image.new("RGBA", (map_size, map_size), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
 
-    font = ImageFont.truetype(str(resources.path(FONT_PATH, text_font)), text_size)
+    with resources.path(FONT_PATH, "PermanentMarker.ttf") as path:
+        font = ImageFont.truetype(str(path), text_size)
 
     letters = list(string.ascii_uppercase)
     letters.extend(
@@ -255,7 +254,7 @@ def generate_grid(
         for j in range(num_cells):
             start = (i * GRID_DIAMETER, j * GRID_DIAMETER)
             end = ((i + 1) * GRID_DIAMETER, (j + 1) * GRID_DIAMETER)
-            d.rectangle([start, end], outline=color)
+            d.rectangle((start, end), outline=color)
 
             text = letters[i] + str(j)
             text_pos = (start[0] + text_padding, start[1] + text_padding)

@@ -145,9 +145,11 @@ class BaseRustSocket:
         :return: None
         """
         EventLoopManager.set_loop(
-            self.event_loop
-            if self.event_loop is not None
-            else asyncio.get_event_loop(),
+            (
+                self.event_loop
+                if self.event_loop is not None
+                else asyncio.get_event_loop()
+            ),
             self.server_id,
         )
 
@@ -155,9 +157,11 @@ class BaseRustSocket:
             ServerChecker(self.server_id.ip, self.server_id.port).run()
 
         EventLoopManager.set_loop(
-            self.event_loop
-            if self.event_loop is not None
-            else asyncio.get_event_loop(),
+            (
+                self.event_loop
+                if self.event_loop is not None
+                else asyncio.get_event_loop()
+            ),
             self.server_id,
         )
 
