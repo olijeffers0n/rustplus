@@ -12,8 +12,8 @@ ICONS_PATH = "rustplus.api.icons"
 FONT_PATH = "rustplus.utils.fonts"
 GRID_DIAMETER = 146.28571428571428
 
-ONLINE_COLOR = (201, 242, 155, 255)
-OFFLINE_COLOR = (128, 128, 128, 255)
+PLAYER_MARKER_ONLINE_COLOR = (201, 242, 155, 255)
+PLAYER_MARKER_OFFLINE_COLOR = (128, 128, 128, 255)
 
 
 def format_time(protobuf: AppMessage) -> RustTime:
