@@ -20,8 +20,6 @@ There is a [Chrome Extension](https://chrome.google.com/webstore/detail/rustplus
 2\) Download to file \
 3\) Use on the website to - get this - listen for notifications on the web!
 
-
-
 ### Web Listener:
 
 This will allow you to listen for paring notifications without even opening an IDE. The messages are listened for, and then sent to your browser via a WebSocket connection. If you have any issues with them not coming through you can refresh the page and they should be there!
