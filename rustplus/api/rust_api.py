@@ -30,6 +30,7 @@ from .remote.rustplus_proto import (
 from .remote import HeartBeat, RateLimiter
 from ..commands import CommandOptions
 from ..exceptions import *
+from ..exceptions.exceptions import SteamApiKeyError
 from ..utils import (
     RustTime,
     format_time,
@@ -286,29 +287,34 @@ class RustSocket(BaseRustSocket):
                     team = await self.get_team_info()
                     for member in team.members:
                         if member.is_alive:
-                            avatar_url = requests.get(
+                            response = requests.get(
                                 f"https://api.steampowered.com/"
                                 f"ISteamUser/GetPlayerSummaries/v2/"
                                 f"?key={self.steam_web_api_key}"
-                                f"&steamids={member.steam_id}",
-                                data={"steam_id": member.steam_id},
-                            ).json()["response"]["players"][0]["avatarfull"]
-
-                            avatar = (
-                                Image.open(requests.get(avatar_url, stream=True).raw)
-                                .resize((100, 100), Image.LANCZOS)
-                                .convert("RGBA")
+                                f"&steamids={member.steam_id}"
                             )
+                            if response.status_code == 403:
+                                raise SteamApiKeyError('Invalid Steam Web API Key')
 
-                            player_avatar = avatar_processing(
-                                avatar, 5, member.is_online
-                            )
 
-                            game_map.paste(
-                                player_avatar,
-                                (format_coord(int(member.x), int(member.y), map_size)),
-                                player_avatar,
-                            )
+                            if steam_accounts := response.json()["response"]["players"]:
+                                avatar_url = steam_accounts[0]["avatarfull"]
+
+                                avatar = (
+                                    Image.open(requests.get(avatar_url, stream=True).raw)
+                                    .resize((100, 100), Image.LANCZOS)
+                                    .convert("RGBA")
+                                )
+
+                                player_avatar = avatar_processing(
+                                    avatar, 5, member.is_online
+                                )
+
+                                game_map.paste(
+                                    player_avatar,
+                                    (format_coord(int(member.x), int(member.y), map_size)),
+                                    player_avatar,
+                                )
 
         return game_map.resize((2000, 2000), Image.LANCZOS)
 
