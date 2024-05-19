@@ -54,7 +54,7 @@ In order to get your data, you need to:
     "name": "",
     "playerId": "", <- This is your steam player ID
     "playerToken": "", <- This is your unique token
-    "port": "", <- This is the token
+    "port": "", <- This is the port
     "type": "",
     "url": ""
 }
@@ -65,4 +65,3 @@ You can then use these details in the Python Wrapper here:
 ```python
 rust_socket = RustSocket("IPADDRESS",  "PORT", 64BITSTEAMID, PLAYERTOKEN)
 ```
-
