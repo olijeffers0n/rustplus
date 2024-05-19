@@ -1,4 +1,6 @@
 import asyncio
+import logging
+
 import requests
 from typing import List, Union
 from PIL import Image
@@ -37,6 +39,7 @@ from ..utils import (
     translate_id_to_stack,
     deprecated,
     generate_grid,
+    avatar_processing,
 )
 
 
@@ -47,6 +50,7 @@ class RustSocket(BaseRustSocket):
         port: str = None,
         steam_id: int = None,
         player_token: int = None,
+        steam_web_api_key: str = None,
         command_options: CommandOptions = None,
         raise_ratelimit_exception: bool = False,
         ratelimit_limit: int = 25,
@@ -62,6 +66,7 @@ class RustSocket(BaseRustSocket):
             port=port,
             steam_id=steam_id,
             player_token=player_token,
+            steam_web_api_key=steam_web_api_key,
             command_options=command_options,
             raise_ratelimit_exception=raise_ratelimit_exception,
             ratelimit_limit=ratelimit_limit,
@@ -168,6 +173,7 @@ class RustSocket(BaseRustSocket):
         add_icons: bool = False,
         add_events: bool = False,
         add_vending_machines: bool = False,
+        add_team_positions: bool = False,
         override_images: dict = None,
         add_grid: bool = False,
     ) -> Image.Image:
@@ -181,7 +187,7 @@ class RustSocket(BaseRustSocket):
             + (
                 1
                 if [add_icons, add_events, add_vending_machines].count(True) >= 1
-                else 0
+                else 0 + 1 if add_team_positions else 0
             )
         )
 
@@ -271,6 +277,38 @@ class RustSocket(BaseRustSocket):
                         (int(marker.x) - 50, map_size - int(marker.y) - 50),
                         vending_machine,
                     )
+            if add_team_positions:
+                if not self.steam_web_api_key:
+                    logging.warning(
+                        "Steam Web API Key is required for add team positions"
+                    )
+                else:
+                    team = await self.get_team_info()
+                    for member in team.members:
+                        if member.is_alive:
+                            avatar_url = requests.get(
+                                f"https://api.steampowered.com/"
+                                f"ISteamUser/GetPlayerSummaries/v2/"
+                                f"?key={self.steam_web_api_key}"
+                                f"&steamids={member.steam_id}",
+                                data={"steam_id": member.steam_id},
+                            ).json()["response"]["players"][0]["avatarfull"]
+
+                            avatar = (
+                                Image.open(requests.get(avatar_url, stream=True).raw)
+                                .resize((100, 100), Image.LANCZOS)
+                                .convert("RGBA")
+                            )
+
+                            player_avatar = avatar_processing(
+                                avatar, 5, member.is_online
+                            )
+
+                            game_map.paste(
+                                player_avatar,
+                                (format_coord(int(member.x), int(member.y), map_size)),
+                                player_avatar,
+                            )
 
         return game_map.resize((2000, 2000), Image.LANCZOS)
 

@@ -29,6 +29,7 @@ class BaseRustSocket:
         port: str = None,
         steam_id: int = None,
         player_token: int = None,
+        steam_web_api_key: str = None,
         command_options: CommandOptions = None,
         raise_ratelimit_exception: bool = False,
         ratelimit_limit: int = 25,
@@ -58,6 +59,7 @@ class BaseRustSocket:
             raise ValueError("PlayerToken must be an integer")
 
         self.server_id = ServerID(ip, port, steam_id, player_token)
+        self.steam_web_api_key = steam_web_api_key
         self.seq = 1
         self.command_options = command_options
         self.raise_ratelimit_exception = raise_ratelimit_exception
