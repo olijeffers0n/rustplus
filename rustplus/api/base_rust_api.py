@@ -321,20 +321,20 @@ class BaseRustSocket:
             self.remote.command_handler.register_command(cmd_data)
             return RegisteredListener(coro.__name__, cmd_data.coro)
 
-        def wrap_func(coro):
+        def wrap_func(coroutine: Union[RegisteredListener, Coroutine]):
             if self.command_options is None:
                 raise CommandsNotEnabledError("Not enabled")
 
-            if isinstance(coro, RegisteredListener):
-                coro = coro.get_coro()
+            if isinstance(coroutine, RegisteredListener):
+                coroutine = coroutine.get_coro()
 
-            cmd_data = CommandData(
-                coro,
+            command_data = CommandData(
+                coroutine,
                 aliases,
                 alias_func,
             )
-            self.remote.command_handler.register_command(cmd_data)
-            return RegisteredListener(coro.__name__, cmd_data.coro)
+            self.remote.command_handler.register_command(command_data)
+            return RegisteredListener(coroutine.__name__, coroutine)
 
         return wrap_func
 

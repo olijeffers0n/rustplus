@@ -245,11 +245,7 @@ class RustSocket(BaseRustSocket):
             for marker in map_markers:
                 if add_events:
                     if (
-                        marker.type == 2
-                        or marker.type == 4
-                        or marker.type == 5
-                        or marker.type == 6
-                        or marker.type == 8
+                        marker.type in RustMarker.Events
                     ):
                         icon = convert_marker(str(marker.type), marker.rotation)
                         if marker.type == 6:
@@ -364,11 +360,7 @@ class RustSocket(BaseRustSocket):
         return [
             marker
             for marker in (await self.get_markers())
-            if marker.type == 2
-            or marker.type == 4
-            or marker.type == 5
-            or marker.type == 6
-            or marker.type == 8
+            if marker.type in RustMarker.Events
         ]
 
     async def get_contents(
