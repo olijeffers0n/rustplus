@@ -1,9 +1,9 @@
 from typing import List
-
+from .serialization import Serializable
 from ..remote.rustplus_proto import Vector4, AppMarkerSellOrder, AppMarker
 
 
-class RustColour:
+class RustColour(Serializable):
     def __init__(self, data: Vector4) -> None:
         self._x: float = data.x
         self._y: float = data.y
@@ -32,7 +32,7 @@ class RustColour:
         )
 
 
-class RustSellOrder:
+class RustSellOrder(Serializable):
     def __init__(self, data: AppMarkerSellOrder) -> None:
         self._item_id: int = data.item_id
         self._quantity: int = data.quantity
@@ -84,7 +84,7 @@ class RustSellOrder:
         )
 
 
-class RustMarker:
+class RustMarker(Serializable):
     PlayerMarker = 1
     ExplosionMarker = 2
     VendingMachineMarker = 3
@@ -185,3 +185,6 @@ class RustMarker:
                 self._out_of_stock,
             )
         )
+
+    def __hash__(self) -> int:
+        return hash((self._id, self._type))

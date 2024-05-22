@@ -1,10 +1,10 @@
 from datetime import timedelta
 from typing import List
-
+from .serialization import Serializable
 from .rust_item import RustItem
 
 
-class RustContents:
+class RustContents(Serializable):
     def __init__(self, protection_time, has_protection, contents) -> None:
         self._protection_time: timedelta = protection_time
         self._has_protection: bool = has_protection

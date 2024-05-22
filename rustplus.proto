@@ -302,6 +302,9 @@ message AppTeamInfo {
 				required int32 type = 2;
 				required float x = 3;
 				required float y = 4;
+				optional int32 icon = 5;
+				optional int32 colourIndex = 6;
+				optional string label = 7;
 		}
 }
 

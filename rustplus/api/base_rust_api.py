@@ -1,5 +1,5 @@
 import asyncio
-from typing import List, Callable, Union
+from typing import List, Union, Coroutine, Callable, Dict, Tuple
 from PIL import Image
 
 from .remote.events.event_loop_manager import EventLoopManager
@@ -38,6 +38,7 @@ class BaseRustSocket:
         use_test_server: bool = False,
         event_loop: asyncio.AbstractEventLoop = None,
         rate_limiter: RateLimiter = None,
+        debug: bool = False,
     ) -> None:
         if ip is None:
             raise ValueError("Ip cannot be None")
@@ -45,6 +46,16 @@ class BaseRustSocket:
             raise ValueError("SteamID cannot be None")
         if player_token is None:
             raise ValueError("PlayerToken cannot be None")
+
+        try:
+            steam_id = int(steam_id)
+        except ValueError:
+            raise ValueError("SteamID must be an integer")
+
+        try:
+            player_token = int(player_token)
+        except ValueError:
+            raise ValueError("PlayerToken must be an integer")
 
         self.server_id = ServerID(ip, port, steam_id, player_token)
         self.seq = 1
@@ -65,6 +76,7 @@ class BaseRustSocket:
             api=self,
             use_test_server=use_test_server,
             rate_limiter=rate_limiter,
+            debug=debug,
         )
 
         if heartbeat is None:
@@ -113,8 +125,10 @@ class BaseRustSocket:
         self,
         retries: int = float("inf"),
         delay: int = 20,
-        on_failure=None,
-        on_success=None,
+        on_failure: Union[Coroutine, Callable[[], None], None] = None,
+        on_success: Union[Coroutine, Callable[[], None], None] = None,
+        on_success_args_kwargs: Tuple[List, Dict] = ([], {}),
+        on_failure_args_kwargs: Tuple[List, Dict] = ([], {}),
     ) -> None:
         """
         Attempts to open a connection to the rust game server specified in the constructor
@@ -123,14 +137,19 @@ class BaseRustSocket:
         :param delay: The delay (in seconds) between reconnection attempts.
         :param on_failure: Optional function to be called when connecting fails.
         :param on_success: Optional function to be called when connecting succeeds.
-
+        :param on_success_args_kwargs: Optional tuple holding keyword and regular arguments
+            for on_success in this format (args, kwargs)
+        :param on_failure_args_kwargs: Optional tuple holding keyword and regular arguments
+            for on_failure in this format (args, kwargs)
 
         :return: None
         """
         EventLoopManager.set_loop(
-            self.event_loop
-            if self.event_loop is not None
-            else asyncio.get_event_loop(),
+            (
+                self.event_loop
+                if self.event_loop is not None
+                else asyncio.get_event_loop()
+            ),
             self.server_id,
         )
 
@@ -138,9 +157,11 @@ class BaseRustSocket:
             ServerChecker(self.server_id.ip, self.server_id.port).run()
 
         EventLoopManager.set_loop(
-            self.event_loop
-            if self.event_loop is not None
-            else asyncio.get_event_loop(),
+            (
+                self.event_loop
+                if self.event_loop is not None
+                else asyncio.get_event_loop()
+            ),
             self.server_id,
         )
 
@@ -151,6 +172,8 @@ class BaseRustSocket:
                     delay=delay,
                     on_failure=on_failure,
                     on_success=on_success,
+                    on_success_args_kwargs=on_success_args_kwargs,
+                    on_failure_args_kwargs=on_failure_args_kwargs,
                 )
                 await self.heartbeat.start_beat()
         except ConnectionRefusedError:

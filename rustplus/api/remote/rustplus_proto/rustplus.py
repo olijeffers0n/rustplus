@@ -352,6 +352,9 @@ class AppTeamInfoNote(betterproto.Message):
     type: int = betterproto.int32_field(2)
     x: float = betterproto.float_field(3)
     y: float = betterproto.float_field(4)
+    icon: int = betterproto.int32_field(5)
+    colour_index: int = betterproto.int32_field(6)
+    label: str = betterproto.string_field(7)
 
 
 @dataclass

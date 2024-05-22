@@ -32,6 +32,7 @@ class RustRemote:
         api=None,
         use_test_server: bool = False,
         rate_limiter: RateLimiter = None,
+        debug: bool = False,
     ) -> None:
         self.server_id = server_id
         self.api = api
@@ -65,8 +66,17 @@ class RustRemote:
         self.use_test_server = use_test_server
         self.pending_entity_subscriptions = []
         self.camera_manager: Union[CameraManager, None] = None
+        self.debug = debug
 
-    async def connect(self, retries, delay, on_failure=None, on_success=None) -> None:
+    async def connect(
+        self,
+        retries,
+        delay,
+        on_failure,
+        on_success,
+        on_success_args_kwargs,
+        on_failure_args_kwargs,
+    ) -> None:
         self.ws = RustWebsocket(
             server_id=self.server_id,
             remote=self,
@@ -76,6 +86,9 @@ class RustRemote:
             on_failure=on_failure,
             on_success=on_success,
             delay=delay,
+            on_success_args_kwargs=on_success_args_kwargs,
+            on_failure_args_kwargs=on_failure_args_kwargs,
+            debug=self.debug,
         )
         await self.ws.connect(retries=retries)
 
@@ -101,6 +114,11 @@ class RustRemote:
     async def send_message(self, request: AppRequest) -> None:
         if self.ws is None:
             raise ClientNotConnectedError("No Current Websocket Connection")
+
+        if self.debug:
+            self.logger.info(
+                f"[RustPlus.py] Sending Message with seq {request.seq}: {request}"
+            )
 
         self.pending_response_events[request.seq] = YieldingEvent()
         await self.ws.send_message(request)

@@ -80,9 +80,11 @@ class CameraManager:
             last_packet.vertical_fov,
             self._cam_info_message.far_plane,
             entity_render_distance,
-            max_entity_amount
-            if max_entity_amount is not None
-            else len(self._last_packets.get_last().entities),
+            (
+                max_entity_amount
+                if max_entity_amount is not None
+                else len(self._last_packets.get_last().entities)
+            ),
         )
 
     async def get_frame(
