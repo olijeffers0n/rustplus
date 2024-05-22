@@ -23,9 +23,12 @@ death_time: int
 
 class RustTeamNote with fields:
 
-type
+type: int
 x: float
 y: float
+icon: int
+colour_index: int
+label: string
 ```
 
 So, to get the name of the first member in the team you can do:

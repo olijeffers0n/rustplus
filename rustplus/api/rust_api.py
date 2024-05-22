@@ -38,6 +38,8 @@ from ..utils import (
     convert_monument,
     translate_id_to_stack,
     deprecated,
+    generate_grid,
+    avatar_processing,
 )
 
 
@@ -56,6 +58,7 @@ class RustSocket(BaseRustSocket):
         use_test_server: bool = False,
         event_loop: asyncio.AbstractEventLoop = None,
         rate_limiter: RateLimiter = None,
+        debug: bool = False,
     ) -> None:
         super().__init__(
             ip=ip,
@@ -71,6 +74,7 @@ class RustSocket(BaseRustSocket):
             use_test_server=use_test_server,
             event_loop=event_loop,
             rate_limiter=rate_limiter,
+            debug=debug,
         )
 
     async def get_time(self) -> RustTime:
@@ -167,6 +171,7 @@ class RustSocket(BaseRustSocket):
         add_icons: bool = False,
         add_events: bool = False,
         add_vending_machines: bool = False,
+        add_team_positions: bool = False,
         override_images: dict = None,
         add_grid: bool = False,
     ) -> Image.Image:
@@ -180,7 +185,7 @@ class RustSocket(BaseRustSocket):
             + (
                 1
                 if [add_icons, add_events, add_vending_machines].count(True) >= 1
-                else 0
+                else 0 + 1 if add_team_positions else 0
             )
         )
 
@@ -205,17 +210,9 @@ class RustSocket(BaseRustSocket):
         game_map = image.resize((map_size, map_size), Image.LANCZOS).convert("RGBA")
 
         if add_grid:
-            grid = (
-                Image.open(
-                    requests.get(
-                        f"https://files.rustmaps.com/grids/{map_size}.png", stream=True
-                    ).raw
-                )
-                .resize((map_size, map_size), Image.LANCZOS)
-                .convert("RGBA")
-            )
+            grid = generate_grid(map_size)
 
-            game_map.paste(grid, (0, 0), grid)
+            game_map.paste(grid, (5, 5), grid)
 
         if add_icons or add_events or add_vending_machines:
             map_markers = (
@@ -277,6 +274,28 @@ class RustSocket(BaseRustSocket):
                         vending_machine,
                         (int(marker.x) - 50, map_size - int(marker.y) - 50),
                         vending_machine,
+                    )
+        if add_team_positions:
+            team = await self.get_team_info()
+            for member in team.members:
+                if member.is_alive:
+                    avatar = (
+                        Image.open(
+                            requests.get(
+                                f"https://companion-rust.facepunch.com/api/avatar/{member.steam_id}",
+                                stream=True,
+                            ).raw
+                        )
+                        .resize((100, 100), Image.LANCZOS)
+                        .convert("RGBA")
+                    )
+
+                    player_avatar = avatar_processing(avatar, 5, member.is_online)
+
+                    game_map.paste(
+                        player_avatar,
+                        (format_coord(int(member.x), int(member.y), map_size)),
+                        player_avatar,
                     )
 
         return game_map.resize((2000, 2000), Image.LANCZOS)

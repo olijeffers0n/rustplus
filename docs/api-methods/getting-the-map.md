@@ -2,7 +2,7 @@
 
 ### Getting the Image
 
-Calling `rust_socket.get_map(add_icons: bool, add_events: bool, add_vending_machines: bool, override_images: dict)` will return a `PIL.Image` with the respective additions.
+Calling `rust_socket.get_map(add_icons: bool, add_events: bool, add_vending_machines: bool, add_team_positions: bool, override_images: dict, add_grid: bool)` will return a `PIL.Image` with the respective additions.
 
 ### Getting the Map Data
 

@@ -1,7 +1,8 @@
 from typing import Union
+from .serialization import Serializable
 
 
-class RustItem:
+class RustItem(Serializable):
     def __init__(
         self, name: str, item_id: Union[str, int], quantity: int, is_blueprint: bool
     ) -> None:

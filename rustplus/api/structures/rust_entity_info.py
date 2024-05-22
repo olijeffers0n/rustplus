@@ -1,9 +1,9 @@
 from typing import List
-
+from .serialization import Serializable
 from ..remote import AppEntityInfo, AppEntityPayloadItem
 
 
-class RustEntityInfoItem:
+class RustEntityInfoItem(Serializable):
     def __init__(self, data: AppEntityPayloadItem) -> None:
         self._item_id: int = data.item_id
         self._quantity: int = data.quantity
@@ -29,7 +29,7 @@ class RustEntityInfoItem:
         )
 
 
-class RustEntityInfo:
+class RustEntityInfo(Serializable):
     def __init__(self, data: AppEntityInfo) -> None:
         self._type: int = data.type
         self._value: bool = data.payload.value
