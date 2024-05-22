@@ -244,9 +244,7 @@ class RustSocket(BaseRustSocket):
 
             for marker in map_markers:
                 if add_events:
-                    if (
-                        marker.type in RustMarker.Events
-                    ):
+                    if marker.type in RustMarker.Events:
                         icon = convert_marker(str(marker.type), marker.rotation)
                         if marker.type == 6:
                             x = marker.x

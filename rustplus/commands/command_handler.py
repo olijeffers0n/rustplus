@@ -23,7 +23,7 @@ class CommandHandler:
 
     async def run_command(self, message: RustChatMessage, prefix) -> None:
         if prefix == self.command_options.prefix:
-            command = shlex.split(message.message)[0][len(prefix) :]
+            command = shlex.split(message.message)[0][len(prefix):]
         else:
             command = prefix
 

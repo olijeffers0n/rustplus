@@ -214,9 +214,10 @@ class RustWebsocket:
 
             try:
                 # This creates an asyncio task rather than awaiting the coroutine directly.
-                # This fixes the bug where if you called a BaseRustSocket#get... from within a RegisteredListener or callback,
-                # It would hang the websocket. This is because the websocket event loop would be stuck on the callback rather than polling the socket.
-                # This way, we can schedule the execution of all logic for this message, but continue polling the WS
+                # This fixes the bug where if you called a BaseRustSocket#get... from within a RegisteredListener or
+                # callback, It would hang the websocket. This is because the websocket event loop would be stuck on the
+                # callback rather than polling the socket. This way, we can schedule the execution of all logic for this
+                # message, but continue polling the WS
                 await self.run_coroutine_non_blocking(self.handle_message(app_message))
             except Exception:
                 self.logger.exception(
