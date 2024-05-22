@@ -430,7 +430,7 @@ class RustSocket(BaseRustSocket):
     async def get_camera_manager(self, cam_id: str) -> CameraManager:
         return await self.remote.create_camera_manager(cam_id)
 
-    async def get_clan_info(self) -> RustClanInfo:
+    async def get_clan_info(self) -> Union[RustClanInfo, None]:
         await self._handle_ratelimit()
 
         app_request = self._generate_protobuf()

@@ -469,6 +469,10 @@ class BaseRustSocket:
                 ProtobufEvent.handlers.unregister(listener, self.server_id)
                 return True
 
+            if ClanInfoEvent.handlers.has(listener, self.server_id):
+                ClanInfoEvent.handlers.unregister(listener, self.server_id)
+                return True
+
         return False
 
     @staticmethod
@@ -652,7 +656,7 @@ class BaseRustSocket:
         """
         raise NotImplementedError("Not Implemented")
 
-    async def get_clan_info(self) -> RustClanInfo:
+    async def get_clan_info(self) -> Union[RustClanInfo, None]:
         """
         Gets the clan info from the server
 
