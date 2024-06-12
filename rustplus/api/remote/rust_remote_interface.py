@@ -141,7 +141,8 @@ class RustRemote:
             if response is not None:
                 break
 
-            await self.send_message(app_request)
+            async with self.api.lock:
+                await self.send_message(app_request)
 
             if attempts % 150 == 0:
                 self.logger.info(
@@ -179,7 +180,8 @@ class RustRemote:
                     )
                 )
 
-            await self.send_message(app_request)
+            async with self.api.lock:
+                await self.send_message(app_request)
             response = await self.get_response(seq, app_request)
 
         elif self.ws.error_present(response.response.error.error) and error_check:
@@ -199,7 +201,8 @@ class RustRemote:
             app_request.entity_id = eid
             app_request.get_entity_info = AppEmpty()
 
-            await remote.send_message(app_request)
+            async with remote.api.lock:
+                await remote.send_message(app_request)
 
             return await remote.get_response(app_request.seq, app_request, False)
 
@@ -232,7 +235,8 @@ class RustRemote:
         subscribe.camera_id = entity_id
         app_request.camera_subscribe = subscribe
 
-        await self.send_message(app_request)
+        async with self.api.lock:
+            await self.send_message(app_request)
 
         if ignore_response:
             await self.add_ignored_response(app_request.seq)
@@ -244,8 +248,9 @@ class RustRemote:
             if self.camera_manager._cam_id == cam_id:
                 return self.camera_manager
 
-        app_request = await self.subscribe_to_camera(cam_id)
-        app_message = await self.get_response(app_request.seq, app_request)
+        async with self.api.lock:
+            app_request = await self.subscribe_to_camera(cam_id)
+            app_message = await self.get_response(app_request.seq, app_request)
 
         self.camera_manager = CameraManager(
             self.api, cam_id, app_message.response.camera_subscribe_info
