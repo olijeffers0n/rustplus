@@ -11,6 +11,9 @@ ICONS_PATH = "rustplus.api.icons"
 FONT_PATH = "rustplus.utils.fonts"
 GRID_DIAMETER = 146.28571428571428
 
+PLAYER_MARKER_ONLINE_COLOR = (201, 242, 155, 255)
+PLAYER_MARKER_OFFLINE_COLOR = (128, 128, 128, 255)
+
 
 def format_time(protobuf: AppMessage) -> RustTime:
     def convert_time(time) -> str:
@@ -261,3 +264,34 @@ def generate_grid(
             d.text(text_pos, text, fill=color, font=font)
 
     return img
+
+
+def avatar_processing(
+    image: Image.Image, border_size: int, player_online: bool = False
+) -> Image.Image:
+    size_with_border = (
+        image.size[0] + 2 * border_size,
+        image.size[1] + 2 * border_size,
+    )
+
+    border_image = Image.new("RGBA", size_with_border, (0, 0, 0, 0))
+
+    mask = Image.new("L", size_with_border, 0)
+    draw = ImageDraw.Draw(mask)
+
+    draw.ellipse([0, 0, size_with_border[0], size_with_border[1]], fill=255)
+
+    border_layer = Image.new(
+        "RGBA",
+        size_with_border,
+        PLAYER_MARKER_ONLINE_COLOR if player_online else PLAYER_MARKER_OFFLINE_COLOR,
+    )
+    border_image.paste(border_layer, mask=mask)
+
+    image_mask = Image.new("L", image.size, 0)
+    draw = ImageDraw.Draw(image_mask)
+    draw.ellipse([0, 0, image.size[0], image.size[1]], fill=255)
+
+    border_image.paste(image, (border_size, border_size), image_mask)
+
+    return border_image
