@@ -8,3 +8,5 @@ from .rust_entity_info import RustEntityInfo
 from .rust_contents import RustContents
 from .rust_item import RustItem
 from .util import Vector
+from .rust_clan_info import RustClanInfo
+from .rust_clan_message import RustClanMessage
