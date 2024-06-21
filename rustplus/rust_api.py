@@ -8,21 +8,33 @@ from .identification import ServerID
 from .remote.camera import CameraManager
 from .remote.rustplus_proto import AppRequest, AppEmpty
 from .remote.websocket import RustWebsocket
-from .structs import RustTime, RustInfo, RustChatMessage, RustTeamInfo, RustMarker, RustMap, RustEntityInfo, \
-    RustContents
+from .structs import (
+    RustTime,
+    RustInfo,
+    RustChatMessage,
+    RustTeamInfo,
+    RustMarker,
+    RustMap,
+    RustEntityInfo,
+    RustContents,
+)
 from .utils import deprecated
 from .remote.ratelimiter import RateLimiter
 
 
 class RustSocket:
 
-    def __init__(self, server_id: ServerID, ratelimiter: Union[None, RateLimiter] = None) -> None:
+    def __init__(
+        self, server_id: ServerID, ratelimiter: Union[None, RateLimiter] = None
+    ) -> None:
         self.server_id = server_id
         self.logger = logging.getLogger("rustplus.py")
 
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.DEBUG)
-        console_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+        console_handler.setFormatter(
+            logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        )
         self.logger.addHandler(console_handler)
         self.logger.setLevel(logging.DEBUG)
 
@@ -34,8 +46,13 @@ class RustSocket:
         else:
             self.ratelimiter = RateLimiter()
 
-        self.ratelimiter.add_socket(self.server_id, RateLimiter.SERVER_LIMIT, RateLimiter.SERVER_LIMIT, 1,
-                                    RateLimiter.SERVER_REFRESH_AMOUNT)
+        self.ratelimiter.add_socket(
+            self.server_id,
+            RateLimiter.SERVER_LIMIT,
+            RateLimiter.SERVER_LIMIT,
+            1,
+            RateLimiter.SERVER_REFRESH_AMOUNT,
+        )
 
     async def __generate_request(self, tokens=1) -> AppRequest:
         while True:
@@ -47,9 +64,7 @@ class RustSocket:
                 raise RateLimitError("Out of tokens")
 
             await asyncio.sleep(
-                await self.ratelimiter.get_estimated_delay_time(
-                    self.server_id, tokens
-                )
+                await self.ratelimiter.get_estimated_delay_time(self.server_id, tokens)
             )
 
         app_request = AppRequest()
@@ -128,12 +143,12 @@ class RustSocket:
         raise NotImplementedError("Not Implemented")
 
     async def get_map(
-            self,
-            add_icons: bool = False,
-            add_events: bool = False,
-            add_vending_machines: bool = False,
-            override_images: dict = None,
-            add_grid: bool = False,
+        self,
+        add_icons: bool = False,
+        add_events: bool = False,
+        add_vending_machines: bool = False,
+        override_images: dict = None,
+        add_grid: bool = False,
     ) -> Image.Image:
         """
         Gets an image of the map from the server with the specified additions
@@ -207,7 +222,7 @@ class RustSocket:
         raise NotImplementedError("Not Implemented")
 
     async def get_contents(
-            self, eid: int = None, combine_stacks: bool = False
+        self, eid: int = None, combine_stacks: bool = False
     ) -> RustContents:
         """
         Gets the contents of a storage monitor-attached container
@@ -220,7 +235,7 @@ class RustSocket:
 
     @deprecated("Use RustSocket#get_contents")
     async def get_tc_storage_contents(
-            self, eid: int = None, combine_stacks: bool = False
+        self, eid: int = None, combine_stacks: bool = False
     ) -> RustContents:
         """
         Gets the Information about TC Upkeep and Contents.

@@ -167,9 +167,7 @@ class RustWebsocket:
 
         else:
             # This means that it wasn't sent by the server and is a message from the server in response to an action
-            event: YieldingEvent = self.responses.get(
-                app_message.response.seq, None
-            )
+            event: YieldingEvent = self.responses.get(app_message.response.seq, None)
             if event is not None:
                 if self.debug:
                     self.logger.info(

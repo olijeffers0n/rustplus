@@ -19,9 +19,7 @@ class HandlerList:
     def unregister_all(self) -> None:
         self._handlers.clear()
 
-    def get_handlers(
-        self, server_id: ServerID
-    ) -> Set[RegisteredListener]:
+    def get_handlers(self, server_id: ServerID) -> Set[RegisteredListener]:
         return self._handlers.get(server_id, set())
 
 
@@ -32,7 +30,9 @@ class EntityHandlerList(HandlerList):
             defaultdict(dict)
         )
 
-    def unregister(self, listener: RegisteredEntityListener, server_id: ServerID) -> None:
+    def unregister(
+        self, listener: RegisteredEntityListener, server_id: ServerID
+    ) -> None:
         if listener.listener_id in self._handlers.get(server_id):
             self._handlers.get(server_id).get(listener.listener_id).remove(listener)
 
