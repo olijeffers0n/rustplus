@@ -11,15 +11,17 @@ import asyncio
 from ..camera import CameraManager
 from ..rustplus_proto import AppMessage, AppRequest
 from ...commands import CommandOptions, ChatCommand, ChatCommandTime
-from ...events import ProtobufEvent, EntityEvent
+from ...events import ProtobufEventPayload, EntityEventPayload, TeamEventPayload, ChatEventPayload
 from ...exceptions import ClientNotConnectedError, RequestError
 from ...identification import ServerID, RegisteredListener
-from ...structs import RustChatMessage
+from ...structs import RustChatMessage, RustTeamInfo
 from ...utils import YieldingEvent, convert_time
 
 
 class RustWebsocket:
-    def __init__(self, server_id: ServerID, command_options: Union[None, CommandOptions]) -> None:
+    def __init__(
+        self, server_id: ServerID, command_options: Union[None, CommandOptions]
+    ) -> None:
         self.server_id: ServerID = server_id
         self.command_options: Union[None, CommandOptions] = command_options
         self.connection: Union[WebSocketClientProtocol, None] = None
@@ -75,21 +77,22 @@ class RustWebsocket:
                 await self.run_coroutine_non_blocking(self.handle_message(app_message))
             except Exception as e:
                 self.logger.exception(
-                    "An Error occurred whilst handling the message from the server %s", e
+                    "An Error occurred whilst handling the message from the server %s",
+                    e,
                 )
 
     async def send_and_get(self, request: AppRequest) -> AppMessage:
         await self.send_message(request)
         return await self.get_response(request)
 
-    async def send_message(self, request: AppRequest, ignore_response: bool = False) -> None:
+    async def send_message(
+        self, request: AppRequest, ignore_response: bool = False
+    ) -> None:
         if self.connection is None:
             raise ClientNotConnectedError("No Current Websocket Connection")
 
         if self.debug:
-            self.logger.info(
-                f"Sending Message with seq {request.seq}: {request}"
-            )
+            self.logger.info(f"Sending Message with seq {request.seq}: {request}")
 
         if not ignore_response:
             self.responses[request.seq] = YieldingEvent()
@@ -123,9 +126,7 @@ class RustWebsocket:
             # Command
 
             if self.debug:
-                self.logger.info(
-                    f"Attempting to run Command: {app_message}"
-                )
+                self.logger.info(f"Attempting to run Command: {app_message}")
 
             message = RustChatMessage(app_message.broadcast.team_message.message)
 
@@ -151,10 +152,7 @@ class RustWebsocket:
                 for command_name, data in ChatCommand.REGISTERED_COMMANDS[
                     self.server_id
                 ].items():
-                    if (
-                        command in data.aliases
-                        or data.callable_func(command)
-                    ):
+                    if command in data.aliases or data.callable_func(command):
                         await data.coroutine(dao)
                         break
 
@@ -164,43 +162,54 @@ class RustWebsocket:
             if self.debug:
                 self.logger.info(f"Running Entity Event: {app_message}")
 
-            handlers = EntityEvent.HANDLER_LIST.get_handlers(self.server_id).get(str(app_message.broadcast.entity_changed.entity_id), [])
+            handlers = EntityEventPayload.HANDLER_LIST.get_handlers(self.server_id).get(
+                str(app_message.broadcast.entity_changed.entity_id), []
+            )
             for handler in handlers:
-                handler.get_coro()(EntityEvent(entity_changed=app_message.broadcast.entity_changed, entity_type=handler.entity_type))
+                handler.get_coro()(
+                    EntityEventPayload(
+                        entity_changed=app_message.broadcast.entity_changed,
+                        entity_type=handler.entity_type,
+                    )
+                )
 
         elif self.is_camera_broadcast(app_message):
             if self.debug:
-                self.logger.info(f"Running Camera Event: {app_message}")
+                self.logger.info(f"Updating Camera Packet: {app_message}")
 
             if CameraManager.ACTIVE_INSTANCE is not None:
-                await CameraManager.ACTIVE_INSTANCE.add_packet(app_message.broadcast.camera_rays)
+                await CameraManager.ACTIVE_INSTANCE.add_packet(
+                    app_message.broadcast.camera_rays
+                )
 
         elif self.is_team_broadcast(app_message):
+            # Team Event
             if self.debug:
                 self.logger.info(f"Running Team Event: {app_message}")
 
             # This means that the team of the current player has changed
-            # TODO await EventHandler.run_team_event(app_message, self.server_id)
+            handlers = TeamEventPayload.HANDLER_LIST.get_handlers(self.server_id)
+            team_event = TeamEventPayload(app_message.broadcast.team_changed.player_id, RustTeamInfo(app_message.broadcast.team_changed.team_info))
+            for handler in handlers:
+                await handler.get_coro()(team_event)
 
         elif self.is_message(app_message):
-            # This means that a message has been sent to the team chat
+            # Chat message event
 
             if self.debug:
                 self.logger.info(f"Running Chat Event: {app_message}")
 
-            steam_id = int(app_message.broadcast.team_message.message.steam_id)
-            message = str(app_message.broadcast.team_message.message.message)
-
-            # TODO await EventHandler.run_chat_event(app_message, self.server_id)
+            handlers = ChatEventPayload.HANDLER_LIST.get_handlers(self.server_id)
+            chat_event = ChatEventPayload(RustChatMessage(app_message.broadcast.team_message.message))
+            for handler in handlers:
+                await handler.get_coro()(chat_event)
 
         else:
             # This means that it wasn't sent by the server and is a message from the server in response to an action
             event: YieldingEvent = self.responses.get(app_message.response.seq, None)
             if event is not None:
                 if self.debug:
-                    self.logger.info(
-                        f"Running Response Event: {app_message}"
-                    )
+                    self.logger.info(f"Running Response Event: {app_message}")
 
                 event.set_with_value(app_message)
 
@@ -216,7 +225,9 @@ class RustWebsocket:
 
     @staticmethod
     async def run_proto_event(data: Union[str, bytes], server_id: ServerID) -> None:
-        handlers: Set[RegisteredListener] = ProtobufEvent.HANDLER_LIST.get_handlers(server_id)
+        handlers: Set[RegisteredListener] = ProtobufEventPayload.HANDLER_LIST.get_handlers(
+            server_id
+        )
         for handler in handlers:
             await handler.get_coro()(data)
 

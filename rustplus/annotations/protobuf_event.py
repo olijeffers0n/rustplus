@@ -2,7 +2,7 @@ from typing import Callable
 
 from .. import ServerID
 from ..identification import RegisteredListener
-from ..events import ProtobufEvent as ProtobufEventManager
+from ..events import ProtobufEventPayload as ProtobufEventManager
 
 
 def ProtobufEvent(server_id: ServerID) -> Callable:

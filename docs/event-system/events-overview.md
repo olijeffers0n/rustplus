@@ -10,25 +10,30 @@ Socket Events are called whenever a specific action / event happens. There are c
 These will be called by the socket when the respective events occur. Here are some example usages:
 
 {% code title="listeners.py" %}
+
 ```python
-from rustplus import EntityEvent, TeamEvent, ChatEvent
+from rustplus import EntityEvent, TeamEventPayload, ChatEventPayload
+
 
 @rust_socket.entity_event(ENTITYID)
-async def alarm(event : EntityEvent):
-  value = "On" if event.value else "Off"
-  print(f"{entity_type_to_string(event.type)} has been turned {value}")
+async def alarm(event: EntityEvent):
+    value = "On" if event.value else "Off"
+    print(f"{entity_type_to_string(event.type)} has been turned {value}")
+
 
 @rust_socket.team_event
-async def team(event : TeamEvent):
-  print(f"The team leader's steamId is: {event.team_info.leader_steam_id}")
+async def team(event: TeamEventPayload):
+    print(f"The team leader's steamId is: {event.team_info.leader_steam_id}")
+
 
 @rust_socket.chat_event
-async def chat(event : ChatEvent):
-  print(f"{event.message.name}: {event.message.message}")
-  
+async def chat(event: ChatEventPayload):
+    print(f"{event.message.name}: {event.message.message}")
+
+
 @rust_socket.protobuf_received
 async def proto(data: bytes):
-  print(data)
+    print(data)
 ```
 {% endcode %}
 

@@ -785,7 +785,7 @@ item_ids = {
     "2106561762": "Decorative Tinsel",
     "2114754781": "Water Purifier",
     "2126889441": "Santa Beard",
-    "2133269020": "Red Berry Clone"
+    "2133269020": "Red Berry Clone",
 }
 stack_to_id = {}
 

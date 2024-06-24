@@ -9,7 +9,13 @@ from .commands import CommandOptions
 from .exceptions import RateLimitError
 from .identification import ServerID
 from .remote.camera import CameraManager
-from .remote.rustplus_proto import AppRequest, AppEmpty, AppSendMessage, AppSetEntityValue, AppPromoteToLeader
+from .remote.rustplus_proto import (
+    AppRequest,
+    AppEmpty,
+    AppSendMessage,
+    AppSetEntityValue,
+    AppPromoteToLeader,
+)
 from .remote.websocket import RustWebsocket
 from .structs import (
     RustTime,
@@ -19,7 +25,8 @@ from .structs import (
     RustMarker,
     RustMap,
     RustEntityInfo,
-    RustContents, RustItem,
+    RustContents,
+    RustItem,
 )
 from .utils import convert_time, translate_id_to_stack
 from .remote.ratelimiter import RateLimiter
@@ -28,7 +35,10 @@ from .remote.ratelimiter import RateLimiter
 class RustSocket:
 
     def __init__(
-        self, server_id: ServerID, ratelimiter: Union[None, RateLimiter] = None, command_options: Union[None, CommandOptions] = None
+        self,
+        server_id: ServerID,
+        ratelimiter: Union[None, RateLimiter] = None,
+        command_options: Union[None, CommandOptions] = None,
     ) -> None:
         self.server_id = server_id
         self.command_options = command_options
@@ -149,7 +159,9 @@ class RustSocket:
 
         return [
             RustChatMessage(message)
-            for message in (await self.ws.send_and_get(packet)).response.team_chat.messages
+            for message in (
+                await self.ws.send_and_get(packet)
+            ).response.team_chat.messages
         ]
 
     async def get_team_info(self) -> RustTeamInfo:
@@ -174,7 +186,9 @@ class RustSocket:
 
         return [
             RustMarker(marker)
-            for marker in (await self.ws.send_and_get(packet)).response.map_markers.markers
+            for marker in (
+                await self.ws.send_and_get(packet)
+            ).response.map_markers.markers
         ]
 
     async def get_map(

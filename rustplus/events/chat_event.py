@@ -2,7 +2,7 @@ from ..remote.handler_list import HandlerList
 from ..structs import RustChatMessage
 
 
-class ChatEvent:
+class ChatEventPayload:
     HANDLER_LIST = HandlerList()
 
     def __init__(self, message: RustChatMessage) -> None:

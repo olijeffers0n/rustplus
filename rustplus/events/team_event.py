@@ -2,7 +2,7 @@ from ..remote.handler_list import HandlerList
 from ..structs import RustTeamInfo
 
 
-class TeamEvent:
+class TeamEventPayload:
     HANDLER_LIST = HandlerList()
 
     def __init__(self, player_id: int, team_info: RustTeamInfo) -> None:

@@ -23,7 +23,7 @@ class Item:
         return self._item_is_blueprint
 
 
-class EntityEvent:
+class EntityEventPayload:
     HANDLER_LIST = EntityHandlerList()
 
     def __init__(self, entity_changed: AppEntityChanged, entity_type) -> None:
@@ -31,16 +31,10 @@ class EntityEvent:
         self._entity_id: int = entity_changed.entity_id
         self._value: bool = entity_changed.payload.value
         self._capacity: int = entity_changed.payload.capacity
-        self._has_protection: bool = (
-            entity_changed.payload.has_protection
-        )
-        self._protection_expiry: int = (
-            entity_changed.payload.protection_expiry
-        )
+        self._has_protection: bool = entity_changed.payload.has_protection
+        self._protection_expiry: int = entity_changed.payload.protection_expiry
 
-        self._items: List[Item] = [
-            Item(item) for item in entity_changed.payload.items
-        ]
+        self._items: List[Item] = [Item(item) for item in entity_changed.payload.items]
 
     @property
     def type(self) -> int:

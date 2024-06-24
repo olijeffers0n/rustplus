@@ -1,7 +1,7 @@
 from ..remote.handler_list import HandlerList
 
 
-class ProtobufEvent:
+class ProtobufEventPayload:
     HANDLER_LIST = HandlerList()
 
     def __init__(self, message: bytes) -> None:

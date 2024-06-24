@@ -2,7 +2,7 @@ from typing import Callable
 
 from .. import ServerID
 from ..identification import RegisteredListener
-from ..events import TeamEvent as TeamEventManager
+from ..events import TeamEventPayload as TeamEventManager
 
 
 def TeamEvent(server_id: ServerID) -> Callable:

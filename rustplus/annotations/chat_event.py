@@ -2,7 +2,7 @@ from typing import Callable
 
 from .. import ServerID
 from ..identification import RegisteredListener
-from ..events import ChatEvent as ChatEventManager
+from ..events import ChatEventPayload as ChatEventManager
 
 
 def ChatEvent(server_id: ServerID) -> Callable:
