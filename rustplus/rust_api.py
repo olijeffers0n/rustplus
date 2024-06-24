@@ -1,4 +1,6 @@
 import asyncio
+from collections import defaultdict
+from datetime import datetime
 from typing import List, Union
 import logging
 from PIL import Image
@@ -6,7 +8,7 @@ from PIL import Image
 from .exceptions import RateLimitError
 from .identification import ServerID
 from .remote.camera import CameraManager
-from .remote.rustplus_proto import AppRequest, AppEmpty
+from .remote.rustplus_proto import AppRequest, AppEmpty, AppSendMessage, AppSetEntityValue, AppPromoteToLeader
 from .remote.websocket import RustWebsocket
 from .structs import (
     RustTime,
@@ -16,9 +18,9 @@ from .structs import (
     RustMarker,
     RustMap,
     RustEntityInfo,
-    RustContents,
+    RustContents, RustItem,
 )
-from .utils import deprecated
+from .utils import convert_time, translate_id_to_stack
 from .remote.ratelimiter import RateLimiter
 
 
@@ -71,7 +73,7 @@ class RustSocket:
         app_request.seq = self.seq
         self.seq += 1
         app_request.player_id = self.server_id.player_id
-        app_request.player_tokens = self.server_id.player_token
+        app_request.player_token = self.server_id.player_token
 
         return app_request
 
@@ -99,9 +101,16 @@ class RustSocket:
 
         packet = await self.__generate_request()
         packet.get_time = AppEmpty()
+        packet = await self.ws.send_and_get(packet)
 
-        await self.ws.send_message(packet)
-        return None
+        return RustTime(
+            packet.response.time.day_length_minutes,
+            convert_time(packet.response.time.sunrise),
+            convert_time(packet.response.time.sunset),
+            convert_time(packet.response.time.time),
+            packet.response.time.time,
+            packet.response.time.time_scale,
+        )
 
     async def send_team_message(self, message: str) -> None:
         """
@@ -109,14 +118,22 @@ class RustSocket:
 
         :param message: The string message to send
         """
-        raise NotImplementedError("Not Implemented")
+
+        packet = await self.__generate_request(tokens=2)
+        send_message = AppSendMessage()
+        send_message.message = message
+        packet.send_team_message = send_message
+
+        await self.ws.send_message(packet, True)
 
     async def get_info(self) -> RustInfo:
         """
         Gets information on the Rust Server
         :return: RustInfo - The info of the server
         """
-        raise NotImplementedError("Not Implemented")
+        packet = await self.__generate_request()
+        packet.get_info = AppEmpty()
+        return RustInfo((await self.ws.send_and_get(packet)).response.info)
 
     async def get_team_chat(self) -> List[RustChatMessage]:
         """
@@ -124,7 +141,13 @@ class RustSocket:
 
         :return List[RustChatMessage]: The chat messages in the team chat
         """
-        raise NotImplementedError("Not Implemented")
+        packet = await self.__generate_request()
+        packet.get_team_chat = AppEmpty()
+
+        return [
+            RustChatMessage(message)
+            for message in (await self.ws.send_and_get(packet)).response.team_chat.messages
+        ]
 
     async def get_team_info(self) -> RustTeamInfo:
         """
@@ -132,7 +155,10 @@ class RustSocket:
 
         :return RustTeamInfo: The info of your team
         """
-        raise NotImplementedError("Not Implemented")
+        packet = await self.__generate_request()
+        packet.get_team_info = AppEmpty()
+
+        return RustTeamInfo((await self.ws.send_and_get(packet)).response.team_info)
 
     async def get_markers(self) -> List[RustMarker]:
         """
@@ -140,7 +166,13 @@ class RustSocket:
 
         :return List[RustMarker]: All the markers on the map
         """
-        raise NotImplementedError("Not Implemented")
+        packet = await self.__generate_request()
+        packet.get_map_markers = AppEmpty()
+
+        return [
+            RustMarker(marker)
+            for marker in (await self.ws.send_and_get(packet)).response.map_markers.markers
+        ]
 
     async def get_map(
         self,
@@ -162,13 +194,16 @@ class RustSocket:
         """
         raise NotImplementedError("Not Implemented")
 
-    async def get_raw_map_data(self) -> RustMap:
+    async def get_map_info(self) -> RustMap:
         """
         Gets the raw map data from the server
 
         :return RustMap: The raw map of the server
         """
-        raise NotImplementedError("Not Implemented")
+        packet = await self.__generate_request(tokens=5)
+        packet.get_map = AppEmpty()
+
+        return RustMap((await self.ws.send_and_get(packet)).response.map)
 
     async def get_entity_info(self, eid: int = None) -> RustEntityInfo:
         """
@@ -177,7 +212,11 @@ class RustSocket:
         :param eid: The Entities ID
         :return RustEntityInfo: The entity Info
         """
-        raise NotImplementedError("Not Implemented")
+        packet = await self.__generate_request()
+        packet.get_entity_info = AppEmpty()
+        packet.entity_id = eid
+
+        return RustEntityInfo((await self.ws.send_and_get(packet)).response.entity_info)
 
     async def turn_on_smart_switch(self, eid: int = None) -> None:
         """
@@ -186,7 +225,13 @@ class RustSocket:
         :param eid: The Entities ID
         :return None:
         """
-        raise NotImplementedError("Not Implemented")
+        packet = await self.__generate_request()
+        value = AppSetEntityValue()
+        value.value = True
+        packet.set_entity_value = AppEmpty()
+        packet.entity_id = eid
+
+        await self.ws.send_message(packet, True)
 
     async def turn_off_smart_switch(self, eid: int = None) -> None:
         """
@@ -195,7 +240,13 @@ class RustSocket:
         :param eid: The Entities ID
         :return None:
         """
-        raise NotImplementedError("Not Implemented")
+        packet = await self.__generate_request()
+        value = AppSetEntityValue()
+        value.value = False
+        packet.set_entity_value = AppEmpty()
+        packet.entity_id = eid
+
+        await self.ws.send_message(packet, True)
 
     async def promote_to_team_leader(self, steamid: int = None) -> None:
         """
@@ -204,22 +255,12 @@ class RustSocket:
         :param steamid: The SteamID of the player to promote
         :return None:
         """
-        raise NotImplementedError("Not Implemented")
+        packet = await self.__generate_request()
+        promote_packet = AppPromoteToLeader()
+        promote_packet.steam_id = steamid
+        packet.promote_to_leader = promote_packet
 
-    @deprecated("Use RustSocket#get_markers")
-    async def get_current_events(self) -> List[RustMarker]:
-        """
-        Returns all the map markers that are for events:
-        Can detect:
-            - Explosion
-            - CH47 (Chinook)
-            - Cargo Ship
-            - Locked Crate
-            - Attack Helicopter
-
-        :return List[RustMarker]: All current events
-        """
-        raise NotImplementedError("Not Implemented")
+        await self.ws.send_message(packet, True)
 
     async def get_contents(
         self, eid: int = None, combine_stacks: bool = False
@@ -231,17 +272,49 @@ class RustSocket:
         :param combine_stacks: Whether to combine alike stacks together
         :return RustContents: The contents on the monitor
         """
-        raise NotImplementedError("Not Implemented")
+        returned_data = await self.get_entity_info(eid)
 
-    @deprecated("Use RustSocket#get_contents")
-    async def get_tc_storage_contents(
-        self, eid: int = None, combine_stacks: bool = False
-    ) -> RustContents:
-        """
-        Gets the Information about TC Upkeep and Contents.
-        Do not use this for any other storage monitor than a TC
-        """
-        raise NotImplementedError("Not Implemented")
+        target_time = datetime.utcfromtimestamp(int(returned_data.protection_expiry))
+        difference = target_time - datetime.utcnow()
+
+        items = []
+
+        for item in returned_data.items:
+            items.append(
+                RustItem(
+                    translate_id_to_stack(item.item_id),
+                    item.item_id,
+                    item.quantity,
+                    item.item_is_blueprint,
+                )
+            )
+
+        if combine_stacks:
+            merged_map = defaultdict(tuple)
+
+            for item in items:
+                data = merged_map[str(item.item_id)]
+                if data:
+                    count = int(data[0]) + int(item.quantity)
+                    merged_map[str(item.item_id)] = (count, bool(item.is_blueprint))
+                else:
+                    merged_map[str(item.item_id)] = (
+                        int(item.quantity),
+                        bool(item.is_blueprint),
+                    )
+
+            items = []
+            for key in merged_map.keys():
+                items.append(
+                    RustItem(
+                        translate_id_to_stack(key),
+                        key,
+                        int(merged_map[key][0]),
+                        bool(merged_map[key][1]),
+                    )
+                )
+
+        return RustContents(difference, bool(returned_data.has_protection), items)
 
     async def get_camera_manager(self, cam_id: str) -> CameraManager:
         """

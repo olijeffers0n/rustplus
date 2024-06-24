@@ -30,7 +30,7 @@ class RustChatMessage(Serializable):
     def time(self) -> int:
         return self._time
 
-    def __repr__(self):
+    def __str__(self):
         return "RustChatMessage[steam_id={}, sender_name={}, message={}, colour={}, time={}]".format(
             self._steam_id, self._name, self._message, self._colour, self._time
         )

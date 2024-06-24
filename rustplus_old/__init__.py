@@ -20,7 +20,7 @@ from .exceptions import *
 from .conversation import ConversationFactory, Conversation, ConversationPrompt
 from .utils import *
 
-__name__ = "rustplus"
+__name__ = "rustplus_old"
 __author__ = "olijeffers0n"
 __version__ = "5.6.18"
 __support__ = "Discord: https://discord.gg/nQqJe8qvP8"

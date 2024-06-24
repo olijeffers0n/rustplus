@@ -1,5 +1,3 @@
-import base64
-
 import betterproto
 from websockets.exceptions import InvalidURI, InvalidHandshake
 from websockets.legacy.client import WebSocketClientProtocol
@@ -23,17 +21,13 @@ class RustWebsocket:
         self.logger: logging.Logger = logging.getLogger("rustplus.py")
         self.task: Union[Task, None] = None
         self.debug: bool = True
-        self.use_test_server: bool = True
+        self.use_test_server: bool = False
 
-        self.responses_to_ignore: Set[int] = set()
         self.responses: Dict[int, YieldingEvent] = {}
 
     async def connect(self) -> bool:
 
-        if self.use_test_server:
-            address = "wss://" + self.server_id.ip
-        else:
-            address = "ws://" + self.server_id.get_server_string()
+        address = "ws://" + self.server_id.get_server_string()
 
         try:
             self.connection = await connect(
@@ -78,36 +72,42 @@ class RustWebsocket:
                     "An Error occurred whilst handling the message from the server"
                 )
 
-    async def send_message(self, request: AppRequest) -> None:
+    async def send_and_get(self, request: AppRequest) -> AppMessage:
+        await self.send_message(request)
+        return await self.get_response(request)
+
+    async def send_message(self, request: AppRequest, ignore_response: bool = False) -> None:
         if self.connection is None:
             raise ClientNotConnectedError("No Current Websocket Connection")
 
         if self.debug:
             self.logger.info(
-                f"[RustPlus.py] Sending Message with seq {request.seq}: {request}"
+                f"Sending Message with seq {request.seq}: {request}"
             )
 
-        self.responses[request.seq] = YieldingEvent()
+        if not ignore_response:
+            self.responses[request.seq] = YieldingEvent()
 
         try:
-            if self.use_test_server:
-                await self.connection.send(
-                    base64.b64encode(bytes(request)).decode("utf-8")
-                )
-            else:
-                await self.connection.send(bytes(request))
-        except Exception:
-            self.logger.exception("An exception occurred whilst sending a message")
+            await self.connection.send(bytes(request))
+        except Exception as err:
+            self.logger.warning("WebSocket connection error: %s", err)
+
+    async def get_response(self, request: AppRequest) -> AppMessage:
+
+        response = await self.responses[request.seq].wait()
+        del self.responses[request.seq]
+
+        return response
 
     async def handle_message(self, app_message: AppMessage) -> None:
         if self.debug:
             self.logger.info(
-                f"[RustPlus.py] Received Message with seq {app_message.response.seq}: {app_message}"
+                f"Received Message with seq {app_message.response.seq}: {app_message}"
             )
 
-        if app_message.response.seq in self.responses_to_ignore:
-            self.responses_to_ignore.remove(app_message.response.seq)
-            return
+        if self.error_present(app_message.response.error.error):
+            raise Exception(app_message.response.error.error)
 
         prefix = self.get_prefix(
             str(app_message.broadcast.team_message.message.message)
@@ -118,7 +118,7 @@ class RustWebsocket:
 
             if self.debug:
                 self.logger.info(
-                    f"[RustPlus.py] Attempting to run Command: {app_message}"
+                    f"Attempting to run Command: {app_message}"
                 )
 
             message = RustChatMessage(app_message.broadcast.team_message.message)
@@ -128,7 +128,7 @@ class RustWebsocket:
             # This means that an entity has changed state
 
             if self.debug:
-                self.logger.info(f"[RustPlus.py] Running Entity Event: {app_message}")
+                self.logger.info(f"Running Entity Event: {app_message}")
 
             # TODO
             # await EventHandler.run_entity_event(
@@ -139,7 +139,7 @@ class RustWebsocket:
 
         elif self.is_camera_broadcast(app_message):
             if self.debug:
-                self.logger.info(f"[RustPlus.py] Running Camera Event: {app_message}")
+                self.logger.info(f"Running Camera Event: {app_message}")
 
             # TODO
             # if self.remote.camera_manager is not None:
@@ -149,7 +149,7 @@ class RustWebsocket:
 
         elif self.is_team_broadcast(app_message):
             if self.debug:
-                self.logger.info(f"[RustPlus.py] Running Team Event: {app_message}")
+                self.logger.info(f"Running Team Event: {app_message}")
 
             # This means that the team of the current player has changed
             # TODO await EventHandler.run_team_event(app_message, self.server_id)
@@ -158,7 +158,7 @@ class RustWebsocket:
             # This means that a message has been sent to the team chat
 
             if self.debug:
-                self.logger.info(f"[RustPlus.py] Running Chat Event: {app_message}")
+                self.logger.info(f"Running Chat Event: {app_message}")
 
             steam_id = int(app_message.broadcast.team_message.message.steam_id)
             message = str(app_message.broadcast.team_message.message.message)
@@ -171,7 +171,7 @@ class RustWebsocket:
             if event is not None:
                 if self.debug:
                     self.logger.info(
-                        f"[RustPlus.py] Running Response Event: {app_message}"
+                        f"Running Response Event: {app_message}"
                     )
 
                 event.set_with_value(app_message)

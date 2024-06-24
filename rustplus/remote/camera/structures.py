@@ -16,8 +16,8 @@ class CameraInfo:
 
     def __str__(self) -> str:
         return (
-            f"CameraInfo(width={self.width}, height={self.height}, near_plane={self.near_plane}, "
-            f"far_plane={self.far_plane}, control_flags={self.control_flags})"
+            f"CameraInfo[width={self.width}, height={self.height}, near_plane={self.near_plane}, "
+            f"far_plane={self.far_plane}, control_flags={self.control_flags}]"
         )
 
 
@@ -32,8 +32,8 @@ class Entity:
 
     def __str__(self) -> str:
         return (
-            f"Entity(entity_id={self.entity_id}, type={self.type}, position={self.position}, "
-            f"rotation={self.rotation}, size={self.size}, name={self.name})"
+            f"Entity[entity_id={self.entity_id}, type={self.type}, position={self.position}, "
+            f"rotation={self.rotation}, size={self.size}, name={self.name}]"
         )
 
     def __repr__(self):
@@ -56,7 +56,7 @@ class Vector3:
         return hash((self.x, self.y, self.z))
 
     def __str__(self) -> str:
-        return f"Vector3(x={self.x}, y={self.y}, z={self.z})"
+        return f"Vector3[x={self.x}, y={self.y}, z={self.z}]"
 
 
 class RayPacket:
@@ -69,8 +69,8 @@ class RayPacket:
 
     def __str__(self) -> str:
         return (
-            f"RayPacket(vertical_fov={self.vertical_fov}, sample_offset={self.sample_offset}, "
-            f"ray_data={self.ray_data}, distance={self.distance}, entities={self.entities})"
+            f"RayPacket[vertical_fov={self.vertical_fov}, sample_offset={self.sample_offset}, "
+            f"ray_data={self.ray_data}, distance={self.distance}, entities={self.entities}]"
         )
 
 
