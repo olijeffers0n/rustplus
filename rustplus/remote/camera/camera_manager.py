@@ -1,6 +1,5 @@
 import time
 from typing import Iterable, Union, List, Coroutine, Set, Callable
-
 from PIL import Image
 
 from .camera_parser import Parser
@@ -9,13 +8,16 @@ from ..rustplus_proto import (
     Vector2,
     AppEmpty,
     AppRequest,
-    AppCameraInfo,
+    AppCameraInfo, AppCameraRays,
 )
 from ...structs import Vector
 from .structures import CameraInfo, Entity, LimitedQueue
 
 
 class CameraManager:
+
+    ACTIVE_INSTANCE: Union["CameraManager", None] = None
+
     def __init__(
         self, rust_socket, cam_id: str, cam_info_message: AppCameraInfo
     ) -> None:
@@ -29,8 +31,9 @@ class CameraManager:
         )
         self.time_since_last_subscribe: float = time.time()
         self.frame_callbacks: Set[Callable[[Image.Image], Coroutine]] = set()
+        self.ACTIVE_INSTANCE = self
 
-    async def add_packet(self, packet) -> None:
+    async def add_packet(self, packet: AppCameraRays) -> None:
         self._last_packets.add(packet)
 
         if len(self.frame_callbacks) == 0:
@@ -151,7 +154,7 @@ class CameraManager:
         await self.rust_socket.remote.subscribe_to_camera(self._cam_id, True)
         self.time_since_last_subscribe = time.time()
         self._open = True
-        self.rust_socket.remote.camera_manager = self
+        self.ACTIVE_INSTANCE = self
 
     async def get_entities_in_frame(self) -> List[Entity]:
         if self._last_packets is None:

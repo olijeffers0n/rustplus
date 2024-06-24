@@ -4,7 +4,7 @@ from ..identification import RegisteredListener, ServerID
 from ..commands import ChatCommand, ChatCommandData
 
 
-def Command(server_id: ServerID, aliases: list = None, alias_func: Callable = None):
+def Command(server_id: ServerID, aliases: list = None, alias_func: Callable = None) -> Callable:
 
     def wrapper(func):
 

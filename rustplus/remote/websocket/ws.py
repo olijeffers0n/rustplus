@@ -8,10 +8,12 @@ from typing import Union, Coroutine, Optional, Set, Dict
 import logging
 import asyncio
 
+from ..camera import CameraManager
 from ..rustplus_proto import AppMessage, AppRequest
 from ...commands import CommandOptions, ChatCommand, ChatCommandTime
+from ...events import ProtobufEvent, EntityEvent
 from ...exceptions import ClientNotConnectedError, RequestError
-from ...identification import ServerID
+from ...identification import ServerID, RegisteredListener
 from ...structs import RustChatMessage
 from ...utils import YieldingEvent, convert_time
 
@@ -56,23 +58,24 @@ class RustWebsocket:
             try:
                 data = await self.connection.recv()
 
-                # TODO
-                # await self.run_coroutine_non_blocking(
-                #     EventHandler.run_proto_event(data, self.server_id)
-                # )
+                await self.run_coroutine_non_blocking(
+                    self.run_proto_event(data, self.server_id)
+                )
 
                 app_message = AppMessage()
                 app_message.parse(data)
 
             except Exception as e:
+                self.logger.exception(
+                    "An Error occurred whilst parsing the message from the server", e
+                )
                 continue
 
             try:
                 await self.run_coroutine_non_blocking(self.handle_message(app_message))
             except Exception as e:
-                print(e)
                 self.logger.exception(
-                    "An Error occurred whilst handling the message from the server"
+                    "An Error occurred whilst handling the message from the server %s", e
                 )
 
     async def send_and_get(self, request: AppRequest) -> AppMessage:
@@ -117,7 +120,7 @@ class RustWebsocket:
         )
 
         if prefix is not None:
-            # This means it is a command
+            # Command
 
             if self.debug:
                 self.logger.info(
@@ -156,27 +159,21 @@ class RustWebsocket:
                         break
 
         if self.is_entity_broadcast(app_message):
-            # This means that an entity has changed state
+            # Entity Event
 
             if self.debug:
                 self.logger.info(f"Running Entity Event: {app_message}")
 
-            # TODO
-            # await EventHandler.run_entity_event(
-            #     app_message.broadcast.entity_changed.entity_id,
-            #     app_message,
-            #     self.server_id,
-            # )
+            handlers = EntityEvent.HANDLER_LIST.get_handlers(self.server_id).get(str(app_message.broadcast.entity_changed.entity_id), [])
+            for handler in handlers:
+                handler.get_coro()(EntityEvent(entity_changed=app_message.broadcast.entity_changed, entity_type=handler.entity_type))
 
         elif self.is_camera_broadcast(app_message):
             if self.debug:
                 self.logger.info(f"Running Camera Event: {app_message}")
 
-            # TODO
-            # if self.remote.camera_manager is not None:
-            #     await self.remote.camera_manager.add_packet(
-            #         RayPacket(app_message.broadcast.camera_rays)
-            #     )
+            if CameraManager.ACTIVE_INSTANCE is not None:
+                await CameraManager.ACTIVE_INSTANCE.add_packet(app_message.broadcast.camera_rays)
 
         elif self.is_team_broadcast(app_message):
             if self.debug:
@@ -216,6 +213,12 @@ class RustWebsocket:
             return self.command_options.prefix
         else:
             return None
+
+    @staticmethod
+    async def run_proto_event(data: Union[str, bytes], server_id: ServerID) -> None:
+        handlers: Set[RegisteredListener] = ProtobufEvent.HANDLER_LIST.get_handlers(server_id)
+        for handler in handlers:
+            await handler.get_coro()(data)
 
     @staticmethod
     def is_message(app_message: AppMessage) -> bool:
