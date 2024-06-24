@@ -6,7 +6,6 @@ import logging
 from PIL import Image
 
 from .commands import CommandOptions
-from .exceptions import RateLimitError
 from .identification import ServerID
 from .remote.camera import CameraManager
 from .remote.rustplus_proto import (
@@ -14,7 +13,7 @@ from .remote.rustplus_proto import (
     AppEmpty,
     AppSendMessage,
     AppSetEntityValue,
-    AppPromoteToLeader,
+    AppPromoteToLeader, AppCameraSubscribe,
 )
 from .remote.websocket import RustWebsocket
 from .structs import (
@@ -68,18 +67,18 @@ class RustSocket:
             RateLimiter.SERVER_REFRESH_AMOUNT,
         )
 
-    async def __generate_request(self, tokens=1) -> AppRequest:
+    async def _handle_ratelimit(self, tokens) -> None:
         while True:
             if await self.ratelimiter.can_consume(self.server_id, tokens):
                 await self.ratelimiter.consume(self.server_id, tokens)
                 break
 
-            if False:  # TODO self.raise_ratelimit_exception:
-                raise RateLimitError("Out of tokens")
-
             await asyncio.sleep(
                 await self.ratelimiter.get_estimated_delay_time(self.server_id, tokens)
             )
+
+    async def _generate_request(self, tokens=1) -> AppRequest:
+        await self._handle_ratelimit(tokens)
 
         app_request = AppRequest()
         app_request.seq = self.seq
@@ -112,7 +111,7 @@ class RustSocket:
         :returns RustTime: The Time
         """
 
-        packet = await self.__generate_request()
+        packet = await self._generate_request()
         packet.get_time = AppEmpty()
         packet = await self.ws.send_and_get(packet)
 
@@ -132,7 +131,7 @@ class RustSocket:
         :param message: The string message to send
         """
 
-        packet = await self.__generate_request(tokens=2)
+        packet = await self._generate_request(tokens=2)
         send_message = AppSendMessage()
         send_message.message = message
         packet.send_team_message = send_message
@@ -144,7 +143,7 @@ class RustSocket:
         Gets information on the Rust Server
         :return: RustInfo - The info of the server
         """
-        packet = await self.__generate_request()
+        packet = await self._generate_request()
         packet.get_info = AppEmpty()
         return RustInfo((await self.ws.send_and_get(packet)).response.info)
 
@@ -154,7 +153,7 @@ class RustSocket:
 
         :return List[RustChatMessage]: The chat messages in the team chat
         """
-        packet = await self.__generate_request()
+        packet = await self._generate_request()
         packet.get_team_chat = AppEmpty()
 
         return [
@@ -170,7 +169,7 @@ class RustSocket:
 
         :return RustTeamInfo: The info of your team
         """
-        packet = await self.__generate_request()
+        packet = await self._generate_request()
         packet.get_team_info = AppEmpty()
 
         return RustTeamInfo((await self.ws.send_and_get(packet)).response.team_info)
@@ -181,7 +180,7 @@ class RustSocket:
 
         :return List[RustMarker]: All the markers on the map
         """
-        packet = await self.__generate_request()
+        packet = await self._generate_request()
         packet.get_map_markers = AppEmpty()
 
         return [
@@ -217,7 +216,7 @@ class RustSocket:
 
         :return RustMap: The raw map of the server
         """
-        packet = await self.__generate_request(tokens=5)
+        packet = await self._generate_request(tokens=5)
         packet.get_map = AppEmpty()
 
         return RustMap((await self.ws.send_and_get(packet)).response.map)
@@ -229,7 +228,7 @@ class RustSocket:
         :param eid: The Entities ID
         :return RustEntityInfo: The entity Info
         """
-        packet = await self.__generate_request()
+        packet = await self._generate_request()
         packet.get_entity_info = AppEmpty()
         packet.entity_id = eid
 
@@ -242,7 +241,7 @@ class RustSocket:
         :param eid: The Entities ID
         :return None:
         """
-        packet = await self.__generate_request()
+        packet = await self._generate_request()
         value = AppSetEntityValue()
         value.value = True
         packet.set_entity_value = AppEmpty()
@@ -257,7 +256,7 @@ class RustSocket:
         :param eid: The Entities ID
         :return None:
         """
-        packet = await self.__generate_request()
+        packet = await self._generate_request()
         value = AppSetEntityValue()
         value.value = False
         packet.set_entity_value = AppEmpty()
@@ -272,7 +271,7 @@ class RustSocket:
         :param steamid: The SteamID of the player to promote
         :return None:
         """
-        packet = await self.__generate_request()
+        packet = await self._generate_request()
         promote_packet = AppPromoteToLeader()
         promote_packet.steam_id = steamid
         packet.promote_to_leader = promote_packet
@@ -343,4 +342,11 @@ class RustSocket:
         :return CameraManager: The camera manager
         :raises RequestError: If the camera is not found, or you cannot access it. See reason for more info
         """
-        raise NotImplementedError("Not Implemented")
+        packet = await self._generate_request()
+        subscribe = AppCameraSubscribe()
+        subscribe.camera_id = cam_id
+        packet.camera_subscribe = subscribe
+
+        response = await self.ws.send_and_get(packet)
+
+        return CameraManager(self, cam_id, response.response.camera_subscribe_info)

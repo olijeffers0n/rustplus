@@ -9,7 +9,7 @@ from ..rustplus_proto import (
     AppEmpty,
     AppRequest,
     AppCameraInfo,
-    AppCameraRays,
+    AppCameraRays, AppCameraSubscribe,
 )
 from ...structs import Vector
 from .structures import CameraInfo, Entity, LimitedQueue
@@ -126,8 +126,7 @@ class CameraManager:
         for movement in movements:
             value = value | movement
 
-        await self.rust_socket._handle_ratelimit(0.01)
-        app_request: AppRequest = self.rust_socket._generate_protobuf()
+        app_request: AppRequest = await self.rust_socket._generate_request(0.01)
         cam_input = AppCameraInput()
 
         cam_input.buttons = value
@@ -137,22 +136,26 @@ class CameraManager:
         cam_input.mouse_delta = vector
         app_request.camera_input = cam_input
 
-        await self.rust_socket.remote.send_message(app_request)
-        await self.rust_socket.remote.add_ignored_response(app_request.seq)
+        await self.rust_socket.ws.send_message(app_request, True)
 
     async def exit_camera(self) -> None:
-        await self.rust_socket._handle_ratelimit()
-        app_request: AppRequest = self.rust_socket._generate_protobuf()
+        app_request: AppRequest = await self.rust_socket._generate_request()
         app_request.camera_unsubscribe = AppEmpty()
 
-        await self.rust_socket.remote.send_message(app_request)
-        await self.rust_socket.remote.add_ignored_response(app_request.seq)
+        await self.rust_socket.ws.send_message(app_request, True)
 
         self._open = False
         self._last_packets.clear()
 
     async def resubscribe(self) -> None:
-        await self.rust_socket.remote.subscribe_to_camera(self._cam_id, True)
+
+        packet = await self.rust_socket._generate_request()
+        subscribe = AppCameraSubscribe()
+        subscribe.camera_id = self._cam_id
+        packet.camera_subscribe = subscribe
+
+        self.rust_socket.ws.send_message(packet, True)
+
         self.time_since_last_subscribe = time.time()
         self._open = True
         self.ACTIVE_INSTANCE = self
