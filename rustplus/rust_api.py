@@ -13,7 +13,8 @@ from .remote.rustplus_proto import (
     AppEmpty,
     AppSendMessage,
     AppSetEntityValue,
-    AppPromoteToLeader, AppCameraSubscribe,
+    AppPromoteToLeader,
+    AppCameraSubscribe,
 )
 from .remote.websocket import RustWebsocket
 from .structs import (

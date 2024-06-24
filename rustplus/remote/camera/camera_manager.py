@@ -9,7 +9,8 @@ from ..rustplus_proto import (
     AppEmpty,
     AppRequest,
     AppCameraInfo,
-    AppCameraRays, AppCameraSubscribe,
+    AppCameraRays,
+    AppCameraSubscribe,
 )
 from ...structs import Vector
 from .structures import CameraInfo, Entity, LimitedQueue

@@ -11,7 +11,12 @@ import asyncio
 from ..camera import CameraManager
 from ..rustplus_proto import AppMessage, AppRequest
 from ...commands import CommandOptions, ChatCommand, ChatCommandTime
-from ...events import ProtobufEventPayload, EntityEventPayload, TeamEventPayload, ChatEventPayload
+from ...events import (
+    ProtobufEventPayload,
+    EntityEventPayload,
+    TeamEventPayload,
+    ChatEventPayload,
+)
 from ...exceptions import ClientNotConnectedError, RequestError
 from ...identification import ServerID, RegisteredListener
 from ...structs import RustChatMessage, RustTeamInfo
@@ -189,7 +194,10 @@ class RustWebsocket:
 
             # This means that the team of the current player has changed
             handlers = TeamEventPayload.HANDLER_LIST.get_handlers(self.server_id)
-            team_event = TeamEventPayload(app_message.broadcast.team_changed.player_id, RustTeamInfo(app_message.broadcast.team_changed.team_info))
+            team_event = TeamEventPayload(
+                app_message.broadcast.team_changed.player_id,
+                RustTeamInfo(app_message.broadcast.team_changed.team_info),
+            )
             for handler in handlers:
                 await handler.get_coro()(team_event)
 
@@ -200,7 +208,9 @@ class RustWebsocket:
                 self.logger.info(f"Running Chat Event: {app_message}")
 
             handlers = ChatEventPayload.HANDLER_LIST.get_handlers(self.server_id)
-            chat_event = ChatEventPayload(RustChatMessage(app_message.broadcast.team_message.message))
+            chat_event = ChatEventPayload(
+                RustChatMessage(app_message.broadcast.team_message.message)
+            )
             for handler in handlers:
                 await handler.get_coro()(chat_event)
 
@@ -225,8 +235,8 @@ class RustWebsocket:
 
     @staticmethod
     async def run_proto_event(data: Union[str, bytes], server_id: ServerID) -> None:
-        handlers: Set[RegisteredListener] = ProtobufEventPayload.HANDLER_LIST.get_handlers(
-            server_id
+        handlers: Set[RegisteredListener] = (
+            ProtobufEventPayload.HANDLER_LIST.get_handlers(server_id)
         )
         for handler in handlers:
             await handler.get_coro()(data)
