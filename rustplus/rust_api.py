@@ -5,6 +5,7 @@ from typing import List, Union
 import logging
 from PIL import Image
 
+from .commands import CommandOptions
 from .exceptions import RateLimitError
 from .identification import ServerID
 from .remote.camera import CameraManager
@@ -27,9 +28,10 @@ from .remote.ratelimiter import RateLimiter
 class RustSocket:
 
     def __init__(
-        self, server_id: ServerID, ratelimiter: Union[None, RateLimiter] = None
+        self, server_id: ServerID, ratelimiter: Union[None, RateLimiter] = None, command_options: Union[None, CommandOptions] = None
     ) -> None:
         self.server_id = server_id
+        self.command_options = command_options
         self.logger = logging.getLogger("rustplus.py")
 
         console_handler = logging.StreamHandler()
@@ -40,7 +42,7 @@ class RustSocket:
         self.logger.addHandler(console_handler)
         self.logger.setLevel(logging.DEBUG)
 
-        self.ws = RustWebsocket(self.server_id)
+        self.ws = RustWebsocket(self.server_id, self.command_options)
         self.seq = 1
 
         if ratelimiter:
@@ -79,6 +81,7 @@ class RustSocket:
 
     async def connect(self) -> None:
         await self.ws.connect()
+        await self.get_time()  # Wake up the connection
 
     @staticmethod
     async def hang() -> None:

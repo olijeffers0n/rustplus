@@ -1,3 +1,4 @@
+import shlex
 import betterproto
 from websockets.exceptions import InvalidURI, InvalidHandshake
 from websockets.legacy.client import WebSocketClientProtocol
@@ -8,15 +9,17 @@ import logging
 import asyncio
 
 from ..rustplus_proto import AppMessage, AppRequest
-from ...exceptions import ClientNotConnectedError
+from ...commands import CommandOptions, ChatCommand, ChatCommandTime
+from ...exceptions import ClientNotConnectedError, RequestError
 from ...identification import ServerID
 from ...structs import RustChatMessage
-from ...utils.yielding_event import YieldingEvent
+from ...utils import YieldingEvent, convert_time
 
 
 class RustWebsocket:
-    def __init__(self, server_id: ServerID) -> None:
+    def __init__(self, server_id: ServerID, command_options: Union[None, CommandOptions]) -> None:
         self.server_id: ServerID = server_id
+        self.command_options: Union[None, CommandOptions] = command_options
         self.connection: Union[WebSocketClientProtocol, None] = None
         self.logger: logging.Logger = logging.getLogger("rustplus.py")
         self.task: Union[Task, None] = None
@@ -107,7 +110,7 @@ class RustWebsocket:
             )
 
         if self.error_present(app_message.response.error.error):
-            raise Exception(app_message.response.error.error)
+            raise RequestError(app_message.response.error.error)
 
         prefix = self.get_prefix(
             str(app_message.broadcast.team_message.message.message)
@@ -122,7 +125,35 @@ class RustWebsocket:
                 )
 
             message = RustChatMessage(app_message.broadcast.team_message.message)
-            # TODO await self.remote.command_handler.run_command(message, prefix)
+
+            parts = shlex.split(message.message)
+            command = parts[0][len(prefix) :]
+
+            data = ChatCommand.REGISTERED_COMMANDS[self.server_id].get(command, None)
+
+            dao = ChatCommand(
+                message.name,
+                message.steam_id,
+                ChatCommandTime(
+                    convert_time(message.time),
+                    message.time,
+                ),
+                command,
+                parts[1:],
+            )
+
+            if data is not None:
+                await data.coroutine(dao)
+            else:
+                for command_name, data in ChatCommand.REGISTERED_COMMANDS[
+                    self.server_id
+                ].items():
+                    if (
+                        command in data.aliases
+                        or data.callable_func(command)
+                    ):
+                        await data.coroutine(dao)
+                        break
 
         if self.is_entity_broadcast(app_message):
             # This means that an entity has changed state
@@ -178,19 +209,13 @@ class RustWebsocket:
 
     def get_prefix(self, message: str) -> Optional[str]:
 
-        return None
-
-        if self.remote.use_commands:
-            if message.startswith(self.remote.command_options.prefix):
-                return self.remote.command_options.prefix
-        else:
+        if self.command_options is None:
             return None
 
-        for overrule in self.remote.command_options.overruling_commands:
-            if message.startswith(overrule):
-                return overrule
-
-        return None
+        if message.startswith(self.command_options.prefix):
+            return self.command_options.prefix
+        else:
+            return None
 
     @staticmethod
     def is_message(app_message: AppMessage) -> bool:
