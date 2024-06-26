@@ -393,11 +393,12 @@ class Parser:
             # The font size should be proportional to the size of the entity as it gets further away
             with resources.path(FONT_PATH, "PermanentMarker.ttf") as path:
                 font = ImageFont.truetype(str(path), font_size)
-            size = image_draw.textsize(entity.name, font=font)
+            width = image_draw.textlength(entity.name, font=font)
+            height = font_size
 
             name_place1 = (
-                name_place[0] - size[0] // 2,
-                name_place[1] - size[1] // 2,
+                name_place[0] - width // 2,
+                name_place[1] - height // 2,
             )
             text.add((name_place1, entity.name, font))
 
