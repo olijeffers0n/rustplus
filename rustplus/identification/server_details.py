@@ -1,15 +1,28 @@
+from typing import Union
+
+
 class ServerDetails:
-    def __init__(self, ip: str, port: str, player_id: int, player_token: int) -> None:
+    def __init__(
+        self,
+        ip: str,
+        port: Union[str, int, None],
+        player_id: int,
+        player_token: int,
+        secure: bool = False,
+    ) -> None:
         self.ip = ip
         self.port = port
         self.player_id = player_id
         self.player_token = player_token
+        self.secure = secure
+
+    def get_server_string(self) -> str:
+        if self.port is None:
+            return f"{self.ip}"
+        return f"{self.ip}:{self.port}"
 
     def __str__(self) -> str:
         return f"{self.ip}:{self.port} {self.player_id} {self.player_token}"
-
-    def get_server_string(self) -> str:
-        return f"{self.ip}:{self.port}"
 
     def __hash__(self):
         return hash(self.__str__())

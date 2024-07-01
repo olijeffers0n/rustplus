@@ -5,7 +5,7 @@ from ..commands import ChatCommand, ChatCommandData
 
 
 def Command(
-    server_id: ServerDetails, aliases: list = None, alias_func: Callable = None
+    server_details: ServerDetails, aliases: list = None, alias_func: Callable = None
 ) -> Callable:
 
     def wrapper(func):
@@ -16,7 +16,7 @@ def Command(
         command_data = ChatCommandData(
             coroutine=func, aliases=aliases, callable_func=alias_func
         )
-        ChatCommand.REGISTERED_COMMANDS[server_id][func.__name__] = command_data
+        ChatCommand.REGISTERED_COMMANDS[server_details][func.__name__] = command_data
 
         return RegisteredListener(func.__name__, func)
 

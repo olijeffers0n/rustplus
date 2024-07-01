@@ -1,2 +1,2 @@
 from .registered_listener import RegisteredListener, RegisteredEntityListener
-from .server_id import ServerDetails
+from .server_details import ServerDetails

@@ -426,7 +426,7 @@ class AppClanChat(betterproto.Message):
 
 @dataclass
 class AppNexusAuth(betterproto.Message):
-    server_id: str = betterproto.string_field(1)
+    server_details: str = betterproto.string_field(1)
     player_token: int = betterproto.int32_field(2)
 
 

@@ -36,11 +36,11 @@ class RustSocket:
 
     def __init__(
         self,
-        server_id: ServerDetails,
+        server_details: ServerDetails,
         ratelimiter: Union[None, RateLimiter] = None,
         command_options: Union[None, CommandOptions] = None,
     ) -> None:
-        self.server_id = server_id
+        self.server_details = server_details
         self.command_options = command_options
         self.logger = logging.getLogger("rustplus.py")
 
@@ -52,7 +52,7 @@ class RustSocket:
         self.logger.addHandler(console_handler)
         self.logger.setLevel(logging.DEBUG)
 
-        self.ws = RustWebsocket(self.server_id, self.command_options)
+        self.ws = RustWebsocket(self.server_details, self.command_options)
         self.seq = 1
 
         if ratelimiter:
@@ -61,7 +61,7 @@ class RustSocket:
             self.ratelimiter = RateLimiter()
 
         self.ratelimiter.add_socket(
-            self.server_id,
+            self.server_details,
             RateLimiter.SERVER_LIMIT,
             RateLimiter.SERVER_LIMIT,
             1,
@@ -70,12 +70,14 @@ class RustSocket:
 
     async def _handle_ratelimit(self, tokens) -> None:
         while True:
-            if await self.ratelimiter.can_consume(self.server_id, tokens):
-                await self.ratelimiter.consume(self.server_id, tokens)
+            if await self.ratelimiter.can_consume(self.server_details, tokens):
+                await self.ratelimiter.consume(self.server_details, tokens)
                 break
 
             await asyncio.sleep(
-                await self.ratelimiter.get_estimated_delay_time(self.server_id, tokens)
+                await self.ratelimiter.get_estimated_delay_time(
+                    self.server_details, tokens
+                )
             )
 
     async def _generate_request(self, tokens=1) -> AppRequest:
@@ -84,8 +86,8 @@ class RustSocket:
         app_request = AppRequest()
         app_request.seq = self.seq
         self.seq += 1
-        app_request.player_id = self.server_id.player_id
-        app_request.player_token = self.server_id.player_token
+        app_request.player_id = self.server_details.player_id
+        app_request.player_token = self.server_details.player_token
 
         return app_request
 

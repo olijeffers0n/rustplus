@@ -28,9 +28,11 @@ class RustWebsocket:
     RESPONSE_TIMEOUT = 5
 
     def __init__(
-        self, server_id: ServerDetails, command_options: Union[CommandOptions, None]
+        self,
+        server_details: ServerDetails,
+        command_options: Union[CommandOptions, None],
     ) -> None:
-        self.server_id: ServerDetails = server_id
+        self.server_details: ServerDetails = server_details
         self.command_options: Union[CommandOptions, None] = command_options
         self.connection: Union[WebSocketClientProtocol, None] = None
         self.logger: logging.Logger = logging.getLogger("rustplus.py")
@@ -42,7 +44,10 @@ class RustWebsocket:
 
     async def connect(self) -> bool:
 
-        address = "ws://" + self.server_id.get_server_string()
+        address = (
+            f"{'wss' if self.server_details.secure else 'ws'}://"
+            + self.server_details.get_server_string()
+        )
 
         try:
             self.connection = await connect(
@@ -69,7 +74,7 @@ class RustWebsocket:
                 data = await self.connection.recv()
 
                 await self.run_coroutine_non_blocking(
-                    self.run_proto_event(data, self.server_id)
+                    self.run_proto_event(data, self.server_details)
                 )
 
                 app_message = AppMessage()
@@ -141,7 +146,9 @@ class RustWebsocket:
             parts = shlex.split(message.message)
             command = parts[0][len(prefix) :]
 
-            data = ChatCommand.REGISTERED_COMMANDS[self.server_id].get(command, None)
+            data = ChatCommand.REGISTERED_COMMANDS[self.server_details].get(
+                command, None
+            )
 
             dao = ChatCommand(
                 message.name,
@@ -158,7 +165,7 @@ class RustWebsocket:
                 await data.coroutine(dao)
             else:
                 for command_name, data in ChatCommand.REGISTERED_COMMANDS[
-                    self.server_id
+                    self.server_details
                 ].items():
                     if command in data.aliases or data.callable_func(command):
                         await data.coroutine(dao)
@@ -170,9 +177,9 @@ class RustWebsocket:
             if self.debug:
                 self.logger.info(f"Running Entity Event: {app_message}")
 
-            handlers = EntityEventPayload.HANDLER_LIST.get_handlers(self.server_id).get(
-                str(app_message.broadcast.entity_changed.entity_id), []
-            )
+            handlers = EntityEventPayload.HANDLER_LIST.get_handlers(
+                self.server_details
+            ).get(str(app_message.broadcast.entity_changed.entity_id), [])
             for handler in handlers:
                 handler.get_coro()(
                     EntityEventPayload(
@@ -196,7 +203,7 @@ class RustWebsocket:
                 self.logger.info(f"Running Team Event: {app_message}")
 
             # This means that the team of the current player has changed
-            handlers = TeamEventPayload.HANDLER_LIST.get_handlers(self.server_id)
+            handlers = TeamEventPayload.HANDLER_LIST.get_handlers(self.server_details)
             team_event = TeamEventPayload(
                 app_message.broadcast.team_changed.player_id,
                 RustTeamInfo(app_message.broadcast.team_changed.team_info),
@@ -210,7 +217,7 @@ class RustWebsocket:
             if self.debug:
                 self.logger.info(f"Running Chat Event: {app_message}")
 
-            handlers = ChatEventPayload.HANDLER_LIST.get_handlers(self.server_id)
+            handlers = ChatEventPayload.HANDLER_LIST.get_handlers(self.server_details)
             chat_event = ChatEventPayload(
                 RustChatMessage(app_message.broadcast.team_message.message)
             )
@@ -237,9 +244,11 @@ class RustWebsocket:
             return None
 
     @staticmethod
-    async def run_proto_event(data: Union[str, bytes], server_id: ServerDetails) -> None:
+    async def run_proto_event(
+        data: Union[str, bytes], server_details: ServerDetails
+    ) -> None:
         handlers: Set[RegisteredListener] = (
-            ProtobufEventPayload.HANDLER_LIST.get_handlers(server_id)
+            ProtobufEventPayload.HANDLER_LIST.get_handlers(server_details)
         )
         for handler in handlers:
             await handler.get_coro()(data)

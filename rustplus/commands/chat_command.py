@@ -14,7 +14,9 @@ class ChatCommandTime:
 
 class ChatCommand:
 
-    REGISTERED_COMMANDS: Dict[ServerDetails, Dict[str, ChatCommandData]] = defaultdict(dict)
+    REGISTERED_COMMANDS: Dict[ServerDetails, Dict[str, ChatCommandData]] = defaultdict(
+        dict
+    )
 
     def __init__(
         self,
