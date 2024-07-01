@@ -36,7 +36,9 @@ from .utils import (
     translate_id_to_stack,
     generate_grid,
     fetch_avatar_icon,
-    format_coord, convert_marker, convert_monument
+    format_coord,
+    convert_marker,
+    convert_monument,
 )
 from .remote.ratelimiter import RateLimiter
 
@@ -213,9 +215,7 @@ class RustSocket:
         if response is None:
             return None
 
-        return [
-            RustMarker(marker) for marker in response.response.map_markers.markers
-        ]
+        return [RustMarker(marker) for marker in response.response.map_markers.markers]
 
     async def get_map(
         self,
@@ -262,7 +262,9 @@ class RustSocket:
             self.logger.error(f"Error opening image: {e}")
             return None
 
-        output = output.crop((500, 500, map_packet.height - 500, map_packet.width - 500))
+        output = output.crop(
+            (500, 500, map_packet.height - 500, map_packet.width - 500)
+        )
         output = output.resize((map_size, map_size), Image.LANCZOS).convert("RGBA")
 
         if add_grid:

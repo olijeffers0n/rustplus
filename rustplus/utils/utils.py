@@ -216,7 +216,9 @@ def convert_monument(name: str, override_images: Dict[str, Image.Image]) -> Imag
         with resources.path(ICONS_PATH, "swamp.png") as path:
             icon = Image.open(path).convert("RGBA")
     else:
-        logging.getLogger("rustplus.py").info(f"{name} - Has no icon, report this as an issue")
+        logging.getLogger("rustplus.py").info(
+            f"{name} - Has no icon, report this as an issue"
+        )
         with resources.path(ICONS_PATH, "icon.png") as path:
             icon = Image.open(path).convert("RGBA")
 
