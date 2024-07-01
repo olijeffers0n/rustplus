@@ -147,6 +147,25 @@ def convert_monument(name: str, override_images: dict) -> Image.Image:
     return icon
 
 
+def convert_event_type_to_name(type) -> str:
+    if type == 1:
+        return "Player"
+    elif type == 2:
+        return "Explosion"
+    elif type == 3:
+        return "Vending Machine"
+    elif type == 4:
+        return "CH47 Chinook"
+    elif type == 5:
+        return "Cargo Ship"
+    elif type == 6:
+        return "Locked Crate"
+    elif type == 7:
+        return "Generic Radius"
+    elif type == 8:
+        return "Patrol Helicopter"
+
+
 def entity_type_to_string(id) -> str:
     if id == 1:
         return "Switch"
