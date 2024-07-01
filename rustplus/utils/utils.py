@@ -23,6 +23,25 @@ def convert_time(time) -> str:
     )
 
 
+def convert_event_type_to_name(event: int) -> str:
+    if event == 1:
+        return "Player"
+    elif event == 2:
+        return "Explosion"
+    elif event == 3:
+        return "Vending Machine"
+    elif event == 4:
+        return "CH47 Chinook"
+    elif event == 5:
+        return "Cargo Ship"
+    elif event == 6:
+        return "Locked Crate"
+    elif event == 7:
+        return "Generic Radius"
+    elif event == 8:
+        return "Patrol Helicopter"
+
+
 def generate_grid(
     map_size: int,
     text_size: int = 20,

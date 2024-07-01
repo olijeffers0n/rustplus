@@ -7,6 +7,7 @@ from .identification import ServerDetails
 from .annotations import Command, ChatEvent, ProtobufEvent, TeamEvent, EntityEvent
 from .commands import CommandOptions
 from .events import ChatEventPayload, TeamEventPayload, EntityEventPayload
+from .utils import convert_event_type_to_name
 
 __name__ = "rustplus"
 __author__ = "olijeffers0n"
