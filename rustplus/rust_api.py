@@ -1,6 +1,7 @@
 import asyncio
 from collections import defaultdict
 from datetime import datetime
+from io import BytesIO
 from typing import List, Union
 import logging
 from PIL import Image
@@ -15,6 +16,7 @@ from .remote.rustplus_proto import (
     AppSetEntityValue,
     AppPromoteToLeader,
     AppCameraSubscribe,
+    AppMapMonument,
 )
 from .remote.websocket import RustWebsocket
 from .structs import (
@@ -28,7 +30,13 @@ from .structs import (
     RustContents,
     RustItem,
 )
-from .utils import convert_time, translate_id_to_stack
+from .utils import (
+    convert_time,
+    translate_id_to_stack,
+    generate_grid,
+    fetch_avatar_icon,
+    format_coord,
+)
 from .remote.ratelimiter import RateLimiter
 
 
@@ -213,20 +221,62 @@ class RustSocket:
         add_icons: bool = False,
         add_events: bool = False,
         add_vending_machines: bool = False,
+        add_team_positions: bool = False,
         override_images: dict = None,
         add_grid: bool = False,
-    ) -> Image.Image:
+    ) -> Union[Image.Image, None]:
         """
         Gets an image of the map from the server with the specified additions
 
         :param add_icons: To add the monument icons
         :param add_events: To add the Event icons
         :param add_vending_machines: To add the vending icons
+        :param add_team_positions: To add the team positions
         :param override_images: To override the images pre-supplied with RustPlus.py
         :param add_grid: To add the grid to the map
         :return Image: PIL Image
         """
-        raise NotImplementedError("Not Implemented")
+
+        server_info = await self.get_info()
+        if server_info is None:
+            return None
+
+        packet = await self._generate_request(5)  # TODO Proper tokening
+        packet.get_map = AppEmpty()
+        response = await self.ws.send_and_get(packet)
+        if response is None:
+            return None
+
+        map_packet = response.response.map
+        monuments: List[AppMapMonument] = map_packet.monuments
+
+        try:
+            output = Image.open(BytesIO(map_packet.jpg_image))
+        except Exception as e:
+            self.logger.error(f"Error opening image: {e}")
+            return None
+
+        if add_grid:
+            output.paste(grid := generate_grid(server_info.size), (5, 5), grid)
+
+        # ADD OTHER ICONS HERE
+
+        if add_team_positions:
+            team = await self.get_team_info()
+            if team is not None:
+                for member in team.members:
+                    if not member.is_alive:
+                        continue
+
+                    output.paste(
+                        avatar := await fetch_avatar_icon(
+                            member.steam_id, member.is_online
+                        ),
+                        format_coord(int(member.x), int(member.y), server_info.size),
+                        avatar,
+                    )
+
+        return output
 
     async def get_map_info(self) -> Union[RustMap, None]:
         """
