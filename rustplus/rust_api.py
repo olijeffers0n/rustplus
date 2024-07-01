@@ -105,7 +105,7 @@ class RustSocket:
         while True:
             await asyncio.sleep(1)
 
-    async def get_time(self) -> RustTime:
+    async def get_time(self) -> Union[RustTime, None]:
         """
         Gets the current in-game time from the server.
 
@@ -115,6 +115,9 @@ class RustSocket:
         packet = await self._generate_request()
         packet.get_time = AppEmpty()
         packet = await self.ws.send_and_get(packet)
+
+        if packet is None:
+            return None
 
         return RustTime(
             packet.response.time.day_length_minutes,
@@ -139,16 +142,21 @@ class RustSocket:
 
         await self.ws.send_message(packet, True)
 
-    async def get_info(self) -> RustInfo:
+    async def get_info(self) -> Union[RustInfo, None]:
         """
         Gets information on the Rust Server
         :return: RustInfo - The info of the server
         """
         packet = await self._generate_request()
         packet.get_info = AppEmpty()
-        return RustInfo((await self.ws.send_and_get(packet)).response.info)
 
-    async def get_team_chat(self) -> List[RustChatMessage]:
+        response = await self.ws.send_and_get(packet)
+        if response is None:
+            return None
+
+        return RustInfo(response.response.info)
+
+    async def get_team_chat(self) -> Union[List[RustChatMessage], None]:
         """
         Gets the team chat from the server
 
@@ -157,14 +165,16 @@ class RustSocket:
         packet = await self._generate_request()
         packet.get_team_chat = AppEmpty()
 
+        response = await self.ws.send_and_get(packet)
+        if response is None:
+            return None
+
         return [
             RustChatMessage(message)
-            for message in (
-                await self.ws.send_and_get(packet)
-            ).response.team_chat.messages
+            for message in (response).response.team_chat.messages
         ]
 
-    async def get_team_info(self) -> RustTeamInfo:
+    async def get_team_info(self) -> Union[RustTeamInfo, None]:
         """
         Gets Information on the members of your team
 
@@ -173,9 +183,13 @@ class RustSocket:
         packet = await self._generate_request()
         packet.get_team_info = AppEmpty()
 
-        return RustTeamInfo((await self.ws.send_and_get(packet)).response.team_info)
+        response = await self.ws.send_and_get(packet)
+        if response is None:
+            return None
 
-    async def get_markers(self) -> List[RustMarker]:
+        return RustTeamInfo(response.response.team_info)
+
+    async def get_markers(self) -> Union[List[RustMarker], None]:
         """
         Gets all the map markers from the server
 
@@ -184,11 +198,12 @@ class RustSocket:
         packet = await self._generate_request()
         packet.get_map_markers = AppEmpty()
 
+        response = await self.ws.send_and_get(packet)
+        if response is None:
+            return None
+
         return [
-            RustMarker(marker)
-            for marker in (
-                await self.ws.send_and_get(packet)
-            ).response.map_markers.markers
+            RustMarker(marker) for marker in (response).response.map_markers.markers
         ]
 
     async def get_map(
@@ -211,7 +226,7 @@ class RustSocket:
         """
         raise NotImplementedError("Not Implemented")
 
-    async def get_map_info(self) -> RustMap:
+    async def get_map_info(self) -> Union[RustMap, None]:
         """
         Gets the raw map data from the server
 
@@ -220,9 +235,13 @@ class RustSocket:
         packet = await self._generate_request(tokens=5)
         packet.get_map = AppEmpty()
 
-        return RustMap((await self.ws.send_and_get(packet)).response.map)
+        response = await self.ws.send_and_get(packet)
+        if response is None:
+            return None
 
-    async def get_entity_info(self, eid: int = None) -> RustEntityInfo:
+        return RustMap(response.response.map)
+
+    async def get_entity_info(self, eid: int = None) -> Union[RustEntityInfo, None]:
         """
         Gets entity info from the server
 
@@ -233,33 +252,23 @@ class RustSocket:
         packet.get_entity_info = AppEmpty()
         packet.entity_id = eid
 
-        return RustEntityInfo((await self.ws.send_and_get(packet)).response.entity_info)
+        response = await self.ws.send_and_get(packet)
+        if response is None:
+            return None
 
-    async def turn_on_smart_switch(self, eid: int = None) -> None:
-        """
-        Turns on a given smart switch by entity ID
+        return RustEntityInfo(response.response.entity_info)
 
-        :param eid: The Entities ID
-        :return None:
-        """
-        packet = await self._generate_request()
-        value = AppSetEntityValue()
-        value.value = True
-        packet.set_entity_value = AppEmpty()
-        packet.entity_id = eid
-
-        await self.ws.send_message(packet, True)
-
-    async def turn_off_smart_switch(self, eid: int = None) -> None:
+    async def set_entity_value(self, eid: int = None, value: bool = False) -> None:
         """
         Turns off a given smart switch by entity ID
 
         :param eid: The Entities ID
+        :param value: The value to set
         :return None:
         """
         packet = await self._generate_request()
         value = AppSetEntityValue()
-        value.value = False
+        value.value = value
         packet.set_entity_value = AppEmpty()
         packet.entity_id = eid
 
@@ -281,7 +290,7 @@ class RustSocket:
 
     async def get_contents(
         self, eid: int = None, combine_stacks: bool = False
-    ) -> RustContents:
+    ) -> Union[RustContents, None]:
         """
         Gets the contents of a storage monitor-attached container
 
@@ -290,6 +299,9 @@ class RustSocket:
         :return RustContents: The contents on the monitor
         """
         returned_data = await self.get_entity_info(eid)
+
+        if returned_data is None:
+            return None
 
         target_time = datetime.utcfromtimestamp(int(returned_data.protection_expiry))
         difference = target_time - datetime.utcnow()
@@ -333,7 +345,7 @@ class RustSocket:
 
         return RustContents(difference, bool(returned_data.has_protection), items)
 
-    async def get_camera_manager(self, cam_id: str) -> CameraManager:
+    async def get_camera_manager(self, cam_id: str) -> Union[CameraManager, None]:
         """
         Gets a camera manager for a given camera ID
 
@@ -349,5 +361,8 @@ class RustSocket:
         packet.camera_subscribe = subscribe
 
         response = await self.ws.send_and_get(packet)
+
+        if response is None:
+            return None
 
         return CameraManager(self, cam_id, response.response.camera_subscribe_info)

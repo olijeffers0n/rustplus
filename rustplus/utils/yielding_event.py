@@ -1,6 +1,6 @@
 import asyncio
 import contextlib
-from typing import Any, Union
+from typing import Any, Union, Optional
 
 
 class YieldingEvent(asyncio.Event):
@@ -16,12 +16,14 @@ class YieldingEvent(asyncio.Event):
         self.value = None
         super().clear()
 
-    async def wait(self) -> Any:
-        await super().wait()
-        return self.value
+    async def wait(self, timeout: Optional[float] = None) -> Any:
+        if timeout is not None:
+            with contextlib.suppress(asyncio.TimeoutError):
+                await asyncio.wait_for(super().wait(), timeout)
+        else:
+            await super().wait()
 
-    async def event_wait_for(self, timeout) -> Any:
-        # suppress TimeoutError because we'll return False in case of timeout
-        with contextlib.suppress(asyncio.TimeoutError):
-            await asyncio.wait_for(self.wait(), timeout)
         return self.value if self.is_set() else None
+
+    async def event_wait_for(self, timeout: float) -> Any:
+        return await self.wait(timeout)

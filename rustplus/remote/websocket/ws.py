@@ -24,6 +24,9 @@ from ...utils import YieldingEvent, convert_time
 
 
 class RustWebsocket:
+
+    RESPONSE_TIMEOUT = 5
+
     def __init__(
         self, server_id: ServerID, command_options: Union[None, CommandOptions]
     ) -> None:
@@ -107,9 +110,9 @@ class RustWebsocket:
         except Exception as err:
             self.logger.warning("WebSocket connection error: %s", err)
 
-    async def get_response(self, request: AppRequest) -> AppMessage:
+    async def get_response(self, request: AppRequest) -> Union[AppMessage, None]:
 
-        response = await self.responses[request.seq].wait()
+        response = await self.responses[request.seq].wait(timeout=self.RESPONSE_TIMEOUT)
         del self.responses[request.seq]
 
         return response
