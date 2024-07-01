@@ -1,6 +1,7 @@
 import asyncio
 from collections import defaultdict
 from datetime import datetime
+from importlib import resources
 from io import BytesIO
 from typing import List, Union
 import logging
@@ -35,7 +36,7 @@ from .utils import (
     translate_id_to_stack,
     generate_grid,
     fetch_avatar_icon,
-    format_coord,
+    format_coord, convert_marker, convert_monument
 )
 from .remote.ratelimiter import RateLimiter
 
@@ -213,7 +214,7 @@ class RustSocket:
             return None
 
         return [
-            RustMarker(marker) for marker in (response).response.map_markers.markers
+            RustMarker(marker) for marker in response.response.map_markers.markers
         ]
 
     async def get_map(
@@ -237,11 +238,16 @@ class RustSocket:
         :return Image: PIL Image
         """
 
+        if override_images is None:
+            override_images = {}
+
         server_info = await self.get_info()
         if server_info is None:
             return None
 
-        packet = await self._generate_request(5)  # TODO Proper tokening
+        map_size = server_info.size
+
+        packet = await self._generate_request(5)
         packet.get_map = AppEmpty()
         response = await self.ws.send_and_get(packet)
         if response is None:
@@ -256,10 +262,59 @@ class RustSocket:
             self.logger.error(f"Error opening image: {e}")
             return None
 
-        if add_grid:
-            output.paste(grid := generate_grid(server_info.size), (5, 5), grid)
+        output = output.crop((500, 500, map_packet.height - 500, map_packet.width - 500))
+        output = output.resize((map_size, map_size), Image.LANCZOS).convert("RGBA")
 
-        # ADD OTHER ICONS HERE
+        if add_grid:
+            output.paste(grid := generate_grid(map_size), (5, 5), grid)
+
+        if add_icons or add_events or add_vending_machines:
+            map_markers = (
+                await self.get_markers() if add_events or add_vending_machines else []
+            )
+
+            if add_icons:
+                for monument in monuments:
+                    if str(monument.token) == "DungeonBase":
+                        continue
+                    icon = convert_monument(monument.token, override_images)
+                    if monument.token in override_images:
+                        icon = icon.resize((150, 150))
+                    if str(monument.token) == "train_tunnel_display_name":
+                        icon = icon.resize((100, 125))
+                    output.paste(
+                        icon,
+                        (format_coord(int(monument.x), int(monument.y), map_size)),
+                        icon,
+                    )
+
+            if add_vending_machines:
+                with resources.path("rustplus.icons", "vending_machine.png") as path:
+                    vending_machine = Image.open(path).convert("RGBA")
+                    vending_machine = vending_machine.resize((100, 100))
+
+            for marker in map_markers:
+                if add_events:
+                    if marker.type in [2, 4, 5, 6, 8]:
+                        icon = convert_marker(str(marker.type), marker.rotation)
+                        if marker.type == 6:
+                            x, y = marker.x, marker.y
+                            y = min(max(y, 0), map_size)
+                            x = min(max(x, 0), map_size - 75 if x > map_size else x)
+                            output.paste(icon, (int(x), map_size - int(y)), icon)
+                        else:
+                            output.paste(
+                                icon,
+                                (format_coord(int(marker.x), int(marker.y), map_size)),
+                                icon,
+                            )
+
+                if add_vending_machines and marker.type == 3:
+                    output.paste(
+                        vending_machine,
+                        (int(marker.x) - 50, map_size - int(marker.y) - 50),
+                        vending_machine,
+                    )
 
         if add_team_positions:
             team = await self.get_team_info()

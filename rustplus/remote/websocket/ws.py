@@ -37,7 +37,7 @@ class RustWebsocket:
         self.connection: Union[WebSocketClientProtocol, None] = None
         self.logger: logging.Logger = logging.getLogger("rustplus.py")
         self.task: Union[Task, None] = None
-        self.debug: bool = True
+        self.debug: bool = False
         self.use_test_server: bool = False
 
         self.responses: Dict[int, YieldingEvent] = {}
@@ -60,7 +60,8 @@ class RustWebsocket:
             self.logger.warning("WebSocket connection error: %s", err)
             return False
 
-        self.logger.info("Websocket connection established to %s", address)
+        if self.use_test_server:
+            self.logger.info("Websocket connection established to %s", address)
 
         self.task = asyncio.create_task(
             self.run(), name="[RustPlus.py] Websocket Polling Task"
