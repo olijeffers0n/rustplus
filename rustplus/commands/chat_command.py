@@ -3,7 +3,7 @@ from collections import defaultdict
 from typing import Dict, List
 
 from .chat_command_data import ChatCommandData
-from ..identification import ServerID
+from ..identification import ServerDetails
 
 
 @dataclasses.dataclass
@@ -14,7 +14,7 @@ class ChatCommandTime:
 
 class ChatCommand:
 
-    REGISTERED_COMMANDS: Dict[ServerID, Dict[str, ChatCommandData]] = defaultdict(dict)
+    REGISTERED_COMMANDS: Dict[ServerDetails, Dict[str, ChatCommandData]] = defaultdict(dict)
 
     def __init__(
         self,

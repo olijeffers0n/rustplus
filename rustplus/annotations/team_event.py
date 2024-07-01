@@ -1,11 +1,11 @@
 from typing import Callable
 
-from .. import ServerID
+from .. import ServerDetails
 from ..identification import RegisteredListener
 from ..events import TeamEventPayload as TeamEventManager
 
 
-def TeamEvent(server_id: ServerID) -> Callable:
+def TeamEvent(server_id: ServerDetails) -> Callable:
     def wrapper(func) -> RegisteredListener:
         if isinstance(func, RegisteredListener):
             func = func.get_coro()

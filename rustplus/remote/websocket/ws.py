@@ -18,7 +18,7 @@ from ...events import (
     ChatEventPayload,
 )
 from ...exceptions import ClientNotConnectedError, RequestError
-from ...identification import ServerID, RegisteredListener
+from ...identification import ServerDetails, RegisteredListener
 from ...structs import RustChatMessage, RustTeamInfo
 from ...utils import YieldingEvent, convert_time
 
@@ -28,10 +28,10 @@ class RustWebsocket:
     RESPONSE_TIMEOUT = 5
 
     def __init__(
-        self, server_id: ServerID, command_options: Union[None, CommandOptions]
+        self, server_id: ServerDetails, command_options: Union[CommandOptions, None]
     ) -> None:
-        self.server_id: ServerID = server_id
-        self.command_options: Union[None, CommandOptions] = command_options
+        self.server_id: ServerDetails = server_id
+        self.command_options: Union[CommandOptions, None] = command_options
         self.connection: Union[WebSocketClientProtocol, None] = None
         self.logger: logging.Logger = logging.getLogger("rustplus.py")
         self.task: Union[Task, None] = None
@@ -237,7 +237,7 @@ class RustWebsocket:
             return None
 
     @staticmethod
-    async def run_proto_event(data: Union[str, bytes], server_id: ServerID) -> None:
+    async def run_proto_event(data: Union[str, bytes], server_id: ServerDetails) -> None:
         handlers: Set[RegisteredListener] = (
             ProtobufEventPayload.HANDLER_LIST.get_handlers(server_id)
         )

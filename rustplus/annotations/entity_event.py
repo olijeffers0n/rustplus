@@ -1,11 +1,11 @@
 from typing import Callable
 
-from .. import ServerID
+from .. import ServerDetails
 from ..identification import RegisteredEntityListener, RegisteredListener
 from ..events import EntityEventPayload as EntityEventManager
 
 
-def EntityEvent(server_id: ServerID, eid: int) -> Callable:
+def EntityEvent(server_id: ServerDetails, eid: int) -> Callable:
     def wrapper(func) -> RegisteredListener:
         if isinstance(func, RegisteredListener):
             func = func.get_coro()

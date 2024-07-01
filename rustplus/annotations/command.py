@@ -1,11 +1,11 @@
 from typing import Callable
 
-from ..identification import RegisteredListener, ServerID
+from ..identification import RegisteredListener, ServerDetails
 from ..commands import ChatCommand, ChatCommandData
 
 
 def Command(
-    server_id: ServerID, aliases: list = None, alias_func: Callable = None
+    server_id: ServerDetails, aliases: list = None, alias_func: Callable = None
 ) -> Callable:
 
     def wrapper(func):

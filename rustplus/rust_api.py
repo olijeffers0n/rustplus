@@ -6,7 +6,7 @@ import logging
 from PIL import Image
 
 from .commands import CommandOptions
-from .identification import ServerID
+from .identification import ServerDetails
 from .remote.camera import CameraManager
 from .remote.rustplus_proto import (
     AppRequest,
@@ -36,7 +36,7 @@ class RustSocket:
 
     def __init__(
         self,
-        server_id: ServerID,
+        server_id: ServerDetails,
         ratelimiter: Union[None, RateLimiter] = None,
         command_options: Union[None, CommandOptions] = None,
     ) -> None:

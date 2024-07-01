@@ -1,4 +1,4 @@
-class ServerID:
+class ServerDetails:
     def __init__(self, ip: str, port: str, player_id: int, player_token: int) -> None:
         self.ip = ip
         self.port = port
@@ -15,7 +15,7 @@ class ServerID:
         return hash(self.__str__())
 
     def __eq__(self, o: object) -> bool:
-        if not isinstance(o, ServerID):
+        if not isinstance(o, ServerDetails):
             return False
 
         return (
