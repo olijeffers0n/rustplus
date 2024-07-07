@@ -18,12 +18,15 @@ from .structures import (
     RustEntityInfo,
     RustContents,
     RustItem,
+    RustClanInfo,
+    RustClanMessage,
 )
 from .remote.rustplus_proto import (
     AppEmpty,
     AppSendMessage,
     AppSetEntityValue,
     AppPromoteToLeader,
+    AppGetNexusAuth,
 )
 from .remote import HeartBeat, RateLimiter
 from ..commands import CommandOptions
@@ -241,13 +244,7 @@ class RustSocket(BaseRustSocket):
 
             for marker in map_markers:
                 if add_events:
-                    if (
-                        marker.type == 2
-                        or marker.type == 4
-                        or marker.type == 5
-                        or marker.type == 6
-                        or marker.type == 8
-                    ):
+                    if marker.type in RustMarker.Events:
                         icon = convert_marker(str(marker.type), marker.rotation)
                         if marker.type == 6:
                             x = marker.x
@@ -361,11 +358,7 @@ class RustSocket(BaseRustSocket):
         return [
             marker
             for marker in (await self.get_markers())
-            if marker.type == 2
-            or marker.type == 4
-            or marker.type == 5
-            or marker.type == 6
-            or marker.type == 8
+            if marker.type in RustMarker.Events
         ]
 
     async def get_contents(
@@ -426,3 +419,74 @@ class RustSocket(BaseRustSocket):
 
     async def get_camera_manager(self, cam_id: str) -> CameraManager:
         return await self.remote.create_camera_manager(cam_id)
+
+    async def get_clan_info(self) -> Union[RustClanInfo, None]:
+        await self._handle_ratelimit()
+
+        app_request = self._generate_protobuf()
+        app_request.get_clan_info = AppEmpty()
+
+        await self.remote.send_message(app_request)
+
+        app_message = await self.remote.get_response(app_request.seq, app_request)
+
+        if app_message.response.error.error != "":
+            return None
+
+        return RustClanInfo(app_message.response.clan_info)
+
+    async def get_clan_chat(self) -> List[RustClanMessage]:
+        await self._handle_ratelimit()
+
+        app_request = self._generate_protobuf()
+        app_request.get_clan_chat = AppEmpty()
+
+        await self.remote.send_message(app_request)
+
+        app_message = await self.remote.get_response(app_request.seq, app_request)
+
+        return [
+            RustClanMessage(message)
+            for message in app_message.response.clan_chat.messages
+        ]
+
+    async def send_clan_message(self, message: str) -> None:
+        await self._handle_ratelimit(2)
+
+        app_send_message = AppSendMessage()
+        app_send_message.message = str(message)
+
+        app_request = self._generate_protobuf()
+        app_request.send_clan_message = app_send_message
+
+        await self.remote.add_ignored_response(app_request.seq)
+
+        await self.remote.send_message(app_request)
+
+    async def set_clan_motd(self, message: str) -> None:
+        await self._handle_ratelimit()
+
+        app_send_message = AppSendMessage()
+        app_send_message.message = str(message)
+
+        app_request = self._generate_protobuf()
+        app_request.set_clan_motd = app_send_message
+
+        await self.remote.add_ignored_response(app_request.seq)
+
+        await self.remote.send_message(app_request)
+
+    async def get_nexus_player_token(self, app_key: str) -> str:
+        await self._handle_ratelimit()
+
+        app_request = self._generate_protobuf()
+
+        get_auth = AppGetNexusAuth()
+        get_auth.app_key = app_key
+        app_request.get_nexus_auth = get_auth
+
+        await self.remote.send_message(app_request)
+
+        app_message = await self.remote.get_response(app_request.seq, app_request)
+
+        return app_message.response.nexus_auth
