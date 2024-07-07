@@ -9,6 +9,7 @@ import logging
 import asyncio
 
 from ..camera import CameraManager
+from ..proxy import ProxyValueGrabber
 from ..rustplus_proto import AppMessage, AppRequest
 from ...commands import CommandOptions, ChatCommand, ChatCommandTime
 from ...events import (
@@ -31,23 +32,32 @@ class RustWebsocket:
         self,
         server_details: ServerDetails,
         command_options: Union[CommandOptions, None],
+        use_fp_proxy: bool,
+        use_test_server: bool,
+        debug: bool,
     ) -> None:
         self.server_details: ServerDetails = server_details
         self.command_options: Union[CommandOptions, None] = command_options
         self.connection: Union[WebSocketClientProtocol, None] = None
         self.logger: logging.Logger = logging.getLogger("rustplus.py")
         self.task: Union[Task, None] = None
-        self.debug: bool = False
-        self.use_test_server: bool = False
+        self.debug: bool = debug
+        self.use_test_server: bool = use_test_server
+        self.use_fp_proxy: bool = use_fp_proxy
 
         self.responses: Dict[int, YieldingEvent] = {}
+        self.open = False
 
     async def connect(self) -> bool:
 
         address = (
-            f"{'wss' if self.server_details.secure else 'ws'}://"
-            + self.server_details.get_server_string()
-        )
+            (
+                f"{'wss' if self.server_details.secure else 'ws'}://"
+                + self.server_details.get_server_string()
+            )
+            if not self.use_fp_proxy
+            else f"wss://companion-rust.facepunch.com/game/{self.server_details.ip}/{self.server_details.port}"
+        ) + f"?v={ProxyValueGrabber.get_value()}"
 
         try:
             self.connection = await connect(
@@ -67,10 +77,22 @@ class RustWebsocket:
             self.run(), name="[RustPlus.py] Websocket Polling Task"
         )
 
+        self.open = True
+
         return True
 
+    async def disconnect(self) -> None:
+        if self.task and self.connection:
+            self.task.cancel()
+            await self.task
+            self.task = None
+
+            self.open = False
+            await self.connection.close()
+            self.connection = None
+
     async def run(self) -> None:
-        while True:
+        while self.open:
             try:
                 data = await self.connection.recv()
 

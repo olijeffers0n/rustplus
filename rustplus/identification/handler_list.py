@@ -1,6 +1,10 @@
 from collections import defaultdict
 from typing import Set, Dict
-from ..identification import RegisteredListener, RegisteredEntityListener, ServerDetails
+from rustplus.identification import (
+    RegisteredListener,
+    RegisteredEntityListener,
+    ServerDetails,
+)
 
 
 class HandlerList:

@@ -1,6 +1,6 @@
 from typing import List
 
-from ..remote.handler_list import EntityHandlerList
+from rustplus.identification.handler_list import EntityHandlerList
 from ..remote.rustplus_proto import AppEntityPayloadItem, AppEntityChanged
 
 

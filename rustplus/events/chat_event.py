@@ -1,4 +1,4 @@
-from ..remote.handler_list import HandlerList
+from rustplus.identification.handler_list import HandlerList
 from ..structs import RustChatMessage
 
 

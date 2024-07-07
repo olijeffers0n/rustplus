@@ -48,8 +48,11 @@ class RustSocket:
     def __init__(
         self,
         server_details: ServerDetails,
-        ratelimiter: Union[None, RateLimiter] = None,
-        command_options: Union[None, CommandOptions] = None,
+        ratelimiter: Union[RateLimiter, None] = None,
+        command_options: Union[CommandOptions, None] = None,
+        use_fp_proxy: bool = False,
+        use_test_server: bool = False,
+        debug: bool = False,
     ) -> None:
         self.server_details = server_details
         self.command_options = command_options
@@ -63,7 +66,13 @@ class RustSocket:
         self.logger.addHandler(console_handler)
         self.logger.setLevel(logging.DEBUG)
 
-        self.ws = RustWebsocket(self.server_details, self.command_options)
+        self.ws = RustWebsocket(
+            self.server_details,
+            self.command_options,
+            use_fp_proxy,
+            use_test_server,
+            debug,
+        )
         self.seq = 1
 
         if ratelimiter:
@@ -102,9 +111,14 @@ class RustSocket:
 
         return app_request
 
-    async def connect(self) -> None:
-        await self.ws.connect()
-        await self.get_time()  # Wake up the connection
+    async def connect(self) -> bool:
+        if await self.ws.connect():
+            await self.get_time()  # Wake up the connection
+            return True
+        return False
+
+    async def disconnect(self) -> None:
+        await self.ws.disconnect()
 
     @staticmethod
     async def hang() -> None:
