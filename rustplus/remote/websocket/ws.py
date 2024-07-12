@@ -84,7 +84,11 @@ class RustWebsocket:
     async def disconnect(self) -> None:
         if self.task and self.connection:
             self.task.cancel()
-            await self.task
+            try:
+                await self.task
+            except asyncio.CancelledError:
+                pass  # Ignore the cancellation error
+
             self.task = None
 
             self.open = False
@@ -207,7 +211,6 @@ class RustWebsocket:
                 handler.get_coro()(
                     EntityEventPayload(
                         entity_changed=app_message.broadcast.entity_changed,
-                        entity_type=handler.entity_type,
                     )
                 )
 

@@ -2,7 +2,6 @@ from collections import defaultdict
 from typing import Set, Dict
 from rustplus.identification import (
     RegisteredListener,
-    RegisteredEntityListener,
     ServerDetails,
 )
 
@@ -34,12 +33,12 @@ class HandlerList:
 class EntityHandlerList(HandlerList):
     def __init__(self) -> None:
         super().__init__()
-        self._handlers: Dict[
-            ServerDetails, Dict[str, Set[RegisteredEntityListener]]
-        ] = defaultdict(dict)
+        self._handlers: Dict[ServerDetails, Dict[str, Set[RegisteredListener]]] = (
+            defaultdict(dict)
+        )
 
     def unregister(
-        self, listener: RegisteredEntityListener, server_details: ServerDetails
+        self, listener: RegisteredListener, server_details: ServerDetails
     ) -> None:
         if listener.listener_id in self._handlers.get(server_details):
             self._handlers.get(server_details).get(listener.listener_id).remove(
@@ -47,7 +46,7 @@ class EntityHandlerList(HandlerList):
             )
 
     def register(
-        self, listener: RegisteredEntityListener, server_details: ServerDetails
+        self, listener: RegisteredListener, server_details: ServerDetails
     ) -> None:
         if server_details not in self._handlers:
             self._handlers[server_details] = defaultdict(set)
@@ -57,9 +56,7 @@ class EntityHandlerList(HandlerList):
 
         self._handlers.get(server_details).get(listener.listener_id).add(listener)
 
-    def has(
-        self, listener: RegisteredEntityListener, server_details: ServerDetails
-    ) -> bool:
+    def has(self, listener: RegisteredListener, server_details: ServerDetails) -> bool:
         if (
             server_details in self._handlers
             and listener.listener_id in self._handlers.get(server_details)
@@ -75,5 +72,5 @@ class EntityHandlerList(HandlerList):
 
     def get_handlers(
         self, server_details: ServerDetails
-    ) -> Dict[str, Set[RegisteredEntityListener]]:
+    ) -> Dict[str, Set[RegisteredListener]]:
         return self._handlers.get(server_details, dict())

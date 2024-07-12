@@ -24,26 +24,3 @@ class RegisteredListener:
 
     def __hash__(self):
         return hash((self.listener_id, self._coroutine))
-
-
-class RegisteredEntityListener(RegisteredListener):
-    def __init__(
-        self,
-        listener_id: str,
-        coroutine: Coroutine,
-        entity_type: int,
-    ) -> None:
-        super().__init__(listener_id, coroutine)
-        self.entity_type = entity_type
-
-    def get_entity_type(self):
-        return self.entity_type
-
-    def __eq__(self, other) -> bool:
-        if not isinstance(other, RegisteredEntityListener):
-            return False
-
-        return super().__eq__(other) and self.listener_id == other.listener_id
-
-    def __hash__(self):
-        return hash((self.listener_id, self._coroutine, self.entity_type))

@@ -26,8 +26,7 @@ class Item:
 class EntityEventPayload:
     HANDLER_LIST = EntityHandlerList()
 
-    def __init__(self, entity_changed: AppEntityChanged, entity_type) -> None:
-        self._type = int(entity_type)  # TODO CHECK HOW I HANDLE THIS
+    def __init__(self, entity_changed: AppEntityChanged) -> None:
         self._entity_id: int = entity_changed.entity_id
         self._value: bool = entity_changed.payload.value
         self._capacity: int = entity_changed.payload.capacity
@@ -35,10 +34,6 @@ class EntityEventPayload:
         self._protection_expiry: int = entity_changed.payload.protection_expiry
 
         self._items: List[Item] = [Item(item) for item in entity_changed.payload.items]
-
-    @property
-    def type(self) -> int:
-        return self._type
 
     @property
     def entity_id(self) -> int:
