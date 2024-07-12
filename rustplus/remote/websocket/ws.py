@@ -122,7 +122,7 @@ class RustWebsocket:
 
     async def send_and_get(self, request: AppRequest) -> AppMessage:
         await self.send_message(request)
-        return await self.get_response(request)
+        return await self.get_response(request.seq)
 
     async def send_message(
             self, request: AppRequest, ignore_response: bool = False
@@ -141,10 +141,10 @@ class RustWebsocket:
         except Exception as err:
             self.logger.warning("WebSocket connection error: %s", err)
 
-    async def get_response(self, request: AppRequest) -> Union[AppMessage, None]:
+    async def get_response(self, seq: int) -> Union[AppMessage, None]:
 
-        response = await self.responses[request.seq].wait(timeout=self.RESPONSE_TIMEOUT)
-        del self.responses[request.seq]
+        response = await self.responses[seq].wait(timeout=self.RESPONSE_TIMEOUT)
+        del self.responses[seq]
 
         return response
 

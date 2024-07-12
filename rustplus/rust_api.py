@@ -17,7 +17,7 @@ from .remote.rustplus_proto import (
     AppSetEntityValue,
     AppPromoteToLeader,
     AppCameraSubscribe,
-    AppMapMonument,
+    AppMapMonument, AppFlag,
 )
 from .remote.websocket import RustWebsocket
 from .structs import (
@@ -381,7 +381,7 @@ class RustSocket:
 
         return RustEntityInfo(response.response.entity_info)
 
-    async def set_entity_value(self, eid: int = None, value: bool = False) -> None:
+    async def set_entity_value(self, eid: int, value: bool = False) -> None:
         """
         Turns off a given smart switch by entity ID
 
@@ -396,6 +396,39 @@ class RustSocket:
         packet.entity_id = eid
 
         await self.ws.send_message(packet, True)
+
+    async def set_subscription_to_entity(self, eid: int, value: bool = True) -> None:
+        """
+        Subscribes to an entity for events
+
+        :param eid: The Entities ID
+        :param value: The value to set the subscription to
+        :return None:
+        """
+        packet = await self._generate_request()
+        flag = AppFlag()
+        flag.value = value
+        packet.set_subscription = flag
+        packet.entity_id = eid
+
+        await self.ws.send_message(packet, True)
+
+    async def check_subscription_to_entity(self, eid: int) -> Union[bool, None]:
+        """
+        Checks if you are subscribed to an entity
+
+        :param eid: The Entities ID
+        :return bool: If you are subscribed
+        """
+        packet = await self._generate_request()
+        packet.check_subscription = AppEmpty()
+        packet.entity_id = eid
+
+        response = await self.ws.send_and_get(packet)
+        if response is None:
+            return None
+
+        return response.response.flag.value
 
     async def promote_to_team_leader(self, steamid: int = None) -> None:
         """
