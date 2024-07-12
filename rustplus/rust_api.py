@@ -198,7 +198,7 @@ class RustSocket:
 
         return [
             RustChatMessage(message)
-            for message in (response).response.team_chat.messages
+            for message in response.response.team_chat.messages
         ]
 
     async def get_team_info(self) -> Union[RustTeamInfo, None]:
@@ -390,8 +390,8 @@ class RustSocket:
         :return None:
         """
         packet = await self._generate_request()
-        value = AppSetEntityValue()
-        value.value = value
+        set_value = AppSetEntityValue()
+        set_value.value = value
         packet.set_entity_value = AppEmpty()
         packet.entity_id = eid
 
