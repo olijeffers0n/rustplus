@@ -8,7 +8,7 @@ from .annotations import Command, ChatEvent, ProtobufEvent, TeamEvent, EntityEve
 from .remote.fcm import FCMListener
 from .commands import CommandOptions, ChatCommand
 from .events import ChatEventPayload, TeamEventPayload, EntityEventPayload
-from .utils import convert_event_type_to_name
+from .utils import convert_event_type_to_name, Emoji
 
 __name__ = "rustplus"
 __author__ = "olijeffers0n"
