@@ -17,7 +17,8 @@ from .remote.rustplus_proto import (
     AppSetEntityValue,
     AppPromoteToLeader,
     AppCameraSubscribe,
-    AppMapMonument, AppFlag,
+    AppMapMonument,
+    AppFlag,
 )
 from .remote.websocket import RustWebsocket
 from .structs import (
@@ -197,8 +198,7 @@ class RustSocket:
             return None
 
         return [
-            RustChatMessage(message)
-            for message in response.response.team_chat.messages
+            RustChatMessage(message) for message in response.response.team_chat.messages
         ]
 
     async def get_team_info(self) -> Union[RustTeamInfo, None]:

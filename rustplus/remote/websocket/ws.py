@@ -28,12 +28,12 @@ class RustWebsocket:
     RESPONSE_TIMEOUT = 5
 
     def __init__(
-            self,
-            server_details: ServerDetails,
-            command_options: Union[CommandOptions, None],
-            use_fp_proxy: bool,
-            use_test_server: bool,
-            debug: bool,
+        self,
+        server_details: ServerDetails,
+        command_options: Union[CommandOptions, None],
+        use_fp_proxy: bool,
+        use_test_server: bool,
+        debug: bool,
     ) -> None:
         self.server_details: ServerDetails = server_details
         self.command_options: Union[CommandOptions, None] = command_options
@@ -125,7 +125,7 @@ class RustWebsocket:
         return await self.get_response(request.seq)
 
     async def send_message(
-            self, request: AppRequest, ignore_response: bool = False
+        self, request: AppRequest, ignore_response: bool = False
     ) -> None:
         if self.connection is None:
             raise ClientNotConnectedError("No Current Websocket Connection")
@@ -170,7 +170,7 @@ class RustWebsocket:
             message = RustChatMessage(app_message.broadcast.team_message.message)
 
             parts = shlex.split(message.message)
-            command = parts[0][len(prefix):]
+            command = parts[0][len(prefix) :]
 
             data = ChatCommand.REGISTERED_COMMANDS[self.server_details].get(
                 command, None
@@ -269,7 +269,7 @@ class RustWebsocket:
 
     @staticmethod
     async def run_proto_event(
-            data: Union[str, bytes], server_details: ServerDetails
+        data: Union[str, bytes], server_details: ServerDetails
     ) -> None:
         handlers: Set[RegisteredListener] = (
             ProtobufEventPayload.HANDLER_LIST.get_handlers(server_details)
