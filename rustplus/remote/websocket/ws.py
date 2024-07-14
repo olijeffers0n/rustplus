@@ -1,4 +1,5 @@
 import shlex
+import base64
 import betterproto
 from websockets.exceptions import InvalidURI, InvalidHandshake
 from websockets.legacy.client import WebSocketClientProtocol
@@ -69,7 +70,7 @@ class RustWebsocket:
             self.logger.warning("WebSocket connection error: %s", err)
             return False
 
-        if self.use_test_server:
+        if self.debug:
             self.logger.info("Websocket connection established to %s", address)
 
         self.task = asyncio.create_task(
@@ -102,6 +103,9 @@ class RustWebsocket:
                 await self.run_coroutine_non_blocking(
                     self.run_proto_event(data, self.server_details)
                 )
+
+                if self.use_test_server:
+                    data = base64.b64decode(data)
 
                 app_message = AppMessage()
                 app_message.parse(data)
@@ -137,7 +141,12 @@ class RustWebsocket:
             self.responses[request.seq] = YieldingEvent()
 
         try:
-            await self.connection.send(bytes(request))
+            if self.use_test_server:
+                await self.connection.send(
+                    base64.b64encode(bytes(request)).decode("utf-8")
+                )
+            else:
+                await self.connection.send(bytes(request))
         except Exception as err:
             self.logger.warning("WebSocket connection error: %s", err)
 
