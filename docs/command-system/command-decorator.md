@@ -1,16 +1,18 @@
+from main import server_details
+
 # Command Decorator
 
 The command decorator is used to mark a coroutine as a command listener. Usage:
 
 ```python
-@rust_socket.command
-async def hi(command: Command):
+@Command(server_details)
+async def hi(command: ChatCommand):
     print("Command Ran!")
 ```
 
 The fact that the coroutine's name is `hi` means that the command will be `<prefix>hi` .
 
-You also get access to this `Command` object which has a slew of useful information about the how the command was called.
+You also get access to this `ChatCommand` object which has a slew of useful information about the how the command was called.
 
 | Field            | Value                                                                                                                                         |
 | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -27,16 +29,16 @@ This decorator returns a [`RegisteredListener`](../api-methods/removing-listener
 You don't want to have to register 100's of commands for every permutation of phrasing, so why should you!
 
 ```python
-@rust_socket.command(aliases=["hello", "hey"])
-async def hi(command: Command):
+@ChatCommand(server_details, aliases=["hello", "hey"])
+async def hi(command: ChatCommand):
     print("Command Ran!")
 ```
 
 This is a simple example of how you could incorporate different function names into one command, but sometimes we need more than that!
 
 ```python
-@rust_socket.command(alais_func=lambda x: x.lower() == "test")
-async def pair(command: Command):
+@ChatCommand(server_details, alais_func=lambda x: x.lower() == "test")
+async def pair(command: ChatCommand):
     print("Command Ran!")
 ```
 

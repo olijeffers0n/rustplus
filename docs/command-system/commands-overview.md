@@ -4,13 +4,14 @@ Commands allow the triggering of custom coroutines when a specific keyword is se
 
 {% code title="main.py" %}
 ```python
-from rustplus import RustSocket, CommandOptions, Command
+from rustplus import RustSocket, CommandOptions, Command, ServerDetails, Command, ChatCommand
 
 options = CommandOptions(prefix="!") # Use whatever prefix you want here
-rust_socket = RustSocket("IP", "PORT", STEAMID, PLAYERTOKEN, command_options=options)
+server_details = ServerDetails("IP", "PORT", STEAMID, PLAYERTOKEN)
+socket = RustSocket(server_details)
 
-@rust_socket.command
-async def hi(command : Command): 
+@Command(server_details)
+async def hi(command : ChatCommand): 
     await socket.send_team_message(f"Hi, {command.sender_name}")
 ```
 {% endcode %}

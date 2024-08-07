@@ -1,7 +1,7 @@
 import shlex
 import base64
 import betterproto
-from websockets.exceptions import InvalidURI, InvalidHandshake
+from websockets.exceptions import InvalidURI, InvalidHandshake, ConnectionClosedError
 from websockets.legacy.client import WebSocketClientProtocol
 from websockets.client import connect
 from asyncio import TimeoutError, Task, AbstractEventLoop
@@ -110,9 +110,16 @@ class RustWebsocket:
                 app_message = AppMessage()
                 app_message.parse(data)
 
+            except ConnectionClosedError as e:
+                if self.debug:
+                    self.logger.exception("Connection Interrupted: %s", e)
+                else:
+                    self.logger.warning("Connection Interrupted: %s", e)
+                break
+
             except Exception as e:
                 self.logger.exception(
-                    "An Error occurred whilst parsing the message from the server", e
+                    "An Error occurred whilst parsing the message from the server: %s", e
                 )
                 continue
 
@@ -215,7 +222,7 @@ class RustWebsocket:
                 self.server_details
             ).get(str(app_message.broadcast.entity_changed.entity_id), [])
             for handler in handlers:
-                handler.get_coro()(
+                await handler.get_coro()(
                     EntityEventPayload(
                         entity_changed=app_message.broadcast.entity_changed,
                     )

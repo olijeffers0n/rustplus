@@ -21,10 +21,8 @@
 * [Getting the Time](api-methods/getting-the-time.md)
 * [Getting Entity Information](api-methods/getting-entity-information.md)
 * [Getting Map Markers](api-methods/getting-map-markers.md)
-* [Getting Current Map Events](api-methods/getting-current-map-events.md)
 * [Getting Contents of Monitors](api-methods/getting-contents-of-monitors.md)
 * [Promoting Players to Team Leader](api-methods/promoting-players-to-team-leader.md)
-* [Toggling Smart Switches](api-methods/toggling-smart-switches.md)
 
 ## Command System
 

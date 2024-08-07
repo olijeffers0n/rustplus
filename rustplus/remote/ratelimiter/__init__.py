@@ -19,21 +19,16 @@ class TokenBucket:
         self.refresh_per_second = self.refresh_amount / self.refresh_rate
 
     def can_consume(self, amount) -> bool:
-        if (self.current - amount) >= 0:
-            return True
-
-        return False
+        return (self.current - amount) >= 0
 
     def consume(self, amount: int = 1) -> None:
         self.current -= amount
 
     def refresh(self) -> None:
         time_now = time.time()
-
         time_delta = time_now - self.last_update
         self.last_update = time_now
-
-        self.current = min([self.current + time_delta * self.refresh_amount, self.max])
+        self.current = min(self.current + time_delta * self.refresh_per_second, self.max)
 
 
 class RateLimiter:
@@ -73,17 +68,14 @@ class RateLimiter:
         Returns whether the user can consume the amount of tokens provided
         """
         async with self.lock:
-            can_consume = True
-
             for bucket in [
                 self.socket_buckets.get(server_details),
                 self.server_buckets.get(server_details.get_server_string()),
             ]:
                 bucket.refresh()
                 if not bucket.can_consume(amount):
-                    can_consume = False
-
-        return can_consume
+                    return False
+        return True
 
     async def consume(self, server_details: ServerDetails, amount: int = 1) -> None:
         """
@@ -96,8 +88,11 @@ class RateLimiter:
             ]:
                 bucket.refresh()
                 if not bucket.can_consume(amount):
-                    self.lock.release()
                     raise RateLimitError("Not Enough Tokens")
+            for bucket in [
+                self.socket_buckets.get(server_details),
+                self.server_buckets.get(server_details.get_server_string()),
+            ]:
                 bucket.consume(amount)
 
     async def get_estimated_delay_time(
