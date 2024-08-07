@@ -28,7 +28,9 @@ class TokenBucket:
         time_now = time.time()
         time_delta = time_now - self.last_update
         self.last_update = time_now
-        self.current = min(self.current + time_delta * self.refresh_per_second, self.max)
+        self.current = min(
+            self.current + time_delta * self.refresh_per_second, self.max
+        )
 
 
 class RateLimiter:

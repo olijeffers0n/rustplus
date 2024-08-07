@@ -119,7 +119,8 @@ class RustWebsocket:
 
             except Exception as e:
                 self.logger.exception(
-                    "An Error occurred whilst parsing the message from the server: %s", e
+                    "An Error occurred whilst parsing the message from the server: %s",
+                    e,
                 )
                 continue
 
