@@ -4,7 +4,7 @@ Command options are what you use to tell the [`RustSocket`](../getting-started/r
 These define the prefix for the command, as well as any "overruling commands" which are commands that do not require a prefix. Usage:
 
 ```python
-from rustplus import RustSocket, CommandOptions
+from rustplus import CommandOptions
 
 options = CommandOptions(prefix="!")
 ```

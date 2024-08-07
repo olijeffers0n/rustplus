@@ -12,26 +12,26 @@ These will be called by the socket when the respective events occur. Here are so
 {% code title="listeners.py" %}
 
 ```python
-from rustplus import EntityEvent, TeamEventPayload, ChatEventPayload
+from rustplus import EntityEventPayload, TeamEventPayload, ChatEventPayload, ProtobufEvent, ChatEvent, EntityEvent, TeamEvent
 
 
-@rust_socket.entity_event(ENTITYID)
-async def alarm(event: EntityEvent):
+@EntityEvent(server_details, 25743493)
+async def alarm(event: EntityEventPayload):
     value = "On" if event.value else "Off"
-    print(f"{entity_type_to_string(event.type)} has been turned {value}")
+    print(f"Entity has been turned {value}")
 
 
-@rust_socket.team_event
+@TeamEvent(server_details)
 async def team(event: TeamEventPayload):
     print(f"The team leader's steamId is: {event.team_info.leader_steam_id}")
 
 
-@rust_socket.chat_event
+@ChatEvent(server_details)
 async def chat(event: ChatEventPayload):
     print(f"{event.message.name}: {event.message.message}")
 
 
-@rust_socket.protobuf_received
+@ProtobufEvent(server_details)
 async def proto(data: bytes):
     print(data)
 ```
@@ -42,8 +42,7 @@ async def proto(data: bytes):
 The `entity_event` decorator takes an extra parameter of the [entity id](../getting-started/getting-player-details/getting-entity-ids.md) that you are listening for changes to. The `EntityEvent` object holds information on the entity:
 
 | Name                | Description                           |
-| ------------------- | ------------------------------------- |
-| `type`              | The type of entity, as an `int`       |
+|---------------------|---------------------------------------|
 | `entity_id`         | The Entity Id                         |
 | `value`             | The value of the entity, `boolean`    |
 | `capacity`          | The capacity of the entity            |
@@ -56,7 +55,7 @@ The `entity_event` decorator takes an extra parameter of the [entity id](../gett
 This event is typically called when the team changes, e.g. a player leaves or joins. The `team_event` decorator will pass a `TeamEvent` object as a parameter with the following information:
 
 | Name          | Description                                                                     |
-| ------------- | ------------------------------------------------------------------------------- |
+|---------------|---------------------------------------------------------------------------------|
 | `player_info` | The `player_id` of the changed information                                      |
 | `team_info`   | The [`team info`](../api-methods/getting-team-info.md) on the team that changed |
 
@@ -65,7 +64,7 @@ This event is typically called when the team changes, e.g. a player leaves or jo
 This event is called when a message is sent to the team chat. It will give you a `ChatEvent` object when called with this information:
 
 | Name      | Description                                                      |
-| --------- | ---------------------------------------------------------------- |
+|-----------|------------------------------------------------------------------|
 | `message` | The [message](../api-methods/getting-team-chat.md) that was sent |
 
 ### Protobuf Event

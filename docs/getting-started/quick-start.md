@@ -30,5 +30,6 @@ asyncio.run(main())
 ```
 {% endcode %}
 
-This will run, and print the time on the Rust Server
+This will run, and print the time on the Rust Server.
 
+API methods will return `None` if they are not successful. This is to allow for better error handling, and reconnecting to the server. 
