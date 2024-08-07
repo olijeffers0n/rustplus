@@ -27,3 +27,7 @@ Alarm = 2
 StorageMonitor = 3
 ```
 
+## Setting Entity Information
+
+Calling `rust_socket.set_entity_value(entity_id: int, value: bool)` will set the value of the entity with the given ID to the given value.
+

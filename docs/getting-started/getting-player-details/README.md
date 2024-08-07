@@ -1,5 +1,5 @@
 ---
-description: This will show you how to get your personal player details using the RustCli
+description: This will show you how to get your personal player details using the Web tool
 ---
 
 # Getting Player Details

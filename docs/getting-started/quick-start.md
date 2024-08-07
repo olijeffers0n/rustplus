@@ -6,7 +6,7 @@ In order to access the API, you must first install the package using pip:
 pip install rustplus
 ```
 
-You must then get your Personal details using the RustCli, as shown here:
+You must then get your Personal details using the web tool, as shown here:
 
 {% content-ref url="getting-player-details/" %}
 [getting-player-details](getting-player-details/)
@@ -15,10 +15,11 @@ You must then get your Personal details using the RustCli, as shown here:
 {% code title="main.py" %}
 ```python
 import asyncio
-from rustplus import RustSocket
+from rustplus import RustSocket, ServerDetails
 
 async def main():
-    socket = RustSocket("IP", "PORT", STEAMID, PLAYERTOKEN)
+    server_details = ServerDetails("IP", "PORT", STEAMID, PLAYERTOKEN)
+    socket = RustSocket(server_details)
     await socket.connect()
 
     print(f"It is {(await socket.get_time()).time}")
@@ -29,5 +30,6 @@ asyncio.run(main())
 ```
 {% endcode %}
 
-This will run, and print the time on the Rust Server
+This will run, and print the time on the Rust Server.
 
+API methods will return `None` if they are not successful. This is to allow for better error handling, and reconnecting to the server. 
