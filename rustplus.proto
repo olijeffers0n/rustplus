@@ -129,6 +129,7 @@ enum AppMarkerType {
 	Crate = 6;
 	GenericRadius = 7;
 	PatrolHelicopter = 8;
+	TravelingVendor = 9;
 }
 
 message AppRequest {
