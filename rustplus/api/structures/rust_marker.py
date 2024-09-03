@@ -93,6 +93,7 @@ class RustMarker(Serializable):
     CrateMarker = 6
     RadiusMarker = 7
     PatrolHelicopterMarker = 8
+    TravelingVendor = 9
 
     def __init__(self, data: AppMarker) -> None:
         self._id: int = data.id
