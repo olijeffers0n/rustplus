@@ -23,6 +23,7 @@ class AppMarkerType(betterproto.Enum):
     Crate = 6
     GenericRadius = 7
     PatrolHelicopter = 8
+    TravelingVendor = 9
 
 
 class AppCameraRaysEntityType(betterproto.Enum):
