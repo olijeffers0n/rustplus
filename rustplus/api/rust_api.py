@@ -81,7 +81,8 @@ class RustSocket(BaseRustSocket):
         app_request = self._generate_protobuf()
         app_request.get_time = AppEmpty()
 
-        await self.remote.send_message(app_request)
+        async with self.lock:
+            await self.remote.send_message(app_request)
 
         response = await self.remote.get_response(app_request.seq, app_request)
 
@@ -98,7 +99,8 @@ class RustSocket(BaseRustSocket):
 
         await self.remote.add_ignored_response(app_request.seq)
 
-        await self.remote.send_message(app_request)
+        async with self.lock:
+            await self.remote.send_message(app_request)
 
     async def get_info(self) -> RustInfo:
         await self._handle_ratelimit()
@@ -106,7 +108,8 @@ class RustSocket(BaseRustSocket):
         app_request = self._generate_protobuf()
         app_request.get_info = AppEmpty()
 
-        await self.remote.send_message(app_request)
+        async with self.lock:
+            await self.remote.send_message(app_request)
 
         response = await self.remote.get_response(app_request.seq, app_request)
 
@@ -118,7 +121,8 @@ class RustSocket(BaseRustSocket):
         app_request = self._generate_protobuf()
         app_request.get_team_chat = AppEmpty()
 
-        await self.remote.send_message(app_request)
+        async with self.lock:
+            await self.remote.send_message(app_request)
 
         messages = (
             await self.remote.get_response(app_request.seq, app_request)
@@ -132,7 +136,8 @@ class RustSocket(BaseRustSocket):
         app_request = self._generate_protobuf()
         app_request.get_team_info = AppEmpty()
 
-        await self.remote.send_message(app_request)
+        async with self.lock:
+            await self.remote.send_message(app_request)
 
         app_message = await self.remote.get_response(app_request.seq, app_request)
 
@@ -144,7 +149,8 @@ class RustSocket(BaseRustSocket):
         app_request = self._generate_protobuf()
         app_request.get_map_markers = AppEmpty()
 
-        await self.remote.send_message(app_request)
+        async with self.lock:
+            await self.remote.send_message(app_request)
 
         app_message = await self.remote.get_response(app_request.seq, app_request)
 
@@ -158,7 +164,8 @@ class RustSocket(BaseRustSocket):
         app_request = self._generate_protobuf()
         app_request.get_map = AppEmpty()
 
-        await self.remote.send_message(app_request)
+        async with self.lock:
+            await self.remote.send_message(app_request)
 
         app_message = await self.remote.get_response(app_request.seq, app_request)
 
@@ -190,7 +197,8 @@ class RustSocket(BaseRustSocket):
         app_request = self._generate_protobuf()
         app_request.get_map = AppEmpty()
 
-        await self.remote.send_message(app_request)
+        async with self.lock:
+            await self.remote.send_message(app_request)
 
         app_message = await self.remote.get_response(app_request.seq, app_request)
 
@@ -308,7 +316,8 @@ class RustSocket(BaseRustSocket):
         app_request.entity_id = eid
         app_request.get_entity_info = AppEmpty()
 
-        await self.remote.send_message(app_request)
+        async with self.lock:
+            await self.remote.send_message(app_request)
 
         app_message = await self.remote.get_response(app_request.seq, app_request)
 
@@ -327,7 +336,8 @@ class RustSocket(BaseRustSocket):
 
         await self.remote.add_ignored_response(app_request.seq)
 
-        await self.remote.send_message(app_request)
+        async with self.lock:
+            await self.remote.send_message(app_request)
 
     async def turn_on_smart_switch(self, eid: int = None) -> None:
         if eid is None:
@@ -355,7 +365,8 @@ class RustSocket(BaseRustSocket):
 
         await self.remote.add_ignored_response(app_request.seq)
 
-        await self.remote.send_message(app_request)
+        async with self.lock:
+            await self.remote.send_message(app_request)
 
     async def get_current_events(self) -> List[RustMarker]:
         return [
