@@ -33,7 +33,7 @@ class CameraManager:
         )
         self.time_since_last_subscribe: float = time.time()
         self.frame_callbacks: Set[Callable[[Image.Image], Coroutine]] = set()
-        self.ACTIVE_INSTANCE = self
+        CameraManager.ACTIVE_INSTANCE = self
 
     async def add_packet(self, packet: AppCameraRays) -> None:
         self._last_packets.add(packet)

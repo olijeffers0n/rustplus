@@ -318,9 +318,9 @@ class Parser:
         entity_size = np.array([entity.size.x, entity.size.y, entity.size.z, 0])
 
         vertices = (
-            MathUtils.get_player_vertices(entity.size)
+            MathUtils.get_player_vertices(Vector3(vector3=entity.size))
             if entity.type == 2
-            else MathUtils.get_tree_vertices(entity.size)
+            else MathUtils.get_tree_vertices(Vector3(vector3=entity.size))
         )
         # Add the position for the name tag to the vertices
         vertices = np.append(vertices, [np.array([0, 1.3, 0, 1])], axis=0)
@@ -367,7 +367,7 @@ class Parser:
         colour = (
             (PLAYER_COLOUR if not entity.name.isdigit() else SCIENTIST_COLOUR)
             if entity.type == 2
-            else MathUtils.get_slightly_random_colour(TREE_COLOUR, entity.position)
+            else MathUtils.get_slightly_random_colour(TREE_COLOUR, Vector3(vector3=entity.position))
         )
 
         MathUtils.set_polygon_with_depth(
