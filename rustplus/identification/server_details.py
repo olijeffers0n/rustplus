@@ -10,10 +10,10 @@ class ServerDetails:
         player_token: int,
         secure: bool = False,
     ) -> None:
-        self.ip = ip
-        self.port = port
-        self.player_id = player_id
-        self.player_token = player_token
+        self.ip = str(ip)
+        self.port = str(port)
+        self.player_id = int(player_id)
+        self.player_token = int(player_token)
         self.secure = secure
 
     def get_server_string(self) -> str:
