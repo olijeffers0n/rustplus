@@ -367,7 +367,9 @@ class Parser:
         colour = (
             (PLAYER_COLOUR if not entity.name.isdigit() else SCIENTIST_COLOUR)
             if entity.type == 2
-            else MathUtils.get_slightly_random_colour(TREE_COLOUR, Vector3(vector3=entity.position))
+            else MathUtils.get_slightly_random_colour(
+                TREE_COLOUR, Vector3(vector3=entity.position)
+            )
         )
 
         MathUtils.set_polygon_with_depth(
