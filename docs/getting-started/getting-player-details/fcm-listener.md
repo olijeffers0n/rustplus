@@ -19,7 +19,7 @@ FCM(fcm_details).start()
 ```
 {% endcode %}
 
-The `on_notification` method will be called everytime a message is recieved from the game server.
+The `on_notification` method will be called everytime a message is received from the game server.
 
 The `rustplus.py.config.json` is the file created by the RustCli, when you register for FCM notifications. See:
 
