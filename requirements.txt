@@ -1,7 +1,7 @@
 websockets
 Pillow
 asyncio
-rustPlusPushReceiver==0.6.0
+rustPlusPushReceiver==0.6.1
 http-ece
 requests
 numpy
