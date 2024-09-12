@@ -12,5 +12,5 @@ from .utils import convert_event_type_to_name, Emoji
 
 __name__ = "rustplus"
 __author__ = "olijeffers0n"
-__version__ = "6.0.0"
+__version__ = "6.0.1"
 __support__ = "Discord: https://discord.gg/nQqJe8qvP8"
