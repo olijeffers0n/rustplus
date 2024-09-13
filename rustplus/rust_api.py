@@ -392,7 +392,7 @@ class RustSocket:
         packet = await self._generate_request()
         set_value = AppSetEntityValue()
         set_value.value = value
-        packet.set_entity_value = AppEmpty()
+        packet.set_entity_value = set_value
         packet.entity_id = eid
 
         await self.ws.send_message(packet, True)

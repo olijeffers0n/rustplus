@@ -11,7 +11,7 @@ class ServerDetails:
         secure: bool = False,
     ) -> None:
         self.ip = str(ip)
-        self.port = str(port)
+        self.port = str(port) if port is not None else port
         self.player_id = int(player_id)
         self.player_token = int(player_token)
         self.secure = secure
