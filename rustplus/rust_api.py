@@ -32,6 +32,7 @@ from .structs import (
     RustContents,
     RustItem,
 )
+from .structs.rust_error import RustError
 from .utils import (
     convert_time,
     translate_id_to_stack,
@@ -42,6 +43,7 @@ from .utils import (
     convert_monument,
 )
 from .remote.ratelimiter import RateLimiter
+from .utils.utils import error_present
 
 
 class RustSocket:
@@ -127,13 +129,13 @@ class RustSocket:
         This Will permanently put your script into a state of 'hanging' Cannot be Undone. Only do this in scripts
         using commands
 
-        :returns Nothing, This will never return
+        returns Nothing, This will never return
         """
 
         while True:
             await asyncio.sleep(1)
 
-    async def get_time(self) -> Union[RustTime, None]:
+    async def get_time(self) -> Union[RustTime, RustError]:
         """
         Gets the current in-game time from the server.
 
@@ -142,18 +144,21 @@ class RustSocket:
 
         packet = await self._generate_request()
         packet.get_time = AppEmpty()
-        packet = await self.ws.send_and_get(packet)
+        response = await self.ws.send_and_get(packet)
 
-        if packet is None:
-            return None
+        if response is None:
+            return RustError("get_time", "misc")
+
+        if error_present(response):
+            return RustError("get_time", response.response.error.error)
 
         return RustTime(
-            packet.response.time.day_length_minutes,
-            convert_time(packet.response.time.sunrise),
-            convert_time(packet.response.time.sunset),
-            convert_time(packet.response.time.time),
-            packet.response.time.time,
-            packet.response.time.time_scale,
+            response.response.time.day_length_minutes,
+            convert_time(response.response.time.sunrise),
+            convert_time(response.response.time.sunset),
+            convert_time(response.response.time.time),
+            response.response.time.time,
+            response.response.time.time_scale,
         )
 
     async def send_team_message(self, message: str) -> None:
@@ -170,21 +175,24 @@ class RustSocket:
 
         await self.ws.send_message(packet, True)
 
-    async def get_info(self) -> Union[RustInfo, None]:
+    async def get_info(self) -> Union[RustInfo, RustError]:
         """
         Gets information on the Rust Server
         :return: RustInfo - The info of the server
         """
         packet = await self._generate_request()
         packet.get_info = AppEmpty()
-
         response = await self.ws.send_and_get(packet)
+
         if response is None:
-            return None
+            return RustError("get_info", "misc")
+
+        if error_present(response):
+            return RustError("get_info", response.response.error.error)
 
         return RustInfo(response.response.info)
 
-    async def get_team_chat(self) -> Union[List[RustChatMessage], None]:
+    async def get_team_chat(self) -> Union[List[RustChatMessage], RustError]:
         """
         Gets the team chat from the server
 
@@ -192,16 +200,19 @@ class RustSocket:
         """
         packet = await self._generate_request()
         packet.get_team_chat = AppEmpty()
-
         response = await self.ws.send_and_get(packet)
+
         if response is None:
-            return None
+            return RustError("get_team_chat", "misc")
+
+        if error_present(response):
+            return RustError("get_team_chat", response.response.error.error)
 
         return [
             RustChatMessage(message) for message in response.response.team_chat.messages
         ]
 
-    async def get_team_info(self) -> Union[RustTeamInfo, None]:
+    async def get_team_info(self) -> Union[RustTeamInfo, RustError]:
         """
         Gets Information on the members of your team
 
@@ -209,14 +220,17 @@ class RustSocket:
         """
         packet = await self._generate_request()
         packet.get_team_info = AppEmpty()
-
         response = await self.ws.send_and_get(packet)
+
         if response is None:
-            return None
+            return RustError("get_team_info", "misc")
+
+        if error_present(response):
+            return RustError("get_team_info", response.response.error.error)
 
         return RustTeamInfo(response.response.team_info)
 
-    async def get_markers(self) -> Union[List[RustMarker], None]:
+    async def get_markers(self) -> Union[List[RustMarker], RustError]:
         """
         Gets all the map markers from the server
 
@@ -224,10 +238,13 @@ class RustSocket:
         """
         packet = await self._generate_request()
         packet.get_map_markers = AppEmpty()
-
         response = await self.ws.send_and_get(packet)
+
         if response is None:
-            return None
+            return RustError("get_markers", "misc")
+
+        if error_present(response):
+            return RustError("get_markers", response.response.error.error)
 
         return [RustMarker(marker) for marker in response.response.map_markers.markers]
 
@@ -239,7 +256,7 @@ class RustSocket:
         add_team_positions: bool = False,
         override_images: dict = None,
         add_grid: bool = False,
-    ) -> Union[Image.Image, None]:
+    ) -> Union[Image.Image, RustError]:
         """
         Gets an image of the map from the server with the specified additions
 
@@ -256,16 +273,20 @@ class RustSocket:
             override_images = {}
 
         server_info = await self.get_info()
-        if server_info is None:
-            return None
+        if isinstance(server_info, RustError):
+            return server_info
 
         map_size = server_info.size
 
         packet = await self._generate_request(5)
         packet.get_map = AppEmpty()
         response = await self.ws.send_and_get(packet)
+
         if response is None:
-            return None
+            return RustError("get_map", "misc")
+
+        if error_present(response):
+            return RustError("get_map", response.response.error.error)
 
         map_packet = response.response.map
         monuments: List[AppMapMonument] = map_packet.monuments
@@ -274,7 +295,7 @@ class RustSocket:
             output = Image.open(BytesIO(map_packet.jpg_image))
         except Exception as e:
             self.logger.error(f"Error opening image: {e}")
-            return None
+            return RustError("get_map", str(e))
 
         output = output.crop(
             (500, 500, map_packet.height - 500, map_packet.width - 500)
@@ -349,7 +370,7 @@ class RustSocket:
 
         return output
 
-    async def get_map_info(self) -> Union[RustMap, None]:
+    async def get_map_info(self) -> Union[RustMap, RustError]:
         """
         Gets the raw map data from the server
 
@@ -357,14 +378,17 @@ class RustSocket:
         """
         packet = await self._generate_request(tokens=5)
         packet.get_map = AppEmpty()
-
         response = await self.ws.send_and_get(packet)
+
         if response is None:
-            return None
+            return RustError("get_map_info", "misc")
+
+        if error_present(response):
+            return RustError("get_map_info", response.response.error.error)
 
         return RustMap(response.response.map)
 
-    async def get_entity_info(self, eid: int = None) -> Union[RustEntityInfo, None]:
+    async def get_entity_info(self, eid: int = None) -> Union[RustEntityInfo, RustError]:
         """
         Gets entity info from the server
 
@@ -374,10 +398,13 @@ class RustSocket:
         packet = await self._generate_request()
         packet.get_entity_info = AppEmpty()
         packet.entity_id = eid
-
         response = await self.ws.send_and_get(packet)
+
         if response is None:
-            return None
+            return RustError("get_entity_info", "misc")
+
+        if error_present(response):
+            return RustError("get_entity_info", response.response.error.error)
 
         return RustEntityInfo(response.response.entity_info)
 
@@ -413,7 +440,7 @@ class RustSocket:
 
         await self.ws.send_message(packet, True)
 
-    async def check_subscription_to_entity(self, eid: int) -> Union[bool, None]:
+    async def check_subscription_to_entity(self, eid: int) -> Union[bool, RustError]:
         """
         Checks if you are subscribed to an entity
 
@@ -423,10 +450,13 @@ class RustSocket:
         packet = await self._generate_request()
         packet.check_subscription = AppEmpty()
         packet.entity_id = eid
-
         response = await self.ws.send_and_get(packet)
+
         if response is None:
-            return None
+            return RustError("check_subscription_to_entity", "misc")
+
+        if error_present(response):
+            return RustError("check_subscription_to_entity", response.response.error.error)
 
         return response.response.flag.value
 
@@ -446,7 +476,7 @@ class RustSocket:
 
     async def get_contents(
         self, eid: int = None, combine_stacks: bool = False
-    ) -> Union[RustContents, None]:
+    ) -> Union[RustContents, RustError]:
         """
         Gets the contents of a storage monitor-attached container
 
@@ -456,8 +486,8 @@ class RustSocket:
         """
         returned_data = await self.get_entity_info(eid)
 
-        if returned_data is None:
-            return None
+        if isinstance(returned_data, RustError):
+            return returned_data
 
         target_time = datetime.utcfromtimestamp(int(returned_data.protection_expiry))
         difference = target_time - datetime.utcnow()
@@ -501,7 +531,7 @@ class RustSocket:
 
         return RustContents(difference, bool(returned_data.has_protection), items)
 
-    async def get_camera_manager(self, cam_id: str) -> Union[CameraManager, None]:
+    async def get_camera_manager(self, cam_id: str) -> Union[CameraManager, RustError]:
         """
         Gets a camera manager for a given camera ID
 
@@ -515,10 +545,12 @@ class RustSocket:
         subscribe = AppCameraSubscribe()
         subscribe.camera_id = cam_id
         packet.camera_subscribe = subscribe
-
         response = await self.ws.send_and_get(packet)
 
         if response is None:
-            return None
+            return RustError("get_camera_manager", "misc")
+
+        if error_present(response):
+            return RustError("get_camera_manager", response.response.error.error)
 
         return CameraManager(self, cam_id, response.response.camera_subscribe_info)

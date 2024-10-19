@@ -11,7 +11,7 @@ import asyncio
 
 from ..camera import CameraManager
 from ..proxy import ProxyValueGrabber
-from ..rustplus_proto import AppMessage, AppRequest
+from ..rustplus_proto import AppMessage, AppRequest, AppError
 from ...commands import CommandOptions, ChatCommand, ChatCommandTime
 from ...events import (
     ProtobufEventPayload,
@@ -19,10 +19,11 @@ from ...events import (
     TeamEventPayload,
     ChatEventPayload,
 )
-from ...exceptions import ClientNotConnectedError, RequestError
+from ...exceptions import RequestError
 from ...identification import ServerDetails, RegisteredListener
 from ...structs import RustChatMessage, RustTeamInfo
 from ...utils import YieldingEvent, convert_time
+from ...utils.utils import error_present
 
 
 class RustWebsocket:
@@ -133,14 +134,21 @@ class RustWebsocket:
                 )
 
     async def send_and_get(self, request: AppRequest) -> AppMessage:
-        await self.send_message(request)
+        if not await self.send_message(request):
+            message = AppMessage()
+            error = AppError()
+            error.error = "Message Failed to send"
+            message.response.seq = request.seq
+            message.response.error = error
+            return message
         return await self.get_response(request.seq)
 
     async def send_message(
         self, request: AppRequest, ignore_response: bool = False
-    ) -> None:
+    ) -> bool:
         if self.connection is None:
-            raise ClientNotConnectedError("No Current Websocket Connection")
+            self.logger.warning("No Current Websocket Connection")
+            return False
 
         if self.debug:
             self.logger.info(f"Sending Message with seq {request.seq}: {request}")
@@ -157,6 +165,9 @@ class RustWebsocket:
                 await self.connection.send(bytes(request))
         except Exception as err:
             self.logger.warning("WebSocket connection error: %s", err)
+            return False
+
+        return True
 
     async def get_response(self, seq: int) -> Union[AppMessage, None]:
 
@@ -171,8 +182,16 @@ class RustWebsocket:
                 f"Received Message with seq {app_message.response.seq}: {app_message}"
             )
 
-        if self.error_present(app_message.response.error.error):
-            raise RequestError(app_message.response.error.error)
+        if error_present(app_message):
+
+            event: YieldingEvent = self.responses.get(app_message.response.seq, None)
+            if event is not None:
+                if self.debug:
+                    self.logger.info(f"Running Response Event With Error: {app_message}")
+
+                event.set_with_value(app_message)
+            else:
+                raise RequestError(app_message.response.error.error)
 
         prefix = self.get_prefix(
             str(app_message.broadcast.team_message.message.message)
@@ -334,13 +353,6 @@ class RustWebsocket:
                 return cost
 
         raise ValueError()
-
-    @staticmethod
-    def error_present(message) -> bool:
-        """
-        Checks message for error
-        """
-        return message != ""
 
     @staticmethod
     async def run_coroutine_non_blocking(coroutine: Coroutine) -> Task:

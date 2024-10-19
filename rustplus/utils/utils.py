@@ -13,6 +13,13 @@ PLAYER_MARKER_ONLINE_COLOR = (201, 242, 155, 255)
 PLAYER_MARKER_OFFLINE_COLOR = (128, 128, 128, 255)
 
 
+def error_present(app_message) -> bool:
+    """
+    Checks message for error
+    """
+    return app_message.response.error.error != ""
+
+
 def convert_time(time) -> str:
     hours, minutes = divmod(time * 60, 60)
 
