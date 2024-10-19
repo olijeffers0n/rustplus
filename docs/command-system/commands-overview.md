@@ -8,7 +8,7 @@ from rustplus import RustSocket, CommandOptions, Command, ServerDetails, Command
 
 options = CommandOptions(prefix="!") # Use whatever prefix you want here
 server_details = ServerDetails("IP", "PORT", STEAMID, PLAYERTOKEN)
-socket = RustSocket(server_details)
+socket = RustSocket(server_details, command_options=options)
 
 @Command(server_details)
 async def hi(command : ChatCommand): 
