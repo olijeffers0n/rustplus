@@ -32,4 +32,11 @@ asyncio.run(main())
 
 This will run, and print the time on the Rust Server.
 
-API methods will return `None` if they are not successful. This is to allow for better error handling, and reconnecting to the server. 
+API methods will return an instance of `RustError` if they are not successful. This is to allow for better error handling, and reconnecting to the server. You can detect these by:
+
+{% code title="main.py" %}
+```python
+time = await socket.get_time()
+if isinstance(time, RustError):
+    print(f"Error Occurred, Reason: {time.reason}")
+```

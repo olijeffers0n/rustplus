@@ -6,7 +6,7 @@ Calling `rust_socket.get_map(add_icons: bool, add_events: bool, add_vending_mach
 
 ### Getting the Map Data
 
-Calling `rust_socket.get_raw_map_data()` will return a `RustMap` object with the following data:
+Calling `rust_socket.get_map_info()` will return a `RustMap` object with the following data:
 
 ```python
 class RustMap with fields:
