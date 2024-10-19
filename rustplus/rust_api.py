@@ -388,7 +388,9 @@ class RustSocket:
 
         return RustMap(response.response.map)
 
-    async def get_entity_info(self, eid: int = None) -> Union[RustEntityInfo, RustError]:
+    async def get_entity_info(
+        self, eid: int = None
+    ) -> Union[RustEntityInfo, RustError]:
         """
         Gets entity info from the server
 
@@ -456,7 +458,9 @@ class RustSocket:
             return RustError("check_subscription_to_entity", "misc")
 
         if error_present(response):
-            return RustError("check_subscription_to_entity", response.response.error.error)
+            return RustError(
+                "check_subscription_to_entity", response.response.error.error
+            )
 
         return response.response.flag.value
 

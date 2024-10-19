@@ -187,7 +187,9 @@ class RustWebsocket:
             event: YieldingEvent = self.responses.get(app_message.response.seq, None)
             if event is not None:
                 if self.debug:
-                    self.logger.info(f"Running Response Event With Error: {app_message}")
+                    self.logger.info(
+                        f"Running Response Event With Error: {app_message}"
+                    )
 
                 event.set_with_value(app_message)
             else:
