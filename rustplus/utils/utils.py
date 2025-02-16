@@ -83,11 +83,11 @@ def generate_grid(
 
 def convert_coordinates(coords: Tuple[int, int], map_size: int) -> Tuple[str, int]:
     grids = list(string.ascii_uppercase)
-    grids.extend(
-        a + b for a in string.ascii_uppercase for b in string.ascii_uppercase
-    )
+    grids.extend(a + b for a in string.ascii_uppercase for b in string.ascii_uppercase)
 
-    return grids[int(coords[0] // GRID_DIAMETER)], int((map_size - coords[1]) // GRID_DIAMETER)
+    return grids[int(coords[0] // GRID_DIAMETER)], int(
+        (map_size - coords[1]) // GRID_DIAMETER
+    )
 
 
 def format_coord(x: int, y: int, map_size: int) -> Tuple[int, int]:
