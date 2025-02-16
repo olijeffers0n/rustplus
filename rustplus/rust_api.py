@@ -147,7 +147,7 @@ class RustSocket:
         response = await self.ws.send_and_get(packet)
 
         if response is None:
-            return RustError("get_time", "misc")
+            return RustError("get_time", "No response received")
 
         if error_present(response):
             return RustError("get_time", response.response.error.error)
@@ -185,7 +185,7 @@ class RustSocket:
         response = await self.ws.send_and_get(packet)
 
         if response is None:
-            return RustError("get_info", "misc")
+            return RustError("get_info", "No response received")
 
         if error_present(response):
             return RustError("get_info", response.response.error.error)
@@ -203,7 +203,7 @@ class RustSocket:
         response = await self.ws.send_and_get(packet)
 
         if response is None:
-            return RustError("get_team_chat", "misc")
+            return RustError("get_team_chat", "No response received")
 
         if error_present(response):
             return RustError("get_team_chat", response.response.error.error)
@@ -223,7 +223,7 @@ class RustSocket:
         response = await self.ws.send_and_get(packet)
 
         if response is None:
-            return RustError("get_team_info", "misc")
+            return RustError("get_team_info", "No response received")
 
         if error_present(response):
             return RustError("get_team_info", response.response.error.error)
@@ -241,7 +241,7 @@ class RustSocket:
         response = await self.ws.send_and_get(packet)
 
         if response is None:
-            return RustError("get_markers", "misc")
+            return RustError("get_markers", "No response received")
 
         if error_present(response):
             return RustError("get_markers", response.response.error.error)
@@ -283,7 +283,7 @@ class RustSocket:
         response = await self.ws.send_and_get(packet)
 
         if response is None:
-            return RustError("get_map", "misc")
+            return RustError("get_map", "No response received")
 
         if error_present(response):
             return RustError("get_map", response.response.error.error)
@@ -381,7 +381,7 @@ class RustSocket:
         response = await self.ws.send_and_get(packet)
 
         if response is None:
-            return RustError("get_map_info", "misc")
+            return RustError("get_map_info", "No response received")
 
         if error_present(response):
             return RustError("get_map_info", response.response.error.error)
@@ -403,7 +403,7 @@ class RustSocket:
         response = await self.ws.send_and_get(packet)
 
         if response is None:
-            return RustError("get_entity_info", "misc")
+            return RustError("get_entity_info", "No response received")
 
         if error_present(response):
             return RustError("get_entity_info", response.response.error.error)
@@ -455,7 +455,7 @@ class RustSocket:
         response = await self.ws.send_and_get(packet)
 
         if response is None:
-            return RustError("check_subscription_to_entity", "misc")
+            return RustError("check_subscription_to_entity", "No response received")
 
         if error_present(response):
             return RustError(
@@ -552,7 +552,7 @@ class RustSocket:
         response = await self.ws.send_and_get(packet)
 
         if response is None:
-            return RustError("get_camera_manager", "misc")
+            return RustError("get_camera_manager", "No response received")
 
         if error_present(response):
             return RustError("get_camera_manager", response.response.error.error)
