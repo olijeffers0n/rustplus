@@ -155,7 +155,7 @@ class CameraManager:
         subscribe.camera_id = self._cam_id
         packet.camera_subscribe = subscribe
 
-        self.rust_socket.ws.send_message(packet, True)
+        await self.rust_socket.ws.send_message(packet, True)
 
         self.time_since_last_subscribe = time.time()
         self._open = True
