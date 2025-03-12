@@ -50,3 +50,15 @@ Types:
 	PatrolHelicopter = 8
 ```
 
+#### Converting to Grid Reference
+
+```python
+from rustplus import convert_coordinates
+
+info = await rust_socket.get_info()
+if isinstance(info, RustError):
+    print(f"Error Occurred, Reason: {info.reason}")
+
+grid = convert_coordinates((x, y), info.map_size)
+print(f"Grid Reference: {grid}")
+```
