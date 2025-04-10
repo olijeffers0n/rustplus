@@ -15,6 +15,7 @@ class RustInfo(Serializable):
         self._queued_players: int = data.queued_players
         self._seed: int = data.seed
         self._logo_image: str = data.logo_image
+        self._cameras_enabled: bool = data.cameras_enabled
 
     @property
     def url(self) -> str:
@@ -60,10 +61,14 @@ class RustInfo(Serializable):
     def logo_image(self) -> str:
         return self._logo_image
 
+    @property
+    def cameras_enabled(self) -> bool:
+        return self._cameras_enabled
+
     def __str__(self) -> str:
         return (
             "RustInfo[url={}, name={}, map={}, size={}, players={}, max_players={}, queued_players={}, seed={}, "
-            "wipe_time={}, header_image={}, logo_image={}]".format(
+            "wipe_time={}, header_image={}, logo_image={}, cameras_enabled={}]".format(
                 self._url,
                 self._name,
                 self._map,
@@ -75,5 +80,6 @@ class RustInfo(Serializable):
                 self._wipe_time,
                 self._header_image,
                 self._logo_image,
+                self._cameras_enabled,
             )
         )
