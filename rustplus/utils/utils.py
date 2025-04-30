@@ -217,6 +217,7 @@ def convert_monument(name: str, override_images: Dict[str, Image.Image]) -> Imag
         "mining_quarry_hqm_display_name": "mining_quarry_hqm.png",
         "train_tunnel_link_display_name": "train.png",
         "train_tunnel_display_name": "train.png",
+        "radtown": "radtown.png",
     }
 
     try:
