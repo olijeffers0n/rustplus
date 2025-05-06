@@ -20,7 +20,8 @@ promote_to_team_leader = 1
 get_tc_storage_contents = 1
 get_current_events = 1
 
-Registering Entity Events = 1
+(Un)Subscribing to/from a Camera = 1
+Moving a Camera = 0.01
 ```
 
 RustPlus.py now handles ratelimiting automatically. It can either raise exceptions when you are going to exceed the limit or it can wait and send it later when you have enough tokens. Change this in the `RustSocket` constructor (`raise_ratelimit_exception`). This defaults to `True`, so set it to false if you want the socket to wait until you can afford the operations.
