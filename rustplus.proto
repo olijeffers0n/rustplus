@@ -91,6 +91,7 @@ message AppCameraRays {
 	}
 
 	enum EntityType {
+	    Unknown = 0;
 		Tree = 1;
 		Player = 2;
 	}
@@ -147,6 +148,7 @@ message AppEntityPayload {
 }
 
 enum AppEntityType {
+    Unknown = 0;
 	Switch = 1;
 	Alarm = 2;
 	StorageMonitor = 3;
@@ -389,4 +391,3 @@ message ClanInfo {
 		bool canAccessScoreEvents = 12;
 	}
 }
-
