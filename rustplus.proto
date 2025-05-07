@@ -2,392 +2,438 @@ syntax = "proto3";
 package rustplus;
 
 message Vector2 {
-	float x = 1;
-	float y = 2;
+    float x = 1;
+    float y = 2;
 }
 
 message Vector3 {
-	float x = 1;
-	float y = 2;
-	float z = 3;
+    float x = 1;
+    float y = 2;
+    float z = 3;
 }
 
 message Vector4 {
-	float x = 1;
-	float y = 2;
-	float z = 3;
-	float w = 4;
+    float x = 1;
+    float y = 2;
+    float z = 3;
+    float w = 4;
 }
 
-message AppMessage {
-	optional AppResponse response = 1;
-	optional AppBroadcast broadcast = 2;
+message Half3 {
+    float x = 1;
+    float y = 2;
+    float z = 3;
+}
+
+message Color {
+    float r = 1;
+    float g = 2;
+    float b = 3;
+    float a = 4;
+}
+
+message Ray {
+    Vector3 origin = 1;
+    Vector3 direction = 2;
+}
+
+message ClanActionResult {
+    int32 requestId = 1;
+    int32 result = 2;
+    bool hasClanInfo = 3;
+    ClanInfo clanInfo = 4;
+}
+
+message ClanInfo {
+    int64 clanId = 1;
+    string name = 2;
+    int64 created = 3;
+    uint64 creator = 4;
+    string motd = 5;
+    int64 motdTimestamp = 6;
+    uint64 motdAuthor = 7;
+    bytes logo = 8;
+    sint32 color = 9;
+    repeated ClanInfo.Role roles = 10;
+    repeated ClanInfo.Member members = 11;
+    repeated ClanInfo.Invite invites = 12;
+    int32 maxMemberCount = 13;
+
+    message Role {
+        int32 roleId = 1;
+        int32 rank = 2;
+        string name = 3;
+        bool canSetMotd = 4;
+        bool canSetLogo = 5;
+        bool canInvite = 6;
+        bool canKick = 7;
+        bool canPromote = 8;
+        bool canDemote = 9;
+        bool canSetPlayerNotes = 10;
+        bool canAccessLogs = 11;
+    }
+
+    message Member {
+        uint64 steamId = 1;
+        int32 roleId = 2;
+        int64 joined = 3;
+        int64 lastSeen = 4;
+        string notes = 5;
+        bool online = 6;
+    }
+
+    message Invite {
+        uint64 steamId = 1;
+        uint64 recruiter = 2;
+        int64 timestamp = 3;
+    }
+}
+
+message ClanLog {
+    int64 clanId = 1;
+    repeated ClanLog.Entry logEntries = 2;
+
+    message Entry {
+        int64 timestamp = 1;
+        string eventKey = 2;
+        string arg1 = 3;
+        string arg2 = 4;
+        string arg3 = 5;
+        string arg4 = 6;
+    }
+}
+
+message ClanInvitations {
+    repeated ClanInvitations.Invitation invitations = 1;
+
+    message Invitation {
+        int64 clanId = 1;
+        uint64 recruiter = 2;
+        int64 timestamp = 3;
+    }
+}
+
+enum AppEntityType {
+    UnknownType = 0;
+    Switch = 1;
+    Alarm = 2;
+    StorageMonitor = 3;
+}
+
+enum AppMarkerType {
+    Undefined = 0;
+    Player = 1;
+    Explosion = 2;
+    VendingMachine = 3;
+    CH47 = 4;
+    CargoShip = 5;
+    Crate = 6;
+    GenericRadius = 7;
+    PatrolHelicopter = 8;
+    TravelingVendor = 9;
 }
 
 message AppRequest {
-	uint32 seq = 1;
-	uint64 playerId = 2;
-	int32 playerToken = 3;
-	uint32 entityId = 4;
-	optional AppEmpty getInfo = 5;
-	optional AppEmpty getTime = 6;
-	optional AppEmpty getMap = 7;
-	optional AppEmpty getTeamInfo = 8;
-	optional AppEmpty getTeamChat = 9;
-	optional AppSendMessage sendTeamMessage = 10;
-	optional AppEmpty getEntityInfo = 11;
-	optional AppSetEntityValue setEntityValue = 12;
-	optional AppEmpty checkSubscription = 13;
-	optional AppFlag setSubscription = 14;
-	optional AppEmpty getMapMarkers = 15;
-	optional AppPromoteToLeader promoteToLeader = 16;
-	optional AppEmpty getClanInfo = 17;
-	optional AppSendMessage setClanMotd = 18;
-	optional AppEmpty getClanChat = 19;
-	optional AppSendMessage sendClanMessage = 20;
-	optional AppGetNexusAuth getNexusAuth = 21;
-	optional AppCameraSubscribe cameraSubscribe = 22;
-	optional AppEmpty cameraUnsubscribe = 23;
-	optional AppCameraInput cameraInput = 24;
+    uint32 seq = 1;
+    uint64 playerId = 2;
+    int32 playerToken = 3;
+    uint32 entityId = 4;
+    AppEmpty getInfo = 8;
+    AppEmpty getTime = 9;
+    AppEmpty getMap = 10;
+    AppEmpty getTeamInfo = 11;
+    AppEmpty getTeamChat = 12;
+    AppSendMessage sendTeamMessage = 13;
+    AppEmpty getEntityInfo = 14;
+    AppSetEntityValue setEntityValue = 15;
+    AppEmpty checkSubscription = 16;
+    AppFlag setSubscription = 17;
+    AppEmpty getMapMarkers = 18;
+    AppPromoteToLeader promoteToLeader = 20;
+    AppEmpty getClanInfo = 21;
+    AppSendMessage setClanMotd = 22;
+    AppEmpty getClanChat = 23;
+    AppSendMessage sendClanMessage = 24;
+    AppGetNexusAuth getNexusAuth = 25;
+    AppCameraSubscribe cameraSubscribe = 30;
+    AppEmpty cameraUnsubscribe = 31;
+    AppCameraInput cameraInput = 32;
+}
+
+message AppMessage {
+    AppResponse response = 1;
+    AppBroadcast broadcast = 2;
+}
+
+message AppResponse {
+    uint32 seq = 1;
+    AppSuccess success = 4;
+    AppError error = 5;
+    AppInfo info = 6;
+    AppTime time = 7;
+    AppMap map = 8;
+    AppTeamInfo teamInfo = 9;
+    AppTeamChat teamChat = 10;
+    AppEntityInfo entityInfo = 11;
+    AppFlag flag = 12;
+    AppMapMarkers mapMarkers = 13;
+    AppClanInfo clanInfo = 15;
+    AppClanChat clanChat = 16;
+    AppNexusAuth nexusAuth = 17;
+    AppCameraInfo cameraSubscribeInfo = 20;
 }
 
 message AppBroadcast {
-	optional AppTeamChanged teamChanged = 1;
-	optional AppNewTeamMessage teamMessage = 2;
-	optional AppEntityChanged entityChanged = 3;
-	optional AppClanChanged clanChanged = 4;
-	optional AppNewClanMessage clanMessage = 5;
-	optional AppCameraRays cameraRays = 6;
-}
-
-message AppCameraInfo {
-	int32 width = 1;
-	int32 height = 2;
-	float nearPlane = 3;
-	float farPlane = 4;
-	int32 controlFlags = 5;
-}
-
-message AppCameraInput {
-	int32 buttons = 1;
-	Vector2 mouseDelta = 2;
-}
-
-message AppCameraRays {
-	float verticalFov = 1;
-	int32 sampleOffset = 2;
-	bytes rayData = 3;
-	float distance = 4;
-	repeated AppCameraRays.Entity entities = 5;
-	float timeOfDay = 6;
-
-	message Entity {
-		uint32 entityId = 1;
-		AppCameraRays.EntityType type = 2;
-		Vector3 position = 3;
-		Vector3 rotation = 4;
-		Vector3 size = 5;
-		string name = 6;
-	}
-
-	enum EntityType {
-	    Unknown = 0;
-		Tree = 1;
-		Player = 2;
-	}
-}
-
-message AppCameraSubscribe {
-	string cameraId = 1;
-}
-
-message AppClanChanged {
-	optional ClanInfo clanInfo = 1;
-}
-
-message AppClanChat {
-	repeated AppClanMessage messages = 1;
-}
-
-message AppClanInfo {
-	optional ClanInfo clanInfo = 1;
-}
-
-message AppClanMessage {
-	uint64 steamId = 1;
-	string name = 2;
-	string message = 3;
-	int64 time = 4;
+    AppTeamChanged teamChanged = 4;
+    AppNewTeamMessage teamMessage = 5;
+    AppEntityChanged entityChanged = 6;
+    AppClanChanged clanChanged = 7;
+    AppNewClanMessage clanMessage = 8;
+    AppCameraRays cameraRays = 10;
 }
 
 message AppEmpty {
 }
 
-message AppEntityChanged {
-	uint32 entityId = 1;
-	AppEntityPayload payload = 2;
-}
-
-message AppEntityInfo {
-	AppEntityType type = 1;
-	AppEntityPayload payload = 2;
-}
-
-message AppEntityPayload {
-	bool value = 1;
-	repeated AppEntityPayload.Item items = 2;
-	int32 capacity = 3;
-	bool hasProtection = 4;
-	uint32 protectionExpiry = 5;
-
-	message Item {
-		int32 itemId = 1;
-		int32 quantity = 2;
-		bool itemIsBlueprint = 3;
-	}
-}
-
-enum AppEntityType {
-    Unknown = 0;
-	Switch = 1;
-	Alarm = 2;
-	StorageMonitor = 3;
-}
-
-message AppError {
-	string error = 1;
-}
-
-message AppFlag {
-	bool value = 1;
-}
-
-message AppGetNexusAuth {
-	string appKey = 1;
-}
-
-message AppInfo {
-	string name = 1;
-	string headerImage = 2;
-	string url = 3;
-	string map = 4;
-	uint32 mapSize = 5;
-	uint32 wipeTime = 6;
-	uint32 players = 7;
-	uint32 maxPlayers = 8;
-	uint32 queuedPlayers = 9;
-	uint32 seed = 10;
-	uint32 salt = 11;
-	string logoImage = 12;
-	string nexus = 13;
-	int32 nexusId = 14;
-	string nexusZone = 15;
-	bool camerasEnabled = 16;
-}
-
-message AppMap {
-	uint32 width = 1;
-	uint32 height = 2;
-	repeated bytes jpgImage = 3;
-	int32 oceanMargin = 4;
-	repeated AppMap.Monument monuments = 5;
-	string background = 6;
-
-	message Monument {
-		string token = 1;
-		float x = 2;
-		float y = 3;
-	}
-}
-
-message AppMapMarkers {
-	repeated AppMarker markers = 1;
-}
-
-message AppMarker {
-	uint32 id = 1;
-	AppMarkerType type = 2;
-	float x = 3;
-	float y = 4;
-	uint64 steamId = 5;
-	float rotation = 6;
-	float radius = 7;
-	Vector4 color1 = 8;
-	Vector4 color2 = 9;
-	float alpha = 10;
-	string name = 11;
-	bool outOfStock = 12;
-	repeated AppMarker.SellOrder sellOrders = 13;
-
-	message SellOrder {
-		int32 itemId = 1;
-		int32 quantity = 2;
-		int32 currencyId = 3;
-		int32 costPerItem = 4;
-		int32 amountInStock = 5;
-		bool itemIsBlueprint = 6;
-		bool currencyIsBlueprint = 7;
-		float itemCondition = 8;
-		float itemConditionMax = 9;
-		float priceMultiplier = 10;
-	}
-}
-
-enum AppMarkerType {
-	Undefined = 0;
-	Player = 1;
-	Explosion = 2;
-	VendingMachine = 3;
-	CH47 = 4;
-	CargoShip = 5;
-	Crate = 6;
-	GenericRadius = 7;
-	PatrolHelicopter = 8;
-	TravellingVendor = 9;
-}
-
-message AppNewClanMessage {
-	int64 clanId = 1;
-	AppClanMessage message = 2;
-}
-
-message AppNewTeamMessage {
-	AppTeamMessage message = 1;
-}
-
-message AppNexusAuth {
-	string serverId = 1;
-	int32 playerToken = 2;
-}
-
-message AppPromoteToLeader {
-	uint64 steamId = 1;
-}
-
-message AppResponse {
-	uint32 seq = 1;
-	optional AppSuccess success = 2;
-	optional AppError error = 3;
-	optional AppInfo info = 4;
-	optional AppTime time = 5;
-	optional AppMap map = 6;
-	optional AppTeamInfo teamInfo = 7;
-	optional AppTeamChat teamChat = 8;
-	optional AppEntityInfo entityInfo = 9;
-	optional AppFlag flag = 10;
-	optional AppMapMarkers mapMarkers = 11;
-	optional AppClanInfo clanInfo = 12;
-	optional AppClanChat clanChat = 13;
-	optional AppNexusAuth nexusAuth = 14;
-	optional AppCameraInfo cameraSubscribeInfo = 15;
-}
-
 message AppSendMessage {
-	string message = 1;
+    string message = 1;
 }
 
 message AppSetEntityValue {
-	bool value = 1;
+    bool value = 1;
+}
+
+message AppPromoteToLeader {
+    uint64 steamId = 1;
+}
+
+message AppGetNexusAuth {
+    string appKey = 1;
 }
 
 message AppSuccess {
 }
 
-message AppTeamChanged {
-	uint64 playerId = 1;
-	AppTeamInfo teamInfo = 2;
+message AppError {
+    string error = 1;
 }
 
-message AppTeamChat {
-	repeated AppTeamMessage messages = 1;
+message AppFlag {
+    bool value = 1;
 }
 
-message AppTeamInfo {
-	uint64 leaderSteamId = 1;
-	repeated AppTeamInfo.Member members = 2;
-	repeated AppTeamInfo.Note mapNotes = 3;
-	repeated AppTeamInfo.Note leaderMapNotes = 4;
-
-	message Member {
-		uint64 steamId = 1;
-		string name = 2;
-		float x = 3;
-		float y = 4;
-		bool isOnline = 5;
-		uint32 spawnTime = 6;
-		bool isAlive = 7;
-		uint32 deathTime = 8;
-	}
-
-	message Note {
-		int32 type = 1;
-		float x = 2;
-		float y = 3;
-		int32 icon = 4;
-		int32 colourIndex = 5;
-		string label = 6;
-	}
-}
-
-message AppTeamMessage {
-	uint64 steamId = 1;
-	string name = 2;
-	string message = 3;
-	string color = 4;
-	uint32 time = 5;
+message AppInfo {
+    string name = 1;
+    string headerImage = 2;
+    string url = 3;
+    string map = 4;
+    uint32 mapSize = 5;
+    uint32 wipeTime = 6;
+    uint32 players = 7;
+    uint32 maxPlayers = 8;
+    uint32 queuedPlayers = 9;
+    uint32 seed = 10;
+    uint32 salt = 11;
+    string logoImage = 12;
+    string nexus = 13;
+    int32 nexusId = 14;
+    string nexusZone = 15;
+    bool camerasEnabled = 16;
 }
 
 message AppTime {
-	float dayLengthMinutes = 1;
-	float timeScale = 2;
-	float sunrise = 3;
-	float sunset = 4;
-	float time = 5;
+    float dayLengthMinutes = 1;
+    float timeScale = 2;
+    float sunrise = 3;
+    float sunset = 4;
+    float time = 5;
 }
 
-message ClanInfo {
-	int64 clanId = 1;
-	string name = 2;
-	int64 created = 3;
-	uint64 creator = 4;
-	string motd = 5;
-	int64 motdTimestamp = 6;
-	uint64 motdAuthor = 7;
-	repeated bytes logo = 8;
-	int32 color = 9;
-	repeated ClanInfo.Role roles = 10;
-	repeated ClanInfo.Member members = 11;
-	repeated ClanInfo.Invite invites = 12;
-	int32 maxMemberCount = 13;
-	int64 score = 14;
+message AppMap {
+    uint32 width = 1;
+    uint32 height = 2;
+    bytes jpgImage = 3;
+    int32 oceanMargin = 4;
+    repeated AppMap.Monument monuments = 5;
+    string background = 6;
 
-	message Invite {
-		uint64 steamId = 1;
-		uint64 recruiter = 2;
-		int64 timestamp = 3;
-	}
+    message Monument {
+        string token = 1;
+        float x = 2;
+        float y = 3;
+    }
+}
 
-	message Member {
-		uint64 steamId = 1;
-		int32 roleId = 2;
-		int64 joined = 3;
-		int64 lastSeen = 4;
-		string notes = 5;
-		bool online = 6;
-	}
+message AppEntityInfo {
+    AppEntityType type = 1;
+    AppEntityPayload payload = 3;
+}
 
-	message Role {
-		int32 roleId = 1;
-		int32 rank = 2;
-		string name = 3;
-		bool canSetMotd = 4;
-		bool canSetLogo = 5;
-		bool canInvite = 6;
-		bool canKick = 7;
-		bool canPromote = 8;
-		bool canDemote = 9;
-		bool canSetPlayerNotes = 10;
-		bool canAccessLogs = 11;
-		bool canAccessScoreEvents = 12;
-	}
+message AppEntityPayload {
+    bool value = 1;
+    repeated AppEntityPayload.Item items = 2;
+    int32 capacity = 3;
+    bool hasProtection = 4;
+    uint32 protectionExpiry = 5;
+
+    message Item {
+        int32 itemId = 1;
+        int32 quantity = 2;
+        bool itemIsBlueprint = 3;
+    }
+}
+
+message AppTeamInfo {
+    uint64 leaderSteamId = 1;
+    repeated AppTeamInfo.Member members = 2;
+    repeated AppTeamInfo.Note mapNotes = 3;
+    repeated AppTeamInfo.Note leaderMapNotes = 4;
+
+    message Member {
+        uint64 steamId = 1;
+        string name = 2;
+        float x = 3;
+        float y = 4;
+        bool isOnline = 5;
+        uint32 spawnTime = 6;
+        bool isAlive = 7;
+        uint32 deathTime = 8;
+    }
+
+    message Note {
+        int32 type = 2;
+        float x = 3;
+        float y = 4;
+        int32 icon = 5;
+        int32 colourIndex = 6;
+        string label = 7;
+    }
+}
+
+message AppTeamMessage {
+    uint64 steamId = 1;
+    string name = 2;
+    string message = 3;
+    string color = 4;
+    uint32 time = 5;
+}
+
+message AppTeamChat {
+    repeated AppTeamMessage messages = 1;
+}
+
+message AppMarker {
+    uint32 id = 1;
+    AppMarkerType type = 2;
+    float x = 3;
+    float y = 4;
+    uint64 steamId = 5;
+    float rotation = 6;
+    float radius = 7;
+    Vector4 color1 = 8;
+    Vector4 color2 = 9;
+    float alpha = 10;
+    string name = 11;
+    bool outOfStock = 12;
+    repeated AppMarker.SellOrder sellOrders = 13;
+
+    message SellOrder {
+        int32 itemId = 1;
+        int32 quantity = 2;
+        int32 currencyId = 3;
+        int32 costPerItem = 4;
+        int32 amountInStock = 5;
+        bool itemIsBlueprint = 6;
+        bool currencyIsBlueprint = 7;
+        float itemCondition = 8;
+        float itemConditionMax = 9;
+    }
+}
+
+message AppMapMarkers {
+    repeated AppMarker markers = 1;
+}
+
+message AppClanInfo {
+    ClanInfo clanInfo = 1;
+}
+
+message AppClanMessage {
+    uint64 steamId = 1;
+    string name = 2;
+    string message = 3;
+    int64 time = 4;
+}
+
+message AppClanChat {
+    repeated AppClanMessage messages = 1;
+}
+
+message AppNexusAuth {
+    string serverId = 1;
+    int32 playerToken = 2;
+}
+
+message AppTeamChanged {
+    uint64 playerId = 1;
+    AppTeamInfo teamInfo = 2;
+}
+
+message AppNewTeamMessage {
+    AppTeamMessage message = 1;
+}
+
+message AppEntityChanged {
+    uint32 entityId = 1;
+    AppEntityPayload payload = 2;
+}
+
+message AppClanChanged {
+    ClanInfo clanInfo = 1;
+}
+
+message AppNewClanMessage {
+    int64 clanId = 1;
+    AppClanMessage message = 2;
+}
+
+message AppCameraSubscribe {
+    string cameraId = 1;
+}
+
+message AppCameraInput {
+    int32 buttons = 1;
+    Vector2 mouseDelta = 2;
+}
+
+message AppCameraInfo {
+    int32 width = 1;
+    int32 height = 2;
+    float nearPlane = 3;
+    float farPlane = 4;
+    int32 controlFlags = 5;
+}
+
+message AppCameraRays {
+    float verticalFov = 1;
+    int32 sampleOffset = 2;
+    bytes rayData = 3;
+    float distance = 4;
+    repeated AppCameraRays.Entity entities = 5;
+    float timeOfDay = 6;
+
+    enum EntityType {
+        UnknownType = 0;
+        Tree = 1;
+        Player = 2;
+    }
+
+    message Entity {
+        uint32 entityId = 1;
+        EntityType type = 2;
+        Vector3 position = 3;
+        Vector3 rotation = 4;
+        Vector3 size = 5;
+        string name = 6;
+    }
 }
