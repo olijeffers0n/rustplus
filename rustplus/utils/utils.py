@@ -144,31 +144,31 @@ async def avatar_processing(
     return border_image
 
 
-def convert_marker(name, angle) -> Image.Image:
+def convert_marker(marker_type: int, angle) -> Image.Image:
     name_to_file = {
-        "2": "explosion.png",
-        "4": "chinook.png",
-        "5": "cargo.png",
-        "6": "crate.png",
-        "8": "patrol.png",
+        2: "explosion.png",
+        4: "chinook.png",
+        5: "cargo.png",
+        6: "crate.png",
+        8: "patrol.png",
     }
 
-    with resources.path(ICONS_PATH, name_to_file[name]) as path:
+    with resources.path(ICONS_PATH, name_to_file[marker_type]) as path:
         icon = Image.open(path).convert("RGBA")
 
-    if name == "6":
+    if marker_type == 6:
         icon = icon.resize((85, 85))
-    elif name == "2":
+    elif marker_type == 2:
         icon = icon.resize((96, 96))
-    elif name in ["4", "8"]:
+    elif marker_type == 4 or marker_type == 8:
         blades_file = "chinook_blades.png"
-        blades_size = (100, 100) if name == "4" else (200, 200)
+        blades_size = (100, 100) if marker_type == 4 else (200, 200)
 
         with resources.path(ICONS_PATH, blades_file) as path:
             blades = Image.open(path).convert("RGBA")
         blades = blades.resize(blades_size)
 
-        if name == "4":
+        if marker_type == 4:
             icon.paste(blades, (64 - 50, 96 - 50), blades)
             icon.paste(blades, (64 - 50, 32 - 50), blades)
         else:

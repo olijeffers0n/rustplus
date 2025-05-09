@@ -14,5 +14,5 @@ from .structs import RustError, RustMarker, Vector
 
 __name__ = "rustplus"
 __author__ = "olijeffers0n"
-__version__ = "6.0.7"
+__version__ = "6.0.8"
 __support__ = "Discord: https://discord.gg/nQqJe8qvP8"

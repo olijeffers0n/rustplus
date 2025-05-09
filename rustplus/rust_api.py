@@ -333,7 +333,7 @@ class RustSocket:
             for marker in map_markers:
                 if add_events:
                     if marker.type in [2, 4, 5, 6, 8]:
-                        icon = convert_marker(str(marker.type), marker.rotation)
+                        icon = convert_marker(int(marker.type), marker.rotation)
                         if marker.type == 6:
                             x, y = marker.x, marker.y
                             y = min(max(y, 0), map_size)
