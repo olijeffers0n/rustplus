@@ -15,6 +15,9 @@ These will be called by the socket when the respective events occur. Here are so
 from rustplus import EntityEventPayload, TeamEventPayload, ChatEventPayload, ProtobufEvent, ChatEvent, EntityEvent, TeamEvent
 
 
+# You must call get_entity_info(eid) before an EntityEvent listener will receive any data. 
+# This is to "subscribe" to the entity.
+
 @EntityEvent(server_details, 25743493)
 async def alarm(event: EntityEventPayload):
     value = "On" if event.value else "Off"
