@@ -192,6 +192,7 @@ def convert_monument(name: str, override_images: Dict[str, Image.Image]) -> Imag
         "train_yard_display_name": "train_yard.png",
         "outpost": "outpost.png",
         "bandit_camp": "bandit.png",
+        "jungle_ziggurat": "jungle_ziggurat.png",
         "junkyard_display_name": "junkyard.png",
         "dome_monument_name": "dome.png",
         "satellite_dish_display_name": "satellite.png",
