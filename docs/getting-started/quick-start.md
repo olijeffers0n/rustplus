@@ -40,3 +40,5 @@ time = await socket.get_time()
 if isinstance(time, RustError):
     print(f"Error Occurred, Reason: {time.reason}")
 ```
+
+{% endcode %}
