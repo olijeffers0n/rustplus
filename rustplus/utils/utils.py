@@ -233,6 +233,10 @@ def convert_monument(name: str, override_images: Dict[str, Image.Image]) -> Imag
     elif "swamp" in name:
         with resources.path(ICONS_PATH, "swamp.png") as path:
             icon = Image.open(path).convert("RGBA")
+    elif "underwater_lab" in name:
+        # Same story with swamp, no rust+ specific token so prefab name is sent instead
+        with resources.path(ICONS_PATH, "underwater_lab.png") as path:
+            icon = Image.open(path).convert("RGBA")
     else:
         logging.getLogger("rustplus.py").info(
             f"{name} - Has no icon, report this as an issue"

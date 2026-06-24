@@ -314,6 +314,11 @@ class RustSocket:
                 for monument in monuments:
                     if str(monument.token) == "DungeonBase":
                         continue
+                    if "underwater-lab-base" in str(monument.token):
+                        # An underwater lab's interior modules (moonpools, etc.) are
+                        # reported as separate markers next to the lab; they aren't
+                        # standalone monuments, so don't draw them.
+                        continue
                     icon = convert_monument(monument.token, override_images)
                     if monument.token in override_images:
                         icon = icon.resize((150, 150))
