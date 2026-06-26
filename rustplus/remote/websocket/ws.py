@@ -1,7 +1,7 @@
 import shlex
 import base64
 import betterproto
-from websockets.exceptions import InvalidURI, InvalidHandshake, ConnectionClosedError
+from websockets.exceptions import InvalidURI, InvalidHandshake, ConnectionClosedError, ConnectionClosedOK
 from websockets.legacy.client import WebSocketClientProtocol
 from websockets.client import connect
 from asyncio import TimeoutError, Task, AbstractEventLoop
@@ -64,7 +64,8 @@ class RustWebsocket:
             self.connection = await connect(
                 address,
                 close_timeout=0,
-                ping_interval=None,
+                ping_interval=20,
+                ping_timeout=10,
                 max_size=1_000_000_000,
             )
         except (InvalidURI, OSError, InvalidHandshake, TimeoutError) as err:
@@ -97,9 +98,13 @@ class RustWebsocket:
             self.connection = None
 
     async def run(self) -> None:
+        RECV_TIMEOUT = 30
+
         while self.open:
             try:
-                data = await self.connection.recv()
+                data = await asyncio.wait_for(
+                    self.connection.recv(), timeout=RECV_TIMEOUT
+                )
 
                 await self.run_coroutine_non_blocking(
                     self.run_proto_event(data, self.server_details)
@@ -111,15 +116,24 @@ class RustWebsocket:
                 app_message = AppMessage()
                 app_message.parse(data)
 
-            except ConnectionClosedError as e:
+            except asyncio.TimeoutError:
+                self.logger.warning(
+                    "WebSocket recv timeout (%s), closing connection",
+                    RECV_TIMEOUT,
+                )
+                break
+
+            except ConnectionClosedOK:
                 if self.debug:
-                    self.logger.exception("Connection Interrupted: %s", e)
-                else:
-                    self.logger.warning("Connection Interrupted: %s", e)
+                    self.logger.info("WebSocket connection closed normally")
+                break
+
+            except ConnectionClosedError as e:
+                self.logger.warning("Connection Interrupted: %s", e)
                 break
 
             except Exception as e:
-                self.logger.exception(
+                self.logger.error(
                     "An Error occurred whilst parsing the message from the server: %s",
                     e,
                 )
@@ -128,7 +142,7 @@ class RustWebsocket:
             try:
                 await self.run_coroutine_non_blocking(self.handle_message(app_message))
             except Exception as e:
-                self.logger.exception(
+                self.logger.error(
                     "An Error occurred whilst handling the message from the server %s",
                     e,
                 )
