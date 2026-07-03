@@ -34,8 +34,8 @@ class TokenBucket:
 
 
 class RateLimiter:
-    SERVER_LIMIT = 50
-    SERVER_REFRESH_AMOUNT = 15
+    SERVER_LIMIT = 25
+    SERVER_REFRESH_AMOUNT = 3
 
     @classmethod
     def default(cls) -> "RateLimiter":
