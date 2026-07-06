@@ -61,13 +61,16 @@ class RustSocket:
         self.command_options = command_options
         self.logger = logging.getLogger("rustplus.py")
 
-        console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.DEBUG)
-        console_handler.setFormatter(
-            logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-        )
-        self.logger.addHandler(console_handler)
-        self.logger.setLevel(logging.DEBUG)
+        if not self.logger.handlers:
+            console_handler = logging.StreamHandler()
+            console_handler.setLevel(logging.DEBUG)
+            console_handler.setFormatter(
+                logging.Formatter(
+                    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+                )
+            )
+            self.logger.addHandler(console_handler)
+            self.logger.setLevel(logging.DEBUG)
 
         self.ws = RustWebsocket(
             self.server_details,
