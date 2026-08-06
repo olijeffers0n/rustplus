@@ -24,6 +24,10 @@
 * [Getting Contents of Monitors](api-methods/getting-contents-of-monitors.md)
 * [Promoting Players to Team Leader](api-methods/promoting-players-to-team-leader.md)
 
+## Clans
+
+* [Clan System](clans/clan-system.md)
+
 ## Command System
 
 * [Commands Overview](command-system/commands-overview.md)
