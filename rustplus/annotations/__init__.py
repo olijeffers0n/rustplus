@@ -3,3 +3,4 @@ from .entity_event import EntityEvent
 from .chat_event import ChatEvent
 from .team_event import TeamEvent
 from .protobuf_event import ProtobufEvent
+from .clan_event import ClanEvent

@@ -4,7 +4,14 @@ RustPlus, An API wrapper for interfacing with the Rust+ App API
 
 from .rust_api import RustSocket
 from .identification import ServerDetails
-from .annotations import Command, ChatEvent, ProtobufEvent, TeamEvent, EntityEvent
+from .annotations import (
+    Command,
+    ChatEvent,
+    ProtobufEvent,
+    TeamEvent,
+    EntityEvent,
+    ClanEvent,
+)
 from .remote.fcm import FCMListener
 from .remote.camera import MovementControls, CameraMovementOptions
 from .commands import CommandOptions, ChatCommand
@@ -14,5 +21,5 @@ from .structs import RustError, RustMarker, Vector
 
 __name__ = "rustplus"
 __author__ = "olijeffers0n"
-__version__ = "6.0.11"
+__version__ = "6.0.12"
 __support__ = "Discord: https://discord.gg/nQqJe8qvP8"
