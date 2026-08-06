@@ -19,9 +19,10 @@ from ...events import (
     TeamEventPayload,
     ChatEventPayload,
 )
+from ...events.clan_info_event import ClanInfoEventPayload
 from ...exceptions import RequestError
 from ...identification import ServerDetails, RegisteredListener
-from ...structs import RustChatMessage, RustTeamInfo
+from ...structs import RustChatMessage, RustTeamInfo, RustClanInfo
 from ...utils import YieldingEvent, convert_time
 from ...utils.utils import error_present
 
@@ -274,14 +275,40 @@ class RustWebsocket:
             for handler in handlers:
                 await handler.get_coro()(team_event)
 
-        elif self.is_message(app_message):
-            # Chat message event
+        elif self.is_clan_broadcast(app_message):
+            # Clan Event
             if self.debug:
-                self.logger.info(f"Running Chat Event: {app_message}")
+                self.logger.info(f"Running Clan Event: {app_message}")
+
+            # This means that the clan of the current player has changed
+            handlers = ClanInfoEventPayload.HANDLER_LIST.get_handlers(
+                self.server_details
+            )
+            clan_event = ClanInfoEventPayload(
+                RustClanInfo(app_message.broadcast.clan_changed.clan_info)
+            )
+            for handler in handlers:
+                await handler.get_coro()(clan_event)
+
+        elif self.is_message(app_message) or self.is_clan_message(app_message):
+            # Chat message event
+
+            is_clan = self.is_clan_message(app_message)
+
+            if self.debug:
+                self.logger.info(
+                    f"Running Chat Event: {app_message}, is_clan={is_clan}"
+                )
 
             handlers = ChatEventPayload.HANDLER_LIST.get_handlers(self.server_details)
             chat_event = ChatEventPayload(
-                RustChatMessage(app_message.broadcast.team_message.message)
+                RustChatMessage(
+                    app_message.broadcast.clan_message.message
+                    if is_clan
+                    else app_message.broadcast.team_message.message
+                ),
+                is_clan,
+                app_message.broadcast.clan_message.clan_id if is_clan else None,
             )
             for handler in handlers:
                 await handler.get_coro()(chat_event)
@@ -322,6 +349,12 @@ class RustWebsocket:
         )
 
     @staticmethod
+    def is_clan_message(app_message: AppMessage) -> bool:
+        return betterproto.serialized_on_wire(
+            app_message.broadcast.clan_message.message
+        )
+
+    @staticmethod
     def is_camera_broadcast(app_message: AppMessage) -> bool:
         return betterproto.serialized_on_wire(app_message.broadcast.camera_rays)
 
@@ -334,27 +367,8 @@ class RustWebsocket:
         return betterproto.serialized_on_wire(app_message.broadcast.team_changed)
 
     @staticmethod
-    def get_proto_cost(app_request: AppRequest) -> int:
-        """
-        Gets the cost of an AppRequest
-        """
-        costs = [
-            (app_request.get_time, 1),
-            (app_request.send_team_message, 2),
-            (app_request.get_info, 1),
-            (app_request.get_team_chat, 1),
-            (app_request.get_team_info, 1),
-            (app_request.get_map_markers, 1),
-            (app_request.get_map, 5),
-            (app_request.set_entity_value, 1),
-            (app_request.get_entity_info, 1),
-            (app_request.promote_to_leader, 1),
-        ]
-        for request, cost in costs:
-            if betterproto.serialized_on_wire(request):
-                return cost
-
-        raise ValueError()
+    def is_clan_broadcast(app_message: AppMessage) -> bool:
+        return betterproto.serialized_on_wire(app_message.broadcast.clan_changed)
 
     @staticmethod
     async def run_coroutine_non_blocking(coroutine: Coroutine) -> Task:
