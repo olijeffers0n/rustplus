@@ -7,7 +7,6 @@ import numpy as np
 from scipy.spatial import ConvexHull
 from PIL import Image, ImageDraw, ImageFont
 
-from .camera_constants import LOOKUP_CONSTANTS
 from .structures import Entity, Vector3
 
 SCIENTIST_COLOUR = "#3098f2"
@@ -44,6 +43,8 @@ class Parser:
         self.entities = []
         self.last_fov = 0
 
+        self.lookup_constants = self._generate_lookup_constants(self.width, self.height)
+
     def reset_output(self) -> None:
         self.colour_output = np.full(
             (self.width * self.scale_factor, self.height * self.scale_factor, 3),
@@ -52,6 +53,42 @@ class Parser:
         self.depth_output = np.zeros(
             (self.width * self.scale_factor, self.height * self.scale_factor)
         )
+
+    @staticmethod
+    def _generate_lookup_constants(width: int, height: int) -> List[int]:
+        instance_count = width * height
+
+        sample_position_buffer = [0] * (instance_count * 2)
+
+        buffer_index = 0
+
+        for y in range(height):
+            for x in range(width):
+                sample_position_buffer[buffer_index] = RNGSource.int32(x)
+                buffer_index += 1
+
+                sample_position_buffer[buffer_index] = RNGSource.int32(y)
+                buffer_index += 1
+
+        rng = RNGSource(1337)
+
+        for current_position in range(instance_count - 1, 0, -1):
+            current_index = 2 * current_position
+            random_position = 2 * rng.next_int(current_position + 1)
+
+            current_x = sample_position_buffer[current_index]
+            current_y = sample_position_buffer[current_index + 1]
+
+            random_x = sample_position_buffer[random_position]
+            random_y = sample_position_buffer[random_position + 1]
+
+            sample_position_buffer[random_position] = current_x
+            sample_position_buffer[random_position + 1] = current_y
+
+            sample_position_buffer[current_index] = random_x
+            sample_position_buffer[current_index + 1] = random_y
+
+        return sample_position_buffer
 
     def handle_camera_ray_data(self, data) -> None:
         if data is None:
@@ -90,9 +127,9 @@ class Parser:
             alignment = ray[1]
             material = ray[2]
 
-            index1 = LOOKUP_CONSTANTS[self._sample_offset]
+            index1 = self.lookup_constants[self._sample_offset]
             self._sample_offset += 1
-            index2 = int(LOOKUP_CONSTANTS[self._sample_offset] * self.width + index1)
+            index2 = int(self.lookup_constants[self._sample_offset] * self.width + index1)
             self._sample_offset += 1
 
             x = (index2 % self.width) * self.scale_factor
@@ -786,3 +823,49 @@ class MathUtils:
 
         # Return the vertices that correspond to the non-zero indices
         return np.array(list(zip(x, y)))
+
+
+class RNGSource:
+    def __init__(self, seed):
+        self.state = self.int32(seed)
+        self.next_state()
+
+    def next_int(self, e):
+        t = self.int32(
+            (self.next_state() * self.int32(e)) / 4294967295
+        )
+
+        if t < 0:
+            t = e + t - 1
+
+        return self.int32(t)
+
+    def next_state(self):
+        e = self.state
+        t = e
+
+        e = self.int32(e ^ self.int32(e << 13))
+        e = self.int32(e ^ (self.uint32(e) >> 17))
+        e = self.int32(e ^ self.int32(e << 5))
+
+        self.state = e
+
+        return self.clamp(t)
+
+    @staticmethod
+    def clamp(e):
+        return e if e >= 0 else 4294967295 + e - 1
+
+    @staticmethod
+    def int32(value):
+        value = int(value)
+        value &= 0xFFFFFFFF
+
+        if value >= 0x80000000:
+            value -= 0x100000000
+
+        return value
+
+    @staticmethod
+    def uint32(value):
+        return value & 0xFFFFFFFF

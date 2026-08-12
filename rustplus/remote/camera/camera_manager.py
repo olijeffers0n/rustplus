@@ -58,8 +58,8 @@ class CameraManager:
     async def _create_frame(
         self,
         render_entities: bool = True,
-        entity_render_distance: float = float("inf"),
-        max_entity_amount: int = float("inf"),
+        entity_render_distance: float | int = float("inf"),
+        max_entity_amount: float | int = float("inf"),
     ) -> Union[Image.Image, None]:
         if self._last_packets is None:
             return None
@@ -95,8 +95,8 @@ class CameraManager:
     async def get_frame(
         self,
         render_entities: bool = True,
-        entity_render_distance: float = float("inf"),
-        max_entity_amount: int = float("inf"),
+        entity_render_distance: float | int = float("inf"),
+        max_entity_amount: float | int = float("inf"),
     ) -> Union[Image.Image, None]:
         return await self._create_frame(
             render_entities, entity_render_distance, max_entity_amount
