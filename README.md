@@ -29,6 +29,8 @@ pip install rustplus
 - Getting the time
 - Using Smart Devices
 - Camera Handling
+- Interacting with clans
+- Getting nexus information
 
 # For information on all the above methods, see the [Wiki](https://rplus.ollieee.xyz)
 
