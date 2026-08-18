@@ -28,6 +28,10 @@
 
 * [Clan System](clans/clan-system.md)
 
+## Nexus
+
+* [Nexus](nexus/nexus.md)
+
 ## Command System
 
 * [Commands Overview](command-system/commands-overview.md)
