@@ -129,7 +129,9 @@ class Parser:
 
             index1 = self.lookup_constants[self._sample_offset]
             self._sample_offset += 1
-            index2 = int(self.lookup_constants[self._sample_offset] * self.width + index1)
+            index2 = int(
+                self.lookup_constants[self._sample_offset] * self.width + index1
+            )
             self._sample_offset += 1
 
             x = (index2 % self.width) * self.scale_factor
@@ -831,9 +833,7 @@ class RNGSource:
         self.next_state()
 
     def next_int(self, e):
-        t = self.int32(
-            (self.next_state() * self.int32(e)) / 4294967295
-        )
+        t = self.int32((self.next_state() * self.int32(e)) / 4294967295)
 
         if t < 0:
             t = e + t - 1

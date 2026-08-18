@@ -19,6 +19,7 @@ from .remote.rustplus_proto import (
     AppCameraSubscribe,
     AppMapMonument,
     AppFlag,
+    AppGetNexusAuth,
 )
 from .remote.websocket import RustWebsocket
 from .structs import (
@@ -33,6 +34,7 @@ from .structs import (
     RustItem,
     RustClanInfo,
     RustClanMessage,
+    RustAuthDetails,
 )
 from .structs.rust_error import RustError
 from .utils import (
@@ -634,3 +636,28 @@ class RustSocket:
         packet.set_clan_motd = send_message
 
         await self.ws.send_message(packet, True)
+
+    async def get_nexus_auth(self, app_key: str) -> Union[RustAuthDetails, RustError]:
+        """
+        Gets the auth for a server. Does not require that the player token of this RustSocket is set correctly.
+
+        :param app_key: The app key to use. I do not know how you would get this currently, without owning the server.
+        """
+
+        packet = await self._generate_request()
+        send_message = AppGetNexusAuth()
+        send_message.app_key = app_key
+        packet.get_nexus_auth = send_message
+
+        response = await self.ws.send_and_get(packet)
+
+        if response is None:
+            return RustError("get_nexus_auth", "No response received")
+
+        if error_present(response):
+            return RustError("get_nexus_auth", response.response.error.error)
+
+        return RustAuthDetails(
+            response.response.nexus_auth.server_id,
+            response.response.nexus_auth.player_token,
+        )

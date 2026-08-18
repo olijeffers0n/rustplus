@@ -14,6 +14,7 @@ from .annotations import (
 )
 from .remote.fcm import FCMListener
 from .remote.camera import MovementControls, CameraMovementOptions
+from .remote.nexus import NexusInterface, Realm
 from .commands import CommandOptions, ChatCommand
 from .events import ChatEventPayload, TeamEventPayload, EntityEventPayload
 from .utils import convert_event_type_to_name, Emoji, convert_coordinates
@@ -21,5 +22,5 @@ from .structs import RustError, RustMarker, Vector
 
 __name__ = "rustplus"
 __author__ = "olijeffers0n"
-__version__ = "6.0.13"
+__version__ = "6.1.0"
 __support__ = "Discord: https://discord.gg/nQqJe8qvP8"
