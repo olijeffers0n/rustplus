@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
+  <defs>
+    <style>
+      .cls-1, .cls-2, .cls-3, .cls-4 {
+        fill: none;
+        stroke-miterlimit: 10;
+      }
+
+      .cls-1, .cls-4 {
+        stroke: #fff;
+      }
+
+      .cls-2, .cls-3 {
+        stroke: #da3c32;
+      }
+
+      .cls-3, .cls-4 {
+        stroke-width: .5px;
+      }
+
+      .cls-5 {
+        fill: #da3c32;
+      }
+
+      .cls-6 {
+        fill: #fff;
+      }
+    </style>
+  </defs>
+  <g id="Layer_1-2" data-name="Layer 1">
+    <g id="Layer_2-2" data-name="Layer 2">
+      <g id="uuid-5e251377-00e8-466f-a0b3-8c58f1b318e1" data-name="Layer 1-2">
+        <circle class="cls-5" cx="20" cy="20" r="20"/>
+        <path class="cls-6" d="M14.15,21.86h3.35l-.89,10.2H6c-.16,0-.29-.13-.29-.29,0-.07.02-.14.07-.19l8.15-9.58c.05-.08.13-.13.22-.14Z"/>
+        <path class="cls-6" d="M21.73,21.86h-3.35l.89,10.2h10.6c.16,0,.29-.13.29-.29,0-.07-.02-.14-.07-.19l-8.09-9.58c-.06-.09-.16-.14-.27-.14Z"/>
+        <polygon class="cls-6" points="30.94 13.71 24.62 13.71 24.62 22.33 30.94 29.54 30.94 13.71"/>
+        <line class="cls-1" x1="22.86" y1="13.87" x2="32.79" y2="13.87"/>
+        <line class="cls-2" x1="22.87" y1="15.05" x2="32.8" y2="15.05"/>
+        <rect class="cls-6" x="24.83" y="9.11" width="5.94" height="4.66"/>
+        <rect class="cls-6" x="25.88" y="7.75" width="2.18" height="1.73"/>
+        <ellipse class="cls-6" cx="25.02" cy="5.02" rx="1.09" ry=".56" transform="translate(12.67 27.35) rotate(-72.41)"/>
+        <line class="cls-3" x1="25.84" y1="17.47" x2="25.84" y2="24.13"/>
+        <line class="cls-3" x1="29.62" y1="17.53" x2="29.62" y2="28.53"/>
+        <rect class="cls-5" x="27.27" y="10.16" width="1.47" height="3.01"/>
+        <polyline class="cls-4" points="25.2 5.01 26.93 5.43 26.93 8.79"/>
+        <path class="cls-6" d="M24.71,5.06h0l-1.17-.23c-.08-.02-.14-.1-.12-.18.02-.08.1-.14.18-.12h0l1.17.24c.07,0,.12.07.12.14,0,0,0,.02,0,.03,0,.07-.06.13-.13.13-.01,0-.02,0-.04,0Z"/>
+      </g>
+    </g>
+  </g>
+</svg>

@@ -1,10 +1,13 @@
 import logging
 import string
 from importlib import resources
-from typing import Tuple, Dict
+from typing import Tuple
 
 import requests
 from PIL import ImageFont, Image, ImageDraw
+from pathlib import Path
+from resvg import render, usvg
+from io import BytesIO
 
 ICONS_PATH = "rustplus.icons"
 FONT_PATH = "rustplus.utils.fonts"
@@ -179,64 +182,69 @@ def convert_marker(marker_type: int, angle) -> Image.Image:
     return icon
 
 
-def convert_monument(name: str, override_images: Dict[str, Image.Image]) -> Image.Image:
+def convert_monument_to_image(name: str) -> Image.Image:
     name_to_file = {
-        "supermarket": "supermarket.png",
-        "mining_outpost_display_name": "mining_outpost.png",
-        "gas_station": "oxums.png",
-        "fishing_village_display_name": "fishing.png",
-        "large_fishing_village_display_name": "fishing.png",
-        "lighthouse_display_name": "lighthouse.png",
-        "excavator": "excavator.png",
-        "water_treatment_plant_display_name": "water_treatment.png",
-        "train_yard_display_name": "train_yard.png",
-        "outpost": "outpost.png",
-        "bandit_camp": "bandit.png",
-        "jungle_ziggurat": "jungle_ziggurat.png",
-        "junkyard_display_name": "junkyard.png",
-        "dome_monument_name": "dome.png",
-        "satellite_dish_display_name": "satellite.png",
-        "power_plant_display_name": "power_plant.png",
-        "military_tunnels_display_name": "military_tunnels.png",
-        "airfield_display_name": "airfield.png",
-        "launchsite": "launchsite.png",
-        "sewer_display_name": "sewer.png",
-        "oil_rig_small": "small_oil_rig.png",
-        "large_oil_rig": "large_oil_rig.png",
-        "underwater_lab": "underwater_lab.png",
-        "AbandonedMilitaryBase": "desert_base.png",
-        "ferryterminal": "ferryterminal.png",
-        "harbor_display_name": "harbour.png",
-        "harbor_2_display_name": "harbour.png",
-        "arctic_base_a": "arctic_base.png",
-        "arctic_base_b": "arctic_base.png",
-        "missile_silo_monument": "missile_silo.png",
-        "stables_a": "stables.png",
-        "stables_b": "stables.png",
-        "mining_quarry_stone_display_name": "mining_quarry_stone.png",
-        "mining_quarry_sulfur_display_name": "mining_quarry_sulfur.png",
-        "mining_quarry_hqm_display_name": "mining_quarry_hqm.png",
-        "train_tunnel_link_display_name": "train.png",
-        "train_tunnel_display_name": "train.png",
-        "radtown": "radtown.png",
+        "ferryterminal": "Ferry_Terminal.svg",
+        "train_tunnel_display_name": "Tunnel_Entrance.svg",
+        "train_tunnel_link_display_name": "Tunnel_Entrance.svg",
+        "apartmentcomplex": "Apartments_Complex.svg",
+        "harbor_display_name": "Harbor.svg",
+        "harbor_2_display_name": "Harbor.svg",
+        "large_fishing_village_display_name": "Fishing_Village.svg",
+        "fishing_village_display_name": "Fishing_Village.svg",
+        "AbandonedMilitaryBase": "Military_Base.svg",
+        "power_plant_display_name": "Powerplant.svg",
+        "missile_silo_monument": "Missile_Silo.svg",
+        "outpost": "Outpost.svg",
+        "bandit_camp": "Bandit_Camp.svg",
+        "stables_a": "Stables.svg",
+        "stables_b": "Stables.svg",
+        "mining_quarry_stone_display_name": "Stone_Quarry.svg",
+        "mining_quarry_sulfur_display_name": "Sulfur_Quarry.svg",
+        "mining_quarry_hqm_display_name": "HQM_Quarry.svg",
+        "satellite_dish_display_name": "Satellite_Dish.svg",
+        "dome_monument_name": "Dome.svg",
+        "junkyard_display_name": "Junkyard.svg",
+        "sewer_display_name": "Sewer_Branch.svg",
+        "oil_rig_small": "Oil_Rig_Small.svg",
+        "large_oil_rig": "Oil_Rig_Large.svg",
+        "lighthouse_display_name": "Lighthouse.svg",
+        "mining_outpost_display_name": "Mining_Outpost.svg",
+        "supermarket": "Supermarket.svg",
+        "arctic_base_a": "Arctic_Research_Base.svg",
+        "arctic_base_b": "Arctic_Research_Base.svg",
+        "launchsite": "Launch_Site.svg",
+        "water_treatment_plant_display_name": "Water_Treatment.svg",
+        "excavator": "Excavator.svg",
+        "train_yard_display_name": "Trainyard.svg",
+        "airfield_display_name": "Airfield.svg",
+        "military_tunnels_display_name": "Military_Tunnels.svg",
+        "gas_station": "Gas_Station.svg",
+        "jungle_ziggurat": "Jungle_Ziggurat.svg",
+        "radtown": "Radtown.svg",
     }
-
-    try:
-        return override_images[name]
-    except KeyError:
-        pass
 
     if name in name_to_file:
         file_name = name_to_file[name]
         with resources.path(ICONS_PATH, file_name) as path:
-            icon = Image.open(path).convert("RGBA")
+            if file_name.endswith(".png"):
+                return Image.open(path).convert("RGBA")
+            elif file_name.endswith(".svg"):
+                return svg_to_pil(path, (150, 150))
+            else:
+                logging.getLogger("rustplus.py").info(
+                    f"{name} - Has no icon, report this as an issue"
+                )
+                with resources.path(ICONS_PATH, "icon.png") as path:
+                    return Image.open(path).convert("RGBA")
+
     elif "swamp" in name:
-        with resources.path(ICONS_PATH, "swamp.png") as path:
-            icon = Image.open(path).convert("RGBA")
+        with resources.path(ICONS_PATH, "Swamp.svg") as path:
+            return svg_to_pil(path, (150, 150))
     elif "underwater_lab" in name:
         # Same story with swamp, no rust+ specific token so prefab name is sent instead
-        with resources.path(ICONS_PATH, "underwater_lab.png") as path:
-            icon = Image.open(path).convert("RGBA")
+        with resources.path(ICONS_PATH, "Underwater_Lab.svg") as path:
+            return svg_to_pil(path, (150, 150))
     else:
         logging.getLogger("rustplus.py").info(
             f"{name} - Has no icon, report this as an issue"
@@ -245,3 +253,37 @@ def convert_monument(name: str, override_images: Dict[str, Image.Image]) -> Imag
             icon = Image.open(path).convert("RGBA")
 
     return icon
+
+
+def svg_to_pil(filepath: str | Path, size: tuple[int, int]) -> Image.Image:
+    target_w, target_h = size
+
+    svg = Path(filepath).read_text()
+
+    opts = usvg.Options.default()
+    tree = usvg.Tree.from_str(svg, opts)
+
+    orig_w, orig_h = tree.int_size()
+
+    # Preserve aspect ratio (fit inside target)
+    scale_x = target_w / orig_w
+    scale_y = target_h / orig_h
+    scale = min(scale_x, scale_y)  # use max for "cover" behavior
+
+    # center the scaled image in the target canvas
+    tx = (target_w - orig_w * scale) / 2.0
+    ty = (target_h - orig_h * scale) / 2.0
+
+    # transform tuple format: (a, b, c, d, e, f)
+    # corresponds to the affine matrix rows:
+    # [ a  b  c ]
+    # [ d  e  f ]
+    transform_fit = (scale, 0.0, tx, 0.0, scale, ty)
+
+    png_bytes = render(
+        tree,
+        transform_fit,
+        bg_size=(target_w, target_h),
+    )
+
+    return Image.open(BytesIO(png_bytes)).convert("RGBA")

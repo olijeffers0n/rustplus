@@ -5,7 +5,7 @@ from .utils import (
     fetch_avatar_icon,
     format_coord,
     convert_marker,
-    convert_monument,
+    convert_monument_to_image,
     convert_event_type_to_name,
     convert_coordinates,
 )

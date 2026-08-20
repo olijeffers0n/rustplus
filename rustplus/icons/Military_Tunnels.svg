@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: none;
+        stroke: #da3c32;
+        stroke-miterlimit: 10;
+      }
+
+      .cls-2 {
+        fill: #da3c32;
+      }
+
+      .cls-3 {
+        fill: #fff;
+      }
+    </style>
+  </defs>
+  <g id="Layer_1-2" data-name="Layer 1">
+    <g id="Layer_2-2" data-name="Layer 2">
+      <g id="uuid-fbdacd2c-92dd-4dfb-8545-0536b06588b2" data-name="Layer 1-2">
+        <circle class="cls-2" cx="20" cy="20" r="20"/>
+        <path class="cls-3" d="M33.94,29.83c3.74-5.99,3.84-13.57.27-19.66l-6.49,1.64c-2.58.66-5.22.99-7.88,1h0c-2.65,0-5.3-.34-7.87-1l-6.49-1.64c-3.57,6.09-3.47,13.67.27,19.66l9.78-1.93h8.62l9.79,1.93Z"/>
+        <line class="cls-1" x1="9.41" y1="9.56" x2="9.41" y2="29.81"/>
+        <line class="cls-1" x1="30.22" y1="9.59" x2="30.22" y2="29.84"/>
+        <path class="cls-2" d="M19.87,19.53h0c3.39.02,6.12,2.76,6.13,6.15v2.75c0,1.88-1.53,3.41-3.41,3.41h-5.5c-1.88,0-3.41-1.53-3.41-3.41v-2.75c0-3.4,2.76-6.16,6.16-6.16h.03Z"/>
+      </g>
+    </g>
+  </g>
+</svg>

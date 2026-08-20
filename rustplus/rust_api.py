@@ -44,7 +44,7 @@ from .utils import (
     fetch_avatar_icon,
     format_coord,
     convert_marker,
-    convert_monument,
+    convert_monument_to_image,
 )
 from .remote.ratelimiter import RateLimiter
 from .utils.utils import error_present
@@ -317,6 +317,9 @@ class RustSocket:
                 await self.get_markers() if add_events or add_vending_machines else []
             )
 
+            if isinstance(map_markers, RustError):
+                return map_markers
+
             if add_icons:
                 for monument in monuments:
                     if str(monument.token) == "DungeonBase":
@@ -326,11 +329,12 @@ class RustSocket:
                         # reported as separate markers next to the lab; they aren't
                         # standalone monuments, so don't draw them.
                         continue
-                    icon = convert_monument(monument.token, override_images)
+
                     if monument.token in override_images:
-                        icon = icon.resize((150, 150))
-                    if str(monument.token) == "train_tunnel_display_name":
-                        icon = icon.resize((100, 125))
+                        icon = override_images[monument.token].resize((150, 150))
+                    else:
+                        icon = convert_monument_to_image(monument.token)
+
                     output.paste(
                         icon,
                         (format_coord(int(monument.x), int(monument.y), map_size)),
