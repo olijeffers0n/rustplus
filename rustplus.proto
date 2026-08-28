@@ -158,6 +158,7 @@ message AppRequest {
     AppCameraSubscribe cameraSubscribe = 30;
     AppEmpty cameraUnsubscribe = 31;
     AppCameraInput cameraInput = 32;
+    AppTeamKick kickFromTeam = 33;
 }
 
 message AppMessage {
@@ -204,6 +205,10 @@ message AppSetEntityValue {
 }
 
 message AppPromoteToLeader {
+    uint64 steamId = 1;
+}
+
+message AppTeamKick {
     uint64 steamId = 1;
 }
 

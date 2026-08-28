@@ -35,20 +35,20 @@ class AppCameraRaysEntityType(betterproto.Enum):
     Player = 2
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class Vector2(betterproto.Message):
     x: float = betterproto.float_field(1)
     y: float = betterproto.float_field(2)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class Vector3(betterproto.Message):
     x: float = betterproto.float_field(1)
     y: float = betterproto.float_field(2)
     z: float = betterproto.float_field(3)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class Vector4(betterproto.Message):
     x: float = betterproto.float_field(1)
     y: float = betterproto.float_field(2)
@@ -56,14 +56,14 @@ class Vector4(betterproto.Message):
     w: float = betterproto.float_field(4)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class Half3(betterproto.Message):
     x: float = betterproto.float_field(1)
     y: float = betterproto.float_field(2)
     z: float = betterproto.float_field(3)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class Color(betterproto.Message):
     r: float = betterproto.float_field(1)
     g: float = betterproto.float_field(2)
@@ -71,13 +71,13 @@ class Color(betterproto.Message):
     a: float = betterproto.float_field(4)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class Ray(betterproto.Message):
     origin: "Vector3" = betterproto.message_field(1)
     direction: "Vector3" = betterproto.message_field(2)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class ClanActionResult(betterproto.Message):
     request_id: int = betterproto.int32_field(1)
     result: int = betterproto.int32_field(2)
@@ -85,7 +85,7 @@ class ClanActionResult(betterproto.Message):
     clan_info: "ClanInfo" = betterproto.message_field(4)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class ClanInfo(betterproto.Message):
     clan_id: int = betterproto.int64_field(1)
     name: str = betterproto.string_field(2)
@@ -102,7 +102,7 @@ class ClanInfo(betterproto.Message):
     max_member_count: int = betterproto.int32_field(13)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class ClanInfoRole(betterproto.Message):
     role_id: int = betterproto.int32_field(1)
     rank: int = betterproto.int32_field(2)
@@ -117,7 +117,7 @@ class ClanInfoRole(betterproto.Message):
     can_access_logs: bool = betterproto.bool_field(11)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class ClanInfoMember(betterproto.Message):
     steam_id: int = betterproto.uint64_field(1)
     role_id: int = betterproto.int32_field(2)
@@ -127,20 +127,20 @@ class ClanInfoMember(betterproto.Message):
     online: bool = betterproto.bool_field(6)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class ClanInfoInvite(betterproto.Message):
     steam_id: int = betterproto.uint64_field(1)
     recruiter: int = betterproto.uint64_field(2)
     timestamp: int = betterproto.int64_field(3)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class ClanLog(betterproto.Message):
     clan_id: int = betterproto.int64_field(1)
     log_entries: List["ClanLogEntry"] = betterproto.message_field(2)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class ClanLogEntry(betterproto.Message):
     timestamp: int = betterproto.int64_field(1)
     event_key: str = betterproto.string_field(2)
@@ -150,19 +150,19 @@ class ClanLogEntry(betterproto.Message):
     arg4: str = betterproto.string_field(6)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class ClanInvitations(betterproto.Message):
     invitations: List["ClanInvitationsInvitation"] = betterproto.message_field(1)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class ClanInvitationsInvitation(betterproto.Message):
     clan_id: int = betterproto.int64_field(1)
     recruiter: int = betterproto.uint64_field(2)
     timestamp: int = betterproto.int64_field(3)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppRequest(betterproto.Message):
     seq: int = betterproto.uint32_field(1)
     player_id: int = betterproto.uint64_field(2)
@@ -188,15 +188,16 @@ class AppRequest(betterproto.Message):
     camera_subscribe: "AppCameraSubscribe" = betterproto.message_field(30)
     camera_unsubscribe: "AppEmpty" = betterproto.message_field(31)
     camera_input: "AppCameraInput" = betterproto.message_field(32)
+    kick_from_team: "AppTeamKick" = betterproto.message_field(33)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppMessage(betterproto.Message):
     response: "AppResponse" = betterproto.message_field(1)
     broadcast: "AppBroadcast" = betterproto.message_field(2)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppResponse(betterproto.Message):
     seq: int = betterproto.uint32_field(1)
     success: "AppSuccess" = betterproto.message_field(4)
@@ -215,7 +216,7 @@ class AppResponse(betterproto.Message):
     camera_subscribe_info: "AppCameraInfo" = betterproto.message_field(20)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppBroadcast(betterproto.Message):
     team_changed: "AppTeamChanged" = betterproto.message_field(4)
     team_message: "AppNewTeamMessage" = betterproto.message_field(5)
@@ -225,47 +226,52 @@ class AppBroadcast(betterproto.Message):
     camera_rays: "AppCameraRays" = betterproto.message_field(10)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppEmpty(betterproto.Message):
     pass
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppSendMessage(betterproto.Message):
     message: str = betterproto.string_field(1)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppSetEntityValue(betterproto.Message):
     value: bool = betterproto.bool_field(1)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppPromoteToLeader(betterproto.Message):
     steam_id: int = betterproto.uint64_field(1)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
+class AppTeamKick(betterproto.Message):
+    steam_id: int = betterproto.uint64_field(1)
+
+
+@dataclass(eq=False, repr=False)
 class AppGetNexusAuth(betterproto.Message):
     app_key: str = betterproto.string_field(1)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppSuccess(betterproto.Message):
     pass
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppError(betterproto.Message):
     error: str = betterproto.string_field(1)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppFlag(betterproto.Message):
     value: bool = betterproto.bool_field(1)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppInfo(betterproto.Message):
     name: str = betterproto.string_field(1)
     header_image: str = betterproto.string_field(2)
@@ -285,7 +291,7 @@ class AppInfo(betterproto.Message):
     cameras_enabled: bool = betterproto.bool_field(16)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppTime(betterproto.Message):
     day_length_minutes: float = betterproto.float_field(1)
     time_scale: float = betterproto.float_field(2)
@@ -294,7 +300,7 @@ class AppTime(betterproto.Message):
     time: float = betterproto.float_field(5)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppMap(betterproto.Message):
     width: int = betterproto.uint32_field(1)
     height: int = betterproto.uint32_field(2)
@@ -304,20 +310,20 @@ class AppMap(betterproto.Message):
     background: str = betterproto.string_field(6)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppMapMonument(betterproto.Message):
     token: str = betterproto.string_field(1)
     x: float = betterproto.float_field(2)
     y: float = betterproto.float_field(3)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppEntityInfo(betterproto.Message):
     type: "AppEntityType" = betterproto.enum_field(1)
     payload: "AppEntityPayload" = betterproto.message_field(3)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppEntityPayload(betterproto.Message):
     value: bool = betterproto.bool_field(1)
     items: List["AppEntityPayloadItem"] = betterproto.message_field(2)
@@ -326,14 +332,14 @@ class AppEntityPayload(betterproto.Message):
     protection_expiry: int = betterproto.uint32_field(5)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppEntityPayloadItem(betterproto.Message):
     item_id: int = betterproto.int32_field(1)
     quantity: int = betterproto.int32_field(2)
     item_is_blueprint: bool = betterproto.bool_field(3)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppTeamInfo(betterproto.Message):
     leader_steam_id: int = betterproto.uint64_field(1)
     members: List["AppTeamInfoMember"] = betterproto.message_field(2)
@@ -341,7 +347,7 @@ class AppTeamInfo(betterproto.Message):
     leader_map_notes: List["AppTeamInfoNote"] = betterproto.message_field(4)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppTeamInfoMember(betterproto.Message):
     steam_id: int = betterproto.uint64_field(1)
     name: str = betterproto.string_field(2)
@@ -353,7 +359,7 @@ class AppTeamInfoMember(betterproto.Message):
     death_time: int = betterproto.uint32_field(8)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppTeamInfoNote(betterproto.Message):
     type: int = betterproto.int32_field(2)
     x: float = betterproto.float_field(3)
@@ -363,7 +369,7 @@ class AppTeamInfoNote(betterproto.Message):
     label: str = betterproto.string_field(7)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppTeamMessage(betterproto.Message):
     steam_id: int = betterproto.uint64_field(1)
     name: str = betterproto.string_field(2)
@@ -372,12 +378,12 @@ class AppTeamMessage(betterproto.Message):
     time: int = betterproto.uint32_field(5)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppTeamChat(betterproto.Message):
     messages: List["AppTeamMessage"] = betterproto.message_field(1)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppMarker(betterproto.Message):
     id: int = betterproto.uint32_field(1)
     type: "AppMarkerType" = betterproto.enum_field(2)
@@ -394,7 +400,7 @@ class AppMarker(betterproto.Message):
     sell_orders: List["AppMarkerSellOrder"] = betterproto.message_field(13)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppMarkerSellOrder(betterproto.Message):
     item_id: int = betterproto.int32_field(1)
     quantity: int = betterproto.int32_field(2)
@@ -407,17 +413,17 @@ class AppMarkerSellOrder(betterproto.Message):
     item_condition_max: float = betterproto.float_field(9)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppMapMarkers(betterproto.Message):
     markers: List["AppMarker"] = betterproto.message_field(1)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppClanInfo(betterproto.Message):
     clan_info: "ClanInfo" = betterproto.message_field(1)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppClanMessage(betterproto.Message):
     steam_id: int = betterproto.uint64_field(1)
     name: str = betterproto.string_field(2)
@@ -425,57 +431,57 @@ class AppClanMessage(betterproto.Message):
     time: int = betterproto.int64_field(4)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppClanChat(betterproto.Message):
     messages: List["AppClanMessage"] = betterproto.message_field(1)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppNexusAuth(betterproto.Message):
     server_id: str = betterproto.string_field(1)
     player_token: int = betterproto.int32_field(2)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppTeamChanged(betterproto.Message):
     player_id: int = betterproto.uint64_field(1)
     team_info: "AppTeamInfo" = betterproto.message_field(2)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppNewTeamMessage(betterproto.Message):
     message: "AppTeamMessage" = betterproto.message_field(1)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppEntityChanged(betterproto.Message):
     entity_id: int = betterproto.uint32_field(1)
     payload: "AppEntityPayload" = betterproto.message_field(2)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppClanChanged(betterproto.Message):
     clan_info: "ClanInfo" = betterproto.message_field(1)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppNewClanMessage(betterproto.Message):
     clan_id: int = betterproto.int64_field(1)
     message: "AppClanMessage" = betterproto.message_field(2)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppCameraSubscribe(betterproto.Message):
     camera_id: str = betterproto.string_field(1)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppCameraInput(betterproto.Message):
     buttons: int = betterproto.int32_field(1)
     mouse_delta: "Vector2" = betterproto.message_field(2)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppCameraInfo(betterproto.Message):
     width: int = betterproto.int32_field(1)
     height: int = betterproto.int32_field(2)
@@ -484,7 +490,7 @@ class AppCameraInfo(betterproto.Message):
     control_flags: int = betterproto.int32_field(5)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppCameraRays(betterproto.Message):
     vertical_fov: float = betterproto.float_field(1)
     sample_offset: int = betterproto.int32_field(2)
@@ -494,7 +500,7 @@ class AppCameraRays(betterproto.Message):
     time_of_day: float = betterproto.float_field(6)
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class AppCameraRaysEntity(betterproto.Message):
     entity_id: int = betterproto.uint32_field(1)
     type: "AppCameraRaysEntityType" = betterproto.enum_field(2)

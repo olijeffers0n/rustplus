@@ -20,6 +20,7 @@ from .remote.rustplus_proto import (
     AppMapMonument,
     AppFlag,
     AppGetNexusAuth,
+    AppTeamKick,
 )
 from .remote.websocket import RustWebsocket
 from .structs import (
@@ -665,3 +666,25 @@ class RustSocket:
             response.response.nexus_auth.server_id,
             response.response.nexus_auth.player_token,
         )
+
+    async def kick_from_team(self, steamid: int) -> Union[None, RustError]:
+        """
+        Kicks a player from the team by their 64-bit Steam ID
+
+        :param steamid: The SteamID of the player to kick
+        :return None:
+        """
+        packet = await self._generate_request()
+        kick_packet = AppTeamKick()
+        kick_packet.steamid = steamid
+        packet.kick_from_team = kick_packet
+
+        response = await self.ws.send_and_get(packet)
+
+        if response is None:
+            return RustError("kick_from_team", "No response received")
+
+        if error_present(response):
+            return RustError("kick_from_team", response.response.error.error)
+
+        return None
