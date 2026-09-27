@@ -1,6 +1,6 @@
 import asyncio
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timezone
 from importlib import resources
 from io import BytesIO
 from typing import List, Union
@@ -262,7 +262,7 @@ class RustSocket:
         add_events: bool = False,
         add_vending_machines: bool = False,
         add_team_positions: bool = False,
-        override_images: dict = None,
+        override_images: Union[dict, None] = None,
         add_grid: bool = False,
     ) -> Union[Image.Image, RustError]:
         """
@@ -308,7 +308,9 @@ class RustSocket:
         output = output.crop(
             (500, 500, map_packet.height - 500, map_packet.width - 500)
         )
-        output = output.resize((map_size, map_size), Image.LANCZOS).convert("RGBA")
+        output = output.resize((map_size, map_size), Image.Resampling.LANCZOS).convert(
+            "RGBA"
+        )
 
         if add_grid:
             output.paste(grid := generate_grid(map_size), (5, 5), grid)
@@ -326,7 +328,7 @@ class RustSocket:
                     if str(monument.token) == "DungeonBase":
                         continue
                     if "underwater-lab-base" in str(monument.token):
-                        # An underwater lab's interior modules (moonpools, etc.) are
+                        # An underwater lab's interior modules (moon pools, etc.) are
                         # reported as separate markers next to the lab; they aren't
                         # standalone monuments, so don't draw them.
                         continue
@@ -405,9 +407,7 @@ class RustSocket:
 
         return RustMap(response.response.map)
 
-    async def get_entity_info(
-        self, eid: int = None
-    ) -> Union[RustEntityInfo, RustError]:
+    async def get_entity_info(self, eid: int) -> Union[RustEntityInfo, RustError]:
         """
         Gets entity info from the server
 
@@ -481,7 +481,7 @@ class RustSocket:
 
         return response.response.flag.value
 
-    async def promote_to_team_leader(self, steamid: int = None) -> None:
+    async def promote_to_team_leader(self, steamid: int) -> None:
         """
         Promotes a given user to the team leader by their 64-bit Steam ID
 
@@ -496,7 +496,7 @@ class RustSocket:
         await self.ws.send_message(packet, True)
 
     async def get_contents(
-        self, eid: int = None, combine_stacks: bool = False
+        self, eid: int, combine_stacks: bool = False
     ) -> Union[RustContents, RustError]:
         """
         Gets the contents of a storage monitor-attached container
@@ -510,8 +510,10 @@ class RustSocket:
         if isinstance(returned_data, RustError):
             return returned_data
 
-        target_time = datetime.utcfromtimestamp(int(returned_data.protection_expiry))
-        difference = target_time - datetime.utcnow()
+        target_time = datetime.fromtimestamp(
+            int(returned_data.protection_expiry), tz=timezone.utc
+        )
+        difference = target_time - datetime.now(timezone.utc)
 
         items = []
 
@@ -558,7 +560,7 @@ class RustSocket:
 
         NOTE: This will override the current camera manager if one exists for the given ID so you cannot have multiple
 
-        :param cam_id: The ID of the camera
+        :param cam_id: The ID of the target camera
         :return CameraManager: The camera manager
         :raises RequestError: If the camera is not found, or you cannot access it. See reason for more info
         """

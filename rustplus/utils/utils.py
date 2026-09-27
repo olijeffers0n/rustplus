@@ -50,6 +50,8 @@ def convert_event_type_to_name(event: int) -> str:
         return "Generic Radius"
     elif event == 8:
         return "Patrol Helicopter"
+    else:
+        return "UNKNOWN"
 
 
 def generate_grid(
@@ -109,7 +111,7 @@ async def fetch_avatar_icon(steam_id: int, online: bool) -> Image.Image:
                 stream=True,
             ).raw
         )
-        .resize((100, 100), Image.LANCZOS)
+        .resize((100, 100), Image.Resampling.LANCZOS)
         .convert("RGBA")
     )
 
@@ -235,8 +237,8 @@ def convert_monument_to_image(name: str) -> Image.Image:
                 logging.getLogger("rustplus.py").info(
                     f"{name} - Has no icon, report this as an issue"
                 )
-                with resources.path(ICONS_PATH, "icon.png") as path:
-                    return Image.open(path).convert("RGBA")
+                with resources.path(ICONS_PATH, "icon.png") as default_path:
+                    return Image.open(default_path).convert("RGBA")
 
     elif "swamp" in name:
         with resources.path(ICONS_PATH, "Swamp.svg") as path:
