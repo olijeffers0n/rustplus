@@ -1,16 +1,14 @@
 import shlex
-import base64
 import betterproto
 from websockets.exceptions import InvalidURI, InvalidHandshake, ConnectionClosedError
 from websockets.legacy.client import WebSocketClientProtocol
 from websockets.client import connect
 from asyncio import TimeoutError, Task, AbstractEventLoop
-from typing import Union, Coroutine, Optional, Set, Dict
+from typing import Coroutine, Optional, Set, Dict
 import logging
 import asyncio
 
 from ..camera import CameraManager
-from ..proxy import ProxyValueGrabber
 from ..rustplus_proto import AppMessage, AppRequest, AppError
 from ...commands import CommandOptions, ChatCommand, ChatCommandTime
 from ...events import (
@@ -21,7 +19,10 @@ from ...events import (
 )
 from ...events.clan_info_event import ClanInfoEventPayload
 from ...exceptions import RequestError
-from ...identification import ServerDetails, RegisteredListener
+from ...identification import (
+    ServerDetails,
+    RegisteredListener,
+)
 from ...structs import RustChatMessage, RustTeamInfo, RustClanInfo
 from ...utils import YieldingEvent, convert_time
 from ...utils.utils import error_present
@@ -33,33 +34,21 @@ class RustWebsocket:
     def __init__(
         self,
         server_details: ServerDetails,
-        command_options: Union[CommandOptions, None],
-        use_fp_proxy: bool,
-        use_test_server: bool,
+        command_options: CommandOptions | None,
         debug: bool,
     ) -> None:
         self.server_details: ServerDetails = server_details
-        self.command_options: Union[CommandOptions, None] = command_options
-        self.connection: Union[WebSocketClientProtocol, None] = None
+        self.command_options: CommandOptions | None = command_options
+        self.connection: WebSocketClientProtocol | None = None
         self.logger: logging.Logger = logging.getLogger("rustplus.py")
-        self.task: Union[Task, None] = None
+        self.task: Task | None = None
         self.debug: bool = debug
-        self.use_test_server: bool = use_test_server
-        self.use_fp_proxy: bool = use_fp_proxy
 
         self.responses: Dict[int, YieldingEvent] = {}
         self.open = False
 
     async def connect(self) -> bool:
-
-        address = (
-            (
-                f"{'wss' if self.server_details.secure else 'ws'}://"
-                + self.server_details.get_server_string()
-            )
-            if not self.use_fp_proxy
-            else f"wss://companion-rust.facepunch.com/game/{self.server_details.ip}/{self.server_details.port}"
-        ) + f"?v={ProxyValueGrabber.get_value()}"
+        address = self.server_details.endpoint.uri()
 
         try:
             self.connection = await connect(
@@ -67,6 +56,7 @@ class RustWebsocket:
                 close_timeout=0,
                 ping_interval=None,
                 max_size=1_000_000_000,
+                **self.server_details.endpoint.connect_kwargs(),
             )
         except (InvalidURI, OSError, InvalidHandshake, TimeoutError) as err:
             self.logger.warning("WebSocket connection error: %s", err)
@@ -100,14 +90,24 @@ class RustWebsocket:
     async def run(self) -> None:
         while self.open:
             try:
-                data = await self.connection.recv()
+                if self.connection is None:
+                    self.logger.warning(
+                        "No Current Websocket Connection, exiting run loop"
+                    )
+                    break
+
+                data: str | bytes = await self.connection.recv()
+
+                if isinstance(data, str):
+                    # Text frame: not protobuf, so ignore it
+                    self.logger.warning(
+                        "Ignoring unexpected text frame (%d chars)", len(data)
+                    )
+                    continue
 
                 await self.run_coroutine_non_blocking(
                     self.run_proto_event(data, self.server_details)
                 )
-
-                if self.use_test_server:
-                    data = base64.b64decode(data)
 
                 app_message = AppMessage()
                 app_message.parse(data)
@@ -134,7 +134,7 @@ class RustWebsocket:
                     e,
                 )
 
-    async def send_and_get(self, request: AppRequest) -> AppMessage:
+    async def send_and_get(self, request: AppRequest) -> AppMessage | None:
         if not await self.send_message(request):
             message = AppMessage()
             error = AppError()
@@ -158,19 +158,14 @@ class RustWebsocket:
             self.responses[request.seq] = YieldingEvent()
 
         try:
-            if self.use_test_server:
-                await self.connection.send(
-                    base64.b64encode(bytes(request)).decode("utf-8")
-                )
-            else:
-                await self.connection.send(bytes(request))
+            await self.connection.send(bytes(request))
         except Exception as err:
             self.logger.warning("WebSocket connection error: %s", err)
             return False
 
         return True
 
-    async def get_response(self, seq: int) -> Union[AppMessage, None]:
+    async def get_response(self, seq: int) -> AppMessage | None:
 
         response = await self.responses[seq].wait(timeout=self.RESPONSE_TIMEOUT)
         del self.responses[seq]
@@ -185,7 +180,9 @@ class RustWebsocket:
 
         if error_present(app_message):
 
-            event: YieldingEvent = self.responses.get(app_message.response.seq, None)
+            event: YieldingEvent | None = self.responses.get(
+                app_message.response.seq, None
+            )
             if event is not None:
                 if self.debug:
                     self.logger.info(
@@ -315,7 +312,9 @@ class RustWebsocket:
 
         else:
             # This means that it wasn't sent by the server and is a message from the server in response to an action
-            event: YieldingEvent = self.responses.get(app_message.response.seq, None)
+            event: YieldingEvent | None = self.responses.get(
+                app_message.response.seq, None
+            )
             if event is not None:
                 if self.debug:
                     self.logger.info(f"Running Response Event: {app_message}")
@@ -333,9 +332,7 @@ class RustWebsocket:
             return None
 
     @staticmethod
-    async def run_proto_event(
-        data: Union[str, bytes], server_details: ServerDetails
-    ) -> None:
+    async def run_proto_event(data: str | bytes, server_details: ServerDetails) -> None:
         handlers: Set[RegisteredListener] = (
             ProtobufEventPayload.HANDLER_LIST.get_handlers(server_details)
         )
@@ -372,5 +369,5 @@ class RustWebsocket:
 
     @staticmethod
     async def run_coroutine_non_blocking(coroutine: Coroutine) -> Task:
-        loop: AbstractEventLoop = asyncio.get_event_loop_policy().get_event_loop()
+        loop: AbstractEventLoop = asyncio.get_event_loop()
         return loop.create_task(coroutine)

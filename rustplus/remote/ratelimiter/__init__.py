@@ -64,8 +64,8 @@ class RateLimiter:
                 self.socket_buckets[server_details] = TokenBucket(
                     current, maximum, refresh_rate, refresh_amount
                 )
-            if server_details.get_server_string() not in self.server_buckets:
-                self.server_buckets[server_details.get_server_string()] = TokenBucket(
+            if server_details.endpoint.id() not in self.server_buckets:
+                self.server_buckets[server_details.endpoint.id()] = TokenBucket(
                     self.SERVER_LIMIT, self.SERVER_LIMIT, 1, self.SERVER_REFRESH_AMOUNT
                 )
 
@@ -76,7 +76,7 @@ class RateLimiter:
         with self.lock:
             for bucket in [
                 self.socket_buckets.get(server_details),
-                self.server_buckets.get(server_details.get_server_string()),
+                self.server_buckets.get(server_details.endpoint.id()),
             ]:
                 bucket.refresh()
                 if not bucket.can_consume(amount):
@@ -90,14 +90,14 @@ class RateLimiter:
         with self.lock:
             for bucket in [
                 self.socket_buckets.get(server_details),
-                self.server_buckets.get(server_details.get_server_string()),
+                self.server_buckets.get(server_details.endpoint.id()),
             ]:
                 bucket.refresh()
                 if not bucket.can_consume(amount):
                     raise RateLimitError("Not Enough Tokens")
             for bucket in [
                 self.socket_buckets.get(server_details),
-                self.server_buckets.get(server_details.get_server_string()),
+                self.server_buckets.get(server_details.endpoint.id()),
             ]:
                 bucket.consume(amount)
 
@@ -112,7 +112,7 @@ class RateLimiter:
             delay = 0
             for bucket in [
                 self.socket_buckets.get(server_details),
-                self.server_buckets.get(server_details.get_server_string()),
+                self.server_buckets.get(server_details.endpoint.id()),
             ]:
                 bucket.refresh()
                 val = (
@@ -135,8 +135,6 @@ class RateLimiter:
         """
         with self.lock:
             del self.socket_buckets[server_details]
-            server_str = server_details.get_server_string()
-            if not any(
-                d.get_server_string() == server_str for d in self.socket_buckets
-            ):
+            server_str = server_details.endpoint.id()
+            if not any(d.endpoint.id() == server_str for d in self.socket_buckets):
                 del self.server_buckets[server_str]

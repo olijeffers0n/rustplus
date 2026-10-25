@@ -1,10 +1,9 @@
-from typing import Union
 from ..remote.rustplus_proto import AppTeamMessage, AppClanMessage
 from .serialization import Serializable
 
 
 class RustChatMessage(Serializable):
-    def __init__(self, data: Union[AppTeamMessage, AppClanMessage]):
+    def __init__(self, data: AppTeamMessage | AppClanMessage):
         self._steam_id: int = data.steam_id
         self._name: str = data.name
         self._message: str = data.message

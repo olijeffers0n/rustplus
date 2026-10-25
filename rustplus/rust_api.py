@@ -3,7 +3,7 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from importlib import resources
 from io import BytesIO
-from typing import List, Union
+from typing import List
 import logging
 from PIL import Image
 
@@ -56,10 +56,8 @@ class RustSocket:
     def __init__(
         self,
         server_details: ServerDetails,
-        ratelimiter: Union[RateLimiter, None] = None,
-        command_options: Union[CommandOptions, None] = None,
-        use_fp_proxy: bool = False,
-        use_test_server: bool = False,
+        ratelimiter: RateLimiter | None = None,
+        command_options: CommandOptions | None = None,
         debug: bool = False,
     ) -> None:
         self.server_details = server_details
@@ -80,8 +78,6 @@ class RustSocket:
         self.ws = RustWebsocket(
             self.server_details,
             self.command_options,
-            use_fp_proxy,
-            use_test_server,
             debug,
         )
         self.seq = 1
@@ -143,7 +139,7 @@ class RustSocket:
         while True:
             await asyncio.sleep(1)
 
-    async def get_time(self) -> Union[RustTime, RustError]:
+    async def get_time(self) -> RustTime | RustError:
         """
         Gets the current in-game time from the server.
 
@@ -183,7 +179,7 @@ class RustSocket:
 
         await self.ws.send_message(packet, True)
 
-    async def get_info(self) -> Union[RustInfo, RustError]:
+    async def get_info(self) -> RustInfo | RustError:
         """
         Gets information on the Rust Server
         :return: RustInfo - The info of the server
@@ -200,7 +196,7 @@ class RustSocket:
 
         return RustInfo(response.response.info)
 
-    async def get_team_chat(self) -> Union[List[RustChatMessage], RustError]:
+    async def get_team_chat(self) -> List[RustChatMessage] | RustError:
         """
         Gets the team chat from the server
 
@@ -220,7 +216,7 @@ class RustSocket:
             RustChatMessage(message) for message in response.response.team_chat.messages
         ]
 
-    async def get_team_info(self) -> Union[RustTeamInfo, RustError]:
+    async def get_team_info(self) -> RustTeamInfo | RustError:
         """
         Gets Information on the members of your team
 
@@ -238,7 +234,7 @@ class RustSocket:
 
         return RustTeamInfo(response.response.team_info)
 
-    async def get_markers(self) -> Union[List[RustMarker], RustError]:
+    async def get_markers(self) -> List[RustMarker] | RustError:
         """
         Gets all the map markers from the server
 
@@ -262,9 +258,9 @@ class RustSocket:
         add_events: bool = False,
         add_vending_machines: bool = False,
         add_team_positions: bool = False,
-        override_images: Union[dict, None] = None,
+        override_images: dict | None = None,
         add_grid: bool = False,
-    ) -> Union[Image.Image, RustError]:
+    ) -> Image.Image | RustError:
         """
         Gets an image of the map from the server with the specified additions
 
@@ -389,7 +385,7 @@ class RustSocket:
 
         return output
 
-    async def get_map_info(self) -> Union[RustMap, RustError]:
+    async def get_map_info(self) -> RustMap | RustError:
         """
         Gets the raw map data from the server
 
@@ -407,7 +403,7 @@ class RustSocket:
 
         return RustMap(response.response.map)
 
-    async def get_entity_info(self, eid: int) -> Union[RustEntityInfo, RustError]:
+    async def get_entity_info(self, eid: int) -> RustEntityInfo | RustError:
         """
         Gets entity info from the server
 
@@ -459,7 +455,7 @@ class RustSocket:
 
         await self.ws.send_message(packet, True)
 
-    async def check_subscription_to_entity(self, eid: int) -> Union[bool, RustError]:
+    async def check_subscription_to_entity(self, eid: int) -> bool | RustError:
         """
         Checks if you are subscribed to an entity
 
@@ -497,7 +493,7 @@ class RustSocket:
 
     async def get_contents(
         self, eid: int, combine_stacks: bool = False
-    ) -> Union[RustContents, RustError]:
+    ) -> RustContents | RustError:
         """
         Gets the contents of a storage monitor-attached container
 
@@ -554,7 +550,7 @@ class RustSocket:
 
         return RustContents(difference, bool(returned_data.has_protection), items)
 
-    async def get_camera_manager(self, cam_id: str) -> Union[CameraManager, RustError]:
+    async def get_camera_manager(self, cam_id: str) -> CameraManager | RustError:
         """
         Gets a camera manager for a given camera ID
 
@@ -578,7 +574,7 @@ class RustSocket:
 
         return CameraManager(self, cam_id, response.response.camera_subscribe_info)
 
-    async def get_clan_info(self) -> Union[RustClanInfo, RustError]:
+    async def get_clan_info(self) -> RustClanInfo | RustError:
         """
         Gets the clan information for the player's current clan.
 
@@ -596,7 +592,7 @@ class RustSocket:
 
         return RustClanInfo(response.response.clan_info.clan_info)
 
-    async def get_clan_chat(self) -> Union[List[RustClanMessage], RustError]:
+    async def get_clan_chat(self) -> List[RustClanMessage] | RustError:
         """
         Gets the clan chat for the player's current clan.
 
@@ -644,7 +640,7 @@ class RustSocket:
 
         await self.ws.send_message(packet, True)
 
-    async def get_nexus_auth(self, app_key: str) -> Union[RustAuthDetails, RustError]:
+    async def get_nexus_auth(self, app_key: str) -> RustAuthDetails | RustError:
         """
         Gets the auth for a server. Does not require that the player token of this RustSocket is set correctly.
 
@@ -669,7 +665,7 @@ class RustSocket:
             response.response.nexus_auth.player_token,
         )
 
-    async def kick_from_team(self, steamid: int) -> Union[None, RustError]:
+    async def kick_from_team(self, steamid: int) -> None | RustError:
         """
         Kicks a player from the team by their 64-bit Steam ID
 
