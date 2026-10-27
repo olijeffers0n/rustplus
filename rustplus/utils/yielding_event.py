@@ -1,11 +1,11 @@
 import asyncio
 import contextlib
-from typing import Any, Union, Optional
+from typing import Any, Optional
 
 
 class YieldingEvent(asyncio.Event):
     def __init__(self) -> None:
-        self.value: Union[Any, None] = None
+        self.value: Any | None = None
         super().__init__()
 
     def set_with_value(self, value: Any) -> None:

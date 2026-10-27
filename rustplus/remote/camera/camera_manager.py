@@ -1,5 +1,5 @@
 import time
-from typing import Iterable, Union, List, Coroutine, Set, Callable
+from typing import Iterable, List, Coroutine, Set, Callable
 from PIL import Image
 
 from .camera_parser import Parser
@@ -18,7 +18,7 @@ from .structures import CameraInfo, Entity, LimitedQueue
 
 class CameraManager:
 
-    ACTIVE_INSTANCE: Union["CameraManager", None] = None
+    ACTIVE_INSTANCE: "CameraManager | None" = None
 
     def __init__(
         self, rust_socket, cam_id: str, cam_info_message: AppCameraInfo
@@ -60,7 +60,7 @@ class CameraManager:
         render_entities: bool = True,
         entity_render_distance: float | int = float("inf"),
         max_entity_amount: float | int = float("inf"),
-    ) -> Union[Image.Image, None]:
+    ) -> Image.Image | None:
         if self._last_packets is None:
             return None
 
@@ -97,7 +97,7 @@ class CameraManager:
         render_entities: bool = True,
         entity_render_distance: float | int = float("inf"),
         max_entity_amount: float | int = float("inf"),
-    ) -> Union[Image.Image, None]:
+    ) -> Image.Image | None:
         return await self._create_frame(
             render_entities, entity_render_distance, max_entity_amount
         )

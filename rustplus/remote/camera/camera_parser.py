@@ -2,7 +2,7 @@ import math
 from importlib import resources
 from math import radians, tan
 import random
-from typing import Union, Tuple, List, Any, Dict
+from typing import Tuple, List, Any, Dict
 import numpy as np
 from scipy.spatial import ConvexHull
 from PIL import Image, ImageDraw, ImageFont
@@ -166,7 +166,7 @@ class Parser:
 
         return False
 
-    def next_ray(self, ray_data) -> List[Union[float, int]]:
+    def next_ray(self, ray_data) -> List[float | int]:
         byte = ray_data[self.data_pointer]
         self.data_pointer += 1
 
