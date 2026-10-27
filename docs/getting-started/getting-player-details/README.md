@@ -14,10 +14,10 @@ You can go to the server files where you will find a database called `player.tok
 
 #### **As a player:**
 
-There is a [Chrome Extension](https://chrome.google.com/webstore/detail/rustpluspy-link-companion/gojhnmnggbnflhdcpcemeahejhcimnlf?hl=en) so that you can automatically sign in with the Facepunch servers and get your details. Once installed, click on its icon to be redirected to the login page. Follow the sign in instructions and you will land on my website with a box of FCM Details you can either,&#x20;
+There is a [Chrome Extension](https://chrome.google.com/webstore/detail/rustpluspy-link-companion/gojhnmnggbnflhdcpcemeahejhcimnlf?hl=en) so that you can automatically sign in with the Facepunch servers and get your details. Once installed, click on its icon to be redirected to the login page. Follow the sign in instructions and you will land on my website with a box of FCM Details you can either,
 
-1\) Copy to Clipboard \
-2\) Download to file \
+1\) Copy to Clipboard\
+2\) Download to file\
 3\) Use on the website to - get this - listen for notifications on the web!
 
 ### Web Listener:
@@ -40,21 +40,30 @@ In order to get your data, you need to:
 
 * Click the Chrome extension icon to open the Facepunch Page
 * Login through Steam to authenticate yourself
-* You will be redirected to my page where you will have a box of credentials at the top. THESE ARE NOT YOUR LOGIN CREDENTIALS.
-* The box at the bottom contains all FCM Notifications.&#x20;
+* You will be redirected to my page where you will have a box of credentials at the top.
+* The box at the bottom contains all FCM Notifications.
+
+<figure><img src="../../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+
+You will need the above details in your `ServerDetails`:
+
+```python
+server_details = ServerDetails.facepunch(server_id, auth_token, steam_id, player_token)
+```
+
 * In-Game, send a pairing notification, You should get data like this:
 
 ```
 {
-    "desc": "",se
-    "id": "",
+    "desc": "",
+    "id": "", <- This is the server ID
     "img": "",
-    "ip": "", <- This is the IP 
+    "ip": "",
     "logo": "",
     "name": "",
     "playerId": "", <- This is your steam player ID
     "playerToken": "", <- This is your unique token
-    "port": "", <- This is the port
+    "port": "",
     "type": "",
     "url": ""
 }
@@ -63,5 +72,7 @@ In order to get your data, you need to:
 You can then use these details in the Python Wrapper here:
 
 ```python
-rust_socket = RustSocket("IPADDRESS",  "PORT", 64BITSTEAMID, PLAYERTOKEN)
+server_details = ServerDetails.facepunch(server_id, auth_token, steam_id, player_token)
+
+rust_socket = RustSocket(server_details)
 ```
