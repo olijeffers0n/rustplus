@@ -4,8 +4,6 @@ from dataclasses import dataclass, field
 
 from websockets.typing import Subprotocol
 
-from utils import deprecated
-
 
 def _b64url(s: str) -> str:
     return base64.urlsafe_b64encode(s.encode()).decode().rstrip("=")
@@ -64,7 +62,6 @@ class ServerDetails:
     player_token: int = field(repr=False)
 
     @classmethod
-    @deprecated
     def direct(
         cls,
         ip: str,
